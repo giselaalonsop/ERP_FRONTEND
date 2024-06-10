@@ -1,23 +1,45 @@
 'use client'
 
-import { useAuth } from '@/hooks/auth'
-import Navigation from '@/app/(app)/Navigation'
 import Loading from '@/app/(app)/Loading'
+import React, { useState } from 'react'
+
+import { useAuth } from '@/hooks/auth'
+import Navigation from './Navigation'
+import Sidebar from './Sidebar'
+import Navbar from './Navbar'
+import { useTheme } from '@/context/ThemeProvider'
 
 const AppLayout = ({ children, header }) => {
-    const { user } = useAuth({ middleware: 'auth' })
+    const { user, logout } = useAuth({ middleware: 'auth' })
+    const { isDark } = useTheme();
 
     if (!user) {
         return <Loading />
     }
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <Navigation user={user} />
-
-            <main>{children}</main>
+        <div className={`${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}
+         fixed z-30 w-full min-h-screen top-0 left-0 right-0 transition-all duration-300`}>
+            <div className={`${
+                isDark ? 'bg-gray-800 text-white' : ' bg-white text-gray-800'
+            } flex h-screen transition-all duration-300`}>
+            <Sidebar user={user} logout={logout} />
+        <div className={`${
+                isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
+            }flex flex-col flex-grow h-full transition-all duration-300 overflow-y-auto`}
+            >
+            <Navbar />
+            <main className={`${isDark? 'bg-gray-900':' bg-indigo-50'} mx-2 my-3  rounded-md flex-grow p-6 overflow-y-auto `}
+            >
+                {children}
+            </main>
         </div>
+            </div>
+        
+    </div>
+   
     )
 }
 
 export default AppLayout
+
