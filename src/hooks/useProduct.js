@@ -16,7 +16,7 @@ export const useProduct = () => {
             const response = await axios.post('/api/productos', props);
             if (response.status === 201) {
                 Swal.fire("Registro procesado", "", "success");
-                getProducts(); // Actualizar productos después de agregar uno nuevo
+                getProducts(); 
                 return response;
             } else {
                 console.error("Error al guardar los datos");
@@ -57,6 +57,8 @@ export const useProduct = () => {
                 ubicacion_destino,
                 precio_compra: selectedProduct.precio_compra,
                 porcentaje_ganancia: selectedProduct.porcentaje_ganancia,
+                porcentaje_ganancia_mayor: selectedProduct.porcentaje_ganancia_mayor, 
+                forma_de_venta_mayor: selectedProduct.forma_de_venta_mayor,
                 forma_de_venta: selectedProduct.forma_de_venta,
                 proveedor: selectedProduct.proveedor,
                 fecha_entrada: selectedProduct.fecha_entrada,
@@ -108,7 +110,6 @@ export const useProduct = () => {
             Swal.fire("Error al descargar el inventario", "", "error");
         }
     };
-    
 
     useEffect(() => {
         getProducts();

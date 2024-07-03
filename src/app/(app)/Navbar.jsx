@@ -5,8 +5,11 @@ import { faUser } from '@fortawesome/free-solid-svg-icons'
 import React, { useState } from 'react'
 import { useTheme } from '@/context/ThemeProvider'
 import Breadcrumb from '@/components/Breadcrumb'
+import Link from 'next/link'
+
 const Navbar = () => {
     const { isDark, toggleTheme } = useTheme()
+    const { user } = useAuth()
 
     return (
         <>
@@ -60,6 +63,17 @@ const Navbar = () => {
                                 )}
                             </button>
                         </div>
+                        {user && (
+                            <div className="flex items-center space-x-2">
+                                <FontAwesomeIcon
+                                    icon={faUser}
+                                    className="text-gray-900 dark:text-white"
+                                />
+                                <Link href={`/profile/${user.id}`}>
+                                    {user.name}
+                                </Link>
+                            </div>
+                        )}
                     </div>
                 </div>
             </nav>

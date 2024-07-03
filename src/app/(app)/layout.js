@@ -8,6 +8,7 @@ import Navigation from './Navigation'
 import Sidebar from './Sidebar'
 import Navbar from './Navbar'
 import { useTheme } from '@/context/ThemeProvider'
+import { Component } from '@/components/Footer'
 
 const AppLayout = ({ children, header }) => {
     const { user, logout } = useAuth({ middleware: 'auth' })
@@ -29,12 +30,17 @@ const AppLayout = ({ children, header }) => {
             }flex flex-col flex-grow h-full transition-all duration-300 overflow-y-auto`}
             >
             <Navbar />
+          
             <main className={`${isDark? 'bg-gray-900':' bg-indigo-50'} mx-2 my-3  rounded-md flex-grow p-6 overflow-y-auto `}
             >
                 {children}
+               
             </main>
+            <Component />
         </div>
+        
             </div>
+           
         
     </div>
    

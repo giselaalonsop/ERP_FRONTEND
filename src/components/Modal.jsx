@@ -9,6 +9,7 @@ const Modal = ({ isOpen, onClose, children, title }) => {
                         <h1 className="text-gray-800 font-lg font-bold tracking-normal leading-tight">
                             {title}
                         </h1>
+
                         <button
                             className="text-gray-400 hover:text-gray-600 transition duration-150 ease-in-out rounded focus:ring-2 focus:outline-none focus:ring-gray-600"
                             onClick={onClose}

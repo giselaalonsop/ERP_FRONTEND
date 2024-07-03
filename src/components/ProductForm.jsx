@@ -1,14 +1,14 @@
 'use client'
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import DropzoneComponent from './Dropzone'
 import { useProduct } from '@/hooks/useProduct'
+import { useCategories } from '@/hooks/useCategories'
 import Swal from 'sweetalert2'
 import 'tailwindcss/tailwind.css'
-import { AutoComplete } from 'primereact/autocomplete'
-import 'primereact/resources/themes/saga-blue/theme.css'
-import 'primereact/resources/primereact.min.css'
-import 'primeicons/primeicons.css'
-import { useCategories } from '@/hooks/useCategories'
+import Input from '@/components/Input'
+import Label from '@/components/Label'
+import InputError from '@/components/InputError'
+import Button from '@/components/Button'
 
 const getCurrentDate = () => {
     const today = new Date()
@@ -19,15 +19,9 @@ const getCurrentDate = () => {
 }
 
 const AddProductPage = ({ onClose }) => {
-    const [isLoading, setIsLoading] = useState(true) // Nuevo estado de carga
     const { categories, getCategoria, addCategoria } = useCategories()
-    const { products, addProduct, getProducts } = useProduct()
+    const { addProduct, getProducts } = useProduct()
     const [step, setStep] = useState(1)
-    const autoCompleteBarcodeRef = useRef(null) // Referencia para AutoComplete de código de barras
-    const autoCompleteNameRef = useRef(null) // Referencia para AutoComplete de nombre
-    const [filteredBarcodes, setFilteredBarcodes] = useState([])
-    const [filteredNames, setFilteredNames] = useState([])
-    const [filteredProducts, setFilteredProducts] = useState([])
     const [newCategory, setNewCategory] = useState('')
     const [isAddingCategory, setIsAddingCategory] = useState(false)
     const [errors, setErrors] = useState({})
@@ -39,14 +33,18 @@ const AddProductPage = ({ onClose }) => {
         categoria: '',
         imagen: null,
         cantidad_en_stock: '',
+        cantidad_en_stock_mayor: '',
         unidad_de_medida: '',
         fecha_entrada: getCurrentDate(),
         fecha_caducidad: '',
         peso: '',
         precio_compra: '',
         porcentaje_ganancia: '',
+        porcentaje_ganancia_mayor: '',
         forma_de_venta: '',
+        forma_de_venta_mayor: '',
         proveedor: '',
+        cantidad_por_caja: '',
         ubicacion: localStorage.getItem('almacen') || 'General',
     })
 
@@ -54,7 +52,6 @@ const AddProductPage = ({ onClose }) => {
         const fetchProductsAndCategories = async () => {
             await getProducts()
             await getCategoria()
-            setIsLoading(false) // Establecer isLoading a false después de cargar los productos y categorías
         }
         fetchProductsAndCategories()
     }, [])
@@ -65,72 +62,43 @@ const AddProductPage = ({ onClose }) => {
         }
     }, [responseMessage])
 
-    const searchBarcode = event => {
-        const query = event.query.toLowerCase()
-        const filtered = products.filter(product =>
-            product.codigo_barras.toLowerCase().includes(query),
-        )
-        setFilteredBarcodes(filtered)
-        autoCompleteBarcodeRef.current.show() // Mantener las sugerencias visibles
-    }
-
-    const searchName = event => {
-        const query = event.query.toLowerCase()
-        const filtered = products.filter(product =>
-            product.nombre.toLowerCase().includes(query),
-        )
-        setFilteredNames(filtered)
-        autoCompleteNameRef.current.show() // Mantener las sugerencias visibles
-    }
-
-    const handleProductSelect = (e, field) => {
-        const selectedProduct = e.value
-        setFormData({
-            ...formData,
-            codigo_barras: selectedProduct.codigo_barras,
-            nombre: selectedProduct.nombre,
-            descripcion: selectedProduct.descripcion || '',
-            categoria: selectedProduct.categoria || '',
-            cantidad_en_stock: selectedProduct.cantidad_en_stock || '',
-            unidad_de_medida: selectedProduct.unidad_de_medida || '',
-            fecha_entrada: selectedProduct.fecha_entrada || getCurrentDate(),
-            fecha_caducidad: selectedProduct.fecha_caducidad || '',
-            peso: selectedProduct.peso || '',
-            precio_compra: selectedProduct.precio_compra || '',
-            porcentaje_ganancia: selectedProduct.porcentaje_ganancia || '',
-            forma_de_venta: selectedProduct.forma_de_venta || '',
-            proveedor: selectedProduct.proveedor || '',
-            ubicacion:
-                selectedProduct.ubicacion ||
-                localStorage.getItem('almacen') ||
-                'General',
-        })
-    }
-
     const validateStep = currentStep => {
         const newErrors = {}
         if (currentStep === 1) {
             if (!formData.codigo_barras)
-                newErrors.codigo_barras = 'Barcode is required'
-            if (!formData.nombre) newErrors.nombre = 'Product Name is required'
+                newErrors.codigo_barras = 'Código de Barras es requerido'
+            if (!formData.nombre)
+                newErrors.nombre = 'Nombre del Producto es requerido'
             if (!formData.categoria)
-                newErrors.categoria = 'Category is required'
+                newErrors.categoria = 'Categoría es requerida'
         } else if (currentStep === 2) {
             if (!formData.cantidad_en_stock)
-                newErrors.cantidad_en_stock = 'Stock Quantity is required'
+                newErrors.cantidad_en_stock = 'Cantidad en Stock es requerida'
+            if (!formData.cantidad_en_stock_mayor)
+                newErrors.cantidad_en_stock_mayor =
+                    'Cantidad en Stock al Mayor es requerida'
             if (!formData.unidad_de_medida)
-                newErrors.unidad_de_medida = 'Unit of Measure is required'
+                newErrors.unidad_de_medida = 'Unidad de Medida es requerida'
             if (!formData.fecha_entrada)
-                newErrors.fecha_entrada = 'Entry Date is required'
+                newErrors.fecha_entrada = 'Fecha de Entrada es requerida'
+            if (!formData.cantidad_por_caja)
+                newErrors.cantidad_por_caja = 'Cantidad por Caja es requerida'
         } else if (currentStep === 3) {
             if (!formData.precio_compra)
-                newErrors.precio_compra = 'Purchase Price is required'
+                newErrors.precio_compra = 'Precio de Compra es requerido'
             if (!formData.porcentaje_ganancia)
-                newErrors.porcentaje_ganancia = 'Profit Percentage is required'
+                newErrors.porcentaje_ganancia =
+                    'Porcentaje de Ganancia es requerido'
+            if (!formData.porcentaje_ganancia_mayor)
+                newErrors.porcentaje_ganancia_mayor =
+                    'Porcentaje de Ganancia al Mayor es requerido'
             if (!formData.forma_de_venta)
-                newErrors.forma_de_venta = 'Sale Form is required'
+                newErrors.forma_de_venta = 'Forma de Venta es requerida'
+            if (!formData.forma_de_venta_mayor)
+                newErrors.forma_de_venta_mayor =
+                    'Forma de Venta al Mayor es requerida'
             if (!formData.proveedor)
-                newErrors.proveedor = 'Supplier is required'
+                newErrors.proveedor = 'Proveedor es requerido'
         }
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0
@@ -170,6 +138,15 @@ const AddProductPage = ({ onClose }) => {
         localStorage.setItem('almacen', value)
     }
 
+    const handleCantidadPorCajaChange = e => {
+        const value = parseInt(e.target.value, 10)
+        setFormData(prevData => ({
+            ...prevData,
+            cantidad_por_caja: value,
+            cantidad_en_stock: prevData.cantidad_en_stock_mayor * value,
+        }))
+    }
+
     const handleSubmit = e => {
         e.preventDefault()
         if (validateStep(3)) {
@@ -187,13 +164,17 @@ const AddProductPage = ({ onClose }) => {
                             categoria: '',
                             imagen: null,
                             cantidad_en_stock: '',
+                            cantidad_en_stock_mayor: '',
                             unidad_de_medida: '',
                             fecha_entrada: getCurrentDate(),
                             fecha_caducidad: '',
                             peso: '',
                             precio_compra: '',
                             porcentaje_ganancia: '',
+                            porcentaje_ganancia_mayor: '',
                             forma_de_venta: '',
+                            forma_de_venta_mayor: '',
+                            cantidad_por_caja: '',
                             proveedor: '',
                             ubicacion:
                                 localStorage.getItem('almacen') || 'General',
@@ -238,269 +219,238 @@ const AddProductPage = ({ onClose }) => {
         }
     }
 
-    const steps = ['About', 'Stock', 'Pricing']
+    const steps = ['Información', 'Stock', 'Precios']
 
     return (
-        <>
-            {isLoading ? (
-                <div className="w-full flex justify-center text-gray-600 mb-3">
-                    <p>Cargando..</p>
-                </div>
-            ) : (
-                <div className="w-full h-full bg-white rounded-md mx-auto">
-                    <div className="flex justify-between mb-4">
-                        {steps.map((label, index) => (
+        <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-4">
+                <h2 className="text-2xl font-bold">Agregar Producto</h2>
+            </div>
+            <div className="relative bg-white rounded-lg shadow-lg p-6">
+                <div className="absolute top-4 left-0 right-0 flex justify-between mb-4 px-6">
+                    {steps.map((label, index) => (
+                        <div
+                            key={index}
+                            className={`w-1/3 text-center ${
+                                step >= index + 1
+                                    ? 'text-white'
+                                    : 'text-gray-500'
+                            }`}>
                             <div
-                                key={index}
-                                className={`w-1/3 text-center ${
-                                    step >= index + 1
-                                        ? 'text-white'
-                                        : 'text-gray-500'
+                                className={`mx-auto w-8 h-8 rounded-full border-2 flex items-center justify-center ${
+                                    step > index
+                                        ? 'bg-blue-500 border-blue-500'
+                                        : 'border-gray-300'
                                 }`}>
-                                <div
-                                    className={`mx-auto w-8 h-8 rounded-full border-2 flex items-center justify-center ${
-                                        step > index
-                                            ? 'bg-blue-500 border-blue-500'
-                                            : 'border-gray-300'
-                                    }`}>
-                                    {step > index + 1 ? '✓' : index + 1}
-                                </div>
-                                <p className="mt-2">{label}</p>
+                                {step > index + 1 ? '✓' : index + 1}
                             </div>
-                        ))}
-                    </div>
-                    <form onSubmit={handleSubmit}>
+                            <p className="mt-2">{label}</p>
+                        </div>
+                    ))}
+                </div>
+                <form onSubmit={handleSubmit} className="pt-16">
+                    <div className="h-96 overflow-y-auto">
                         {step === 1 && (
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="codigo_barras"
-                                        className="block mb-2 text-sm font-medium">
-                                        Barcode / SKU
-                                    </label>
-                                    <AutoComplete
-                                        ref={autoCompleteBarcodeRef}
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <Label htmlFor="codigo_barras">
+                                        Código de Barras / SKU
+                                    </Label>
+                                    <Input
+                                        type="text"
+                                        id="codigo_barras"
+                                        name="codigo_barras"
                                         value={formData.codigo_barras}
-                                        suggestions={
-                                            isLoading
-                                                ? [
-                                                      {
-                                                          codigo_barras:
-                                                              'Cargando...',
-                                                      },
-                                                  ]
-                                                : filteredBarcodes
-                                        }
-                                        completeMethod={searchBarcode}
-                                        field="codigo_barras"
-                                        onChange={e =>
-                                            setFormData({
-                                                ...formData,
-                                                codigo_barras: e.value,
-                                            })
-                                        }
-                                        onSelect={e =>
-                                            handleProductSelect(
-                                                e,
-                                                'codigo_barras',
-                                            )
-                                        }
-                                        dropdown
-                                        forceSelection={false}
-                                        itemTemplate={item => {
-                                            if (
-                                                item.codigo_barras ===
-                                                'Cargando...'
-                                            ) {
-                                                return (
-                                                    <div>
-                                                        {item.codigo_barras}
-                                                    </div>
-                                                )
-                                            }
-                                            return item.codigo_barras
-                                        }}
-                                        completeonfocus
-                                        inputClassName={`bg-gray-50 border ${
-                                            errors.codigo_barras
-                                                ? 'border-red-500'
-                                                : 'border-gray-300'
-                                        } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
-                                    />
-
-                                    {errors.codigo_barras && (
-                                        <p className="text-red-500 text-sm">
-                                            {errors.codigo_barras}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="nombre"
-                                        className="block mb-2 text-sm font-medium">
-                                        Product Name
-                                    </label>
-                                    <AutoComplete
-                                        ref={autoCompleteNameRef}
-                                        value={formData.nombre}
-                                        suggestions={
-                                            isLoading
-                                                ? [{ nombre: 'Cargando...' }]
-                                                : filteredNames
-                                        }
-                                        completeMethod={searchName}
-                                        field="nombre"
-                                        onChange={e =>
-                                            setFormData({
-                                                ...formData,
-                                                nombre: e.value,
-                                            })
-                                        }
-                                        onSelect={e =>
-                                            handleProductSelect(e, 'nombre')
-                                        }
-                                        dropdown
-                                        forceSelection={false}
-                                        itemTemplate={item => {
-                                            if (item.nombre === 'Cargando...') {
-                                                return <div>{item.nombre}</div>
-                                            }
-                                            return item.nombre
-                                        }}
-                                        inputClassName={`bg-gray-50 border ${
-                                            errors.codigo_barras
-                                                ? 'border-red-500'
-                                                : 'border-gray-300'
-                                        } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
-                                    />
-
-                                    {errors.nombre && (
-                                        <p className="text-red-500 text-sm">
-                                            {errors.nombre}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="descripcion"
-                                        className="block mb-2 text-sm font-medium">
-                                        Description
-                                    </label>
-                                    <textarea
-                                        id="descripcion"
-                                        name="descripcion"
-                                        rows="4"
-                                        value={formData.descripcion}
                                         onChange={handleChange}
-                                        className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-600 focus:border-primary-600"
+                                        className={`bg-gray-50 border ${
+                                            errors.codigo_barras
+                                                ? 'border-red-500'
+                                                : 'border-gray-300'
+                                        } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                    />
+                                    <InputError
+                                        messages={errors.codigo_barras}
+                                        className="mt-2"
                                     />
                                 </div>
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="categoria"
-                                        className="block mb-2 text-sm font-medium">
-                                        Category
-                                    </label>
-                                    {isAddingCategory ? (
-                                        <div className="flex">
-                                            <input
-                                                type="text"
-                                                id="new_category"
-                                                name="new_category"
-                                                value={newCategory}
-                                                onChange={e =>
-                                                    setNewCategory(
-                                                        e.target.value,
-                                                    )
-                                                }
+                                <div>
+                                    <Label htmlFor="nombre">
+                                        Nombre del Producto
+                                    </Label>
+                                    <Input
+                                        type="text"
+                                        id="nombre"
+                                        name="nombre"
+                                        value={formData.nombre}
+                                        onChange={handleChange}
+                                        className={`bg-gray-50 border ${
+                                            errors.nombre
+                                                ? 'border-red-500'
+                                                : 'border-gray-300'
+                                        } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                    />
+                                    <InputError
+                                        messages={errors.nombre}
+                                        className="mt-2"
+                                    />
+                                </div>
+                                <div className="sm:col-span-2 grid grid-cols-2 gap-4">
+                                    <div>
+                                        <Label htmlFor="categoria">
+                                            Categoría
+                                        </Label>
+                                        {isAddingCategory ? (
+                                            <div className="flex">
+                                                <input
+                                                    type="text"
+                                                    id="new_category"
+                                                    name="new_category"
+                                                    value={newCategory}
+                                                    onChange={e =>
+                                                        setNewCategory(
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    className={`bg-gray-50 border ${
+                                                        errors.categoria
+                                                            ? 'border-red-500'
+                                                            : 'border-gray-300'
+                                                    } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                                    placeholder="Ingrese nueva categoría"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleAddCategory}
+                                                    className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">
+                                                    Agregar
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <select
+                                                id="categoria"
+                                                name="categoria"
+                                                value={formData.categoria}
+                                                onChange={handleCategoryChange}
                                                 className={`bg-gray-50 border ${
                                                     errors.categoria
                                                         ? 'border-red-500'
                                                         : 'border-gray-300'
-                                                } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
-                                                placeholder="Enter new category"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={handleAddCategory}
-                                                className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">
-                                                Add
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <select
-                                            id="categoria"
-                                            name="categoria"
-                                            value={formData.categoria}
-                                            onChange={handleCategoryChange}
-                                            className={`bg-gray-50 border ${
-                                                errors.categoria
-                                                    ? 'border-red-500'
-                                                    : 'border-gray-300'
-                                            } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}>
-                                            <option value="">
-                                                Select a category
-                                            </option>
-                                            {categories.map(category => (
-                                                <option
-                                                    key={category.id}
-                                                    value={category.nombre}>
-                                                    {category.nombre}
+                                                } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}>
+                                                <option value="">
+                                                    Seleccione una categoría
                                                 </option>
-                                            ))}
-                                            <option value="add_new">
-                                                Add new category
+                                                {categories.map(category => (
+                                                    <option
+                                                        key={category.id}
+                                                        value={category.nombre}>
+                                                        {category.nombre}
+                                                    </option>
+                                                ))}
+                                                <option value="add_new">
+                                                    Agregar nueva categoría
+                                                </option>
+                                            </select>
+                                        )}
+                                        <InputError
+                                            messages={errors.categoria}
+                                            className="mt-2"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="almacen">Almacén</Label>
+                                        <select
+                                            id="almacen"
+                                            name="ubicacion"
+                                            value={formData.ubicacion}
+                                            onChange={handleAlmacenChange}
+                                            className="block w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600">
+                                            <option value="General">
+                                                General
+                                            </option>
+                                            <option value="montalban">
+                                                Montalban
+                                            </option>
+                                            <option value="bejuma">
+                                                Bejuma
                                             </option>
                                         </select>
-                                    )}
-                                    {errors.categoria && (
-                                        <p className="text-red-500 text-sm">
-                                            {errors.categoria}
-                                        </p>
-                                    )}
+                                    </div>
                                 </div>
-
-                                <div className="mb-4">
-                                    <label className="block mb-2 text-sm font-medium">
-                                        Image
-                                    </label>
-                                    <DropzoneComponent
-                                        onDrop={handleDrop}
-                                        file={formData.imagen}
-                                    />
-                                </div>
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="almacen"
-                                        className="block mb-2 text-sm font-medium">
-                                        Almacen
-                                    </label>
-                                    <select
-                                        id="almacen"
-                                        name="ubicacion"
-                                        value={formData.ubicacion}
-                                        onChange={handleAlmacenChange}
-                                        className="block w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600">
-                                        <option value="General">General</option>
-                                        <option value="montalban">
-                                            Montalban
-                                        </option>
-                                        <option value="bejuma">Bejuma</option>
-                                    </select>
+                                <div className="sm:col-span-2 grid grid-cols-2 gap-4">
+                                    <div>
+                                        <Label htmlFor="descripcion">
+                                            Descripción
+                                        </Label>
+                                        <textarea
+                                            id="descripcion"
+                                            name="descripcion"
+                                            rows="4"
+                                            value={formData.descripcion}
+                                            onChange={handleChange}
+                                            className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-600 focus:border-primary-600"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label>Imagen</Label>
+                                        <DropzoneComponent
+                                            onDrop={handleDrop}
+                                            file={formData.imagen}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         )}
                         {step === 2 && (
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="cantidad_en_stock"
-                                        className="block mb-2 text-sm font-medium">
-                                        Stock Quantity
-                                    </label>
-                                    <input
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <Label htmlFor="cantidad_en_stock_mayor">
+                                        Cantidad en Stock (Mayor)
+                                    </Label>
+                                    <Input
+                                        type="number"
+                                        id="cantidad_en_stock_mayor"
+                                        name="cantidad_en_stock_mayor"
+                                        value={formData.cantidad_en_stock_mayor}
+                                        onChange={handleChange}
+                                        className={`bg-gray-50 border ${
+                                            errors.cantidad_en_stock_mayor
+                                                ? 'border-red-500'
+                                                : 'border-gray-300'
+                                        } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                    />
+                                    <InputError
+                                        messages={
+                                            errors.cantidad_en_stock_mayor
+                                        }
+                                        className="mt-2"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="cantidad_por_caja">
+                                        Cantidad por Caja
+                                    </Label>
+                                    <Input
+                                        type="number"
+                                        id="cantidad_por_caja"
+                                        name="cantidad_por_caja"
+                                        value={formData.cantidad_por_caja}
+                                        onChange={handleCantidadPorCajaChange}
+                                        className={`bg-gray-50 border ${
+                                            errors.cantidad_por_caja
+                                                ? 'border-red-500'
+                                                : 'border-gray-300'
+                                        } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                    />
+                                    <InputError
+                                        messages={errors.cantidad_por_caja}
+                                        className="mt-2"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="cantidad_en_stock">
+                                        Cantidad en Stock (Detal)
+                                    </Label>
+                                    <Input
                                         type="number"
                                         id="cantidad_en_stock"
                                         name="cantidad_en_stock"
@@ -512,19 +462,16 @@ const AddProductPage = ({ onClose }) => {
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
                                     />
-                                    {errors.cantidad_en_stock && (
-                                        <p className="text-red-500 text-sm">
-                                            {errors.cantidad_en_stock}
-                                        </p>
-                                    )}
+                                    <InputError
+                                        messages={errors.cantidad_en_stock}
+                                        className="mt-2"
+                                    />
                                 </div>
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="unidad_de_medida"
-                                        className="block mb-2 text-sm font-medium">
-                                        Unit of Measure
-                                    </label>
-                                    <input
+                                <div>
+                                    <Label htmlFor="unidad_de_medida">
+                                        Unidad de Medida
+                                    </Label>
+                                    <Input
                                         type="text"
                                         id="unidad_de_medida"
                                         name="unidad_de_medida"
@@ -536,19 +483,16 @@ const AddProductPage = ({ onClose }) => {
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
                                     />
-                                    {errors.unidad_de_medida && (
-                                        <p className="text-red-500 text-sm">
-                                            {errors.unidad_de_medida}
-                                        </p>
-                                    )}
+                                    <InputError
+                                        messages={errors.unidad_de_medida}
+                                        className="mt-2"
+                                    />
                                 </div>
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="fecha_entrada"
-                                        className="block mb-2 text-sm font-medium">
-                                        Entry Date
-                                    </label>
-                                    <input
+                                <div>
+                                    <Label htmlFor="fecha_entrada">
+                                        Fecha de Entrada
+                                    </Label>
+                                    <Input
                                         type="date"
                                         id="fecha_entrada"
                                         name="fecha_entrada"
@@ -560,19 +504,16 @@ const AddProductPage = ({ onClose }) => {
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
                                     />
-                                    {errors.fecha_entrada && (
-                                        <p className="text-red-500 text-sm">
-                                            {errors.fecha_entrada}
-                                        </p>
-                                    )}
+                                    <InputError
+                                        messages={errors.fecha_entrada}
+                                        className="mt-2"
+                                    />
                                 </div>
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="fecha_caducidad"
-                                        className="block mb-2 text-sm font-medium">
-                                        Expiration Date
-                                    </label>
-                                    <input
+                                <div>
+                                    <Label htmlFor="fecha_caducidad">
+                                        Fecha de Caducidad
+                                    </Label>
+                                    <Input
                                         type="date"
                                         id="fecha_caducidad"
                                         name="fecha_caducidad"
@@ -584,14 +525,10 @@ const AddProductPage = ({ onClose }) => {
                             </div>
                         )}
                         {step === 3 && (
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="peso"
-                                        className="block mb-2 text-sm font-medium">
-                                        Weight
-                                    </label>
-                                    <input
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <Label htmlFor="peso">Peso</Label>
+                                    <Input
                                         type="text"
                                         id="peso"
                                         name="peso"
@@ -600,13 +537,11 @@ const AddProductPage = ({ onClose }) => {
                                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                     />
                                 </div>
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="precio_compra"
-                                        className="block mb-2 text-sm font-medium">
-                                        Purchase Price
-                                    </label>
-                                    <input
+                                <div>
+                                    <Label htmlFor="precio_compra">
+                                        Precio de Compra
+                                    </Label>
+                                    <Input
                                         type="text"
                                         id="precio_compra"
                                         name="precio_compra"
@@ -618,19 +553,16 @@ const AddProductPage = ({ onClose }) => {
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
                                     />
-                                    {errors.precio_compra && (
-                                        <p className="text-red-500 text-sm">
-                                            {errors.precio_compra}
-                                        </p>
-                                    )}
+                                    <InputError
+                                        messages={errors.precio_compra}
+                                        className="mt-2"
+                                    />
                                 </div>
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="porcentaje_ganancia"
-                                        className="block mb-2 text-sm font-medium">
-                                        Profit Percentage
-                                    </label>
-                                    <input
+                                <div>
+                                    <Label htmlFor="porcentaje_ganancia">
+                                        Porcentaje de Ganancia
+                                    </Label>
+                                    <Input
                                         type="text"
                                         id="porcentaje_ganancia"
                                         name="porcentaje_ganancia"
@@ -642,19 +574,41 @@ const AddProductPage = ({ onClose }) => {
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
                                     />
-                                    {errors.porcentaje_ganancia && (
-                                        <p className="text-red-500 text-sm">
-                                            {errors.porcentaje_ganancia}
-                                        </p>
-                                    )}
+                                    <InputError
+                                        messages={errors.porcentaje_ganancia}
+                                        className="mt-2"
+                                    />
                                 </div>
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="forma_de_venta"
-                                        className="block mb-2 text-sm font-medium">
-                                        Sale Form
-                                    </label>
-                                    <input
+                                <div>
+                                    <Label htmlFor="porcentaje_ganancia_mayor">
+                                        Porcentaje de Ganancia (Mayor)
+                                    </Label>
+                                    <Input
+                                        type="text"
+                                        id="porcentaje_ganancia_mayor"
+                                        name="porcentaje_ganancia_mayor"
+                                        value={
+                                            formData.porcentaje_ganancia_mayor
+                                        }
+                                        onChange={handleChange}
+                                        className={`bg-gray-50 border ${
+                                            errors.porcentaje_ganancia_mayor
+                                                ? 'border-red-500'
+                                                : 'border-gray-300'
+                                        } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                    />
+                                    <InputError
+                                        messages={
+                                            errors.porcentaje_ganancia_mayor
+                                        }
+                                        className="mt-2"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="forma_de_venta">
+                                        Forma de Venta
+                                    </Label>
+                                    <Input
                                         type="text"
                                         id="forma_de_venta"
                                         name="forma_de_venta"
@@ -666,19 +620,35 @@ const AddProductPage = ({ onClose }) => {
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
                                     />
-                                    {errors.forma_de_venta && (
-                                        <p className="text-red-500 text-sm">
-                                            {errors.forma_de_venta}
-                                        </p>
-                                    )}
+                                    <InputError
+                                        messages={errors.forma_de_venta}
+                                        className="mt-2"
+                                    />
                                 </div>
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="proveedor"
-                                        className="block mb-2 text-sm font-medium">
-                                        Supplier
-                                    </label>
-                                    <input
+                                <div>
+                                    <Label htmlFor="forma_de_venta_mayor">
+                                        Forma de Venta (Mayor)
+                                    </Label>
+                                    <Input
+                                        type="text"
+                                        id="forma_de_venta_mayor"
+                                        name="forma_de_venta_mayor"
+                                        value={formData.forma_de_venta_mayor}
+                                        onChange={handleChange}
+                                        className={`bg-gray-50 border ${
+                                            errors.forma_de_venta_mayor
+                                                ? 'border-red-500'
+                                                : 'border-gray-300'
+                                        } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                    />
+                                    <InputError
+                                        messages={errors.forma_de_venta_mayor}
+                                        className="mt-2"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="proveedor">Proveedor</Label>
+                                    <Input
                                         type="text"
                                         id="proveedor"
                                         name="proveedor"
@@ -690,43 +660,42 @@ const AddProductPage = ({ onClose }) => {
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
                                     />
-                                    {errors.proveedor && (
-                                        <p className="text-red-500 text-sm">
-                                            {errors.proveedor}
-                                        </p>
-                                    )}
+                                    <InputError
+                                        messages={errors.proveedor}
+                                        className="mt-2"
+                                    />
                                 </div>
                             </div>
                         )}
-                        <div className="flex justify-between mt-6">
-                            <button
-                                type="button"
-                                onClick={handlePrevStep}
-                                className="px-4 py-2 bg-gray-200 text-gray-800 font-medium rounded-md">
-                                Previous
-                            </button>
-                            <div>
-                                {step < 3 && (
-                                    <button
-                                        type="button"
-                                        onClick={handleNextStep}
-                                        className="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-medium rounded-md">
-                                        Next
-                                    </button>
-                                )}
-                                {step === 3 && (
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 bg-green-500 hover:bg-green-700 text-white font-medium rounded-md">
-                                        Submit
-                                    </button>
-                                )}
-                            </div>
+                    </div>
+                    <div className="flex justify-between ">
+                        <Button
+                            type="button"
+                            onClick={handlePrevStep}
+                            className="px-4 py-2 bg-gray-200 text-gray-800 font-medium rounded-md">
+                            Anterior
+                        </Button>
+                        <div>
+                            {step < 3 && (
+                                <Button
+                                    type="button"
+                                    onClick={handleNextStep}
+                                    className="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-medium rounded-md">
+                                    Siguiente
+                                </Button>
+                            )}
+                            {step === 3 && (
+                                <Button
+                                    type="submit"
+                                    className="px-4 py-2 bg-green-500 hover:bg-green-700 text-white font-medium rounded-md">
+                                    Enviar
+                                </Button>
+                            )}
                         </div>
-                    </form>
-                </div>
-            )}
-        </>
+                    </div>
+                </form>
+            </div>
+        </div>
     )
 }
 

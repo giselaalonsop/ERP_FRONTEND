@@ -1,75 +1,210 @@
 'use client'
 import { useAuth } from '@/hooks/auth'
 import Button from '@/components/Button'
-import Input from '@/components/Input'
 import InputError from '@/components/InputError'
 import Label from '@/components/Label'
 import { useState, useEffect } from 'react'
 import Swal from 'sweetalert2'
 
+import 'tailwindcss/tailwind.css'
+
 const Register = ({ user: editUser, onClose }) => {
-    const { registerUser, editUser: updateUser } = useAuth({
-        middleware: 'guest',
-    })
+    const { registerUser, editUser: updateUser, hasPermission, user } = useAuth(
+        {
+            middleware: 'guest',
+        },
+    )
 
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [passwordConfirmation, setPasswordConfirmation] = useState('')
     const [rol, setRol] = useState('user')
+    const [location, setLocation] = useState('')
+    const [permissions, setPermissions] = useState({
+        facturacion: false,
+        registrarUsuarios: false,
+        verUsuarios: false,
+        clientes: false,
+        configuraciones: false,
+        cargaInventario: false,
+        descargaInventario: false,
+        agregarNuevoProducto: false,
+        agregarProveedores: false,
+        cuentasPorPagar: false,
+        cierreDeCaja: false,
+    })
     const [errors, setErrors] = useState([])
+
+    const setAdminPermissions = () => {
+        setPermissions({
+            facturacion: true,
+            registrarUsuarios: true,
+            verUsuarios: true,
+            clientes: true,
+            configuraciones: true,
+            cargaInventario: true,
+            descargaInventario: true,
+            agregarNuevoProducto: true,
+            agregarProveedores: true,
+            cuentasPorPagar: true,
+            cierreDeCaja: true,
+        })
+    }
+
+    const handleRoleChange = event => {
+        const newRole = event.target.value
+        setRol(newRole)
+        if (newRole === 'admin') {
+            setAdminPermissions()
+        } else {
+            setPermissions({
+                facturacion: false,
+                registrarUsuarios: false,
+                verUsuarios: false,
+                clientes: false,
+                configuraciones: false,
+                cargaInventario: false,
+                descargaInventario: false,
+                agregarNuevoProducto: false,
+                agregarProveedores: false,
+                cuentasPorPagar: false,
+                cierreDeCaja: false,
+            })
+        }
+    }
 
     useEffect(() => {
         if (editUser) {
             setName(editUser.name)
             setEmail(editUser.email)
             setRol(editUser.rol)
+            setLocation(editUser.location || '')
+
+            if (typeof editUser.permissions === 'string') {
+                try {
+                    const parsedPermissions = JSON.parse(editUser.permissions)
+                    setPermissions(parsedPermissions)
+                } catch (error) {
+                    console.error('Error parsing permissions:', error)
+                }
+            } else if (typeof editUser.permissions === 'object') {
+                setPermissions(editUser.permissions)
+            }
         }
     }, [editUser])
 
+    const handleCheckboxChange = event => {
+        setPermissions({
+            ...permissions,
+            [event.target.name]: event.target.checked,
+        })
+    }
+
     const submitForm = async event => {
         event.preventDefault()
+        setErrors([])
 
-        if (editUser) {
-            // Lógica para actualizar usuario
-            const response = await updateUser(editUser.id, {
-                name,
-                email,
-                password,
-                password_confirmation: passwordConfirmation,
-                rol,
-                setErrors,
-            })
-
-            if (response) {
-                Swal.fire('Usuario Actualizado', '', 'success')
-                onClose()
+        try {
+            let response
+            if (editUser) {
+                response = await updateUser(editUser.id, {
+                    name,
+                    email,
+                    rol,
+                    location,
+                    permissions,
+                })
+            } else {
+                response = await registerUser({
+                    name,
+                    email,
+                    password,
+                    password_confirmation: passwordConfirmation,
+                    rol,
+                    location,
+                    permissions,
+                    setErrors, // Pass setErrors correctly
+                })
             }
-        } else {
-            // Lógica para registrar nuevo usuario
-            const response = await registerUser({
-                name,
-                email,
-                password,
-                password_confirmation: passwordConfirmation,
-                rol,
-                setErrors,
-            })
 
-            if (response) {
-                Swal.fire('Usuario Registrado', '', 'success')
-                setName('')
-                setEmail('')
-                setPassword('')
-                setPasswordConfirmation('')
-                setRol('user')
+            if (response && response.status === 422) {
+                setErrors(response.data.errors)
+                Swal.fire('Error en la validación', '', 'error')
+            } else if (
+                (response && response.status === 200) ||
+                response.status === 201
+            ) {
+                const successMessage = editUser
+                    ? 'Usuario Actualizado'
+                    : 'Usuario Registrado'
+                Swal.fire(successMessage, '', 'success')
+                clearFormFields()
                 onClose()
+            } else {
+                Swal.fire(
+                    'Hubo un problema al procesar tu solicitud',
+                    response.data.message || '',
+                    'error',
+                )
             }
+        } catch (error) {
+            console.error('Error:', error)
+            Swal.fire('Hubo un problema al procesar tu solicitud', '', 'error')
         }
     }
 
+    const clearFormFields = () => {
+        setName('')
+        setEmail('')
+        setPassword('')
+        setPasswordConfirmation('')
+        setRol('user')
+        setLocation('')
+        setPermissions({
+            facturacion: false,
+            registrarUsuarios: false,
+            verUsuarios: false,
+            clientes: false,
+            configuraciones: false,
+            cargaInventario: false,
+            descargaInventario: false,
+            agregarNuevoProducto: false,
+            agregarProveedores: false,
+            cuentasPorPagar: false,
+            cierreDeCaja: false,
+        })
+    }
+
+    const permissionsOptions = [
+        { name: 'facturacion', label: 'Facturación' },
+        { name: 'registrarUsuarios', label: 'Registrar Usuarios' },
+        { name: 'verUsuarios', label: 'Ver Usuarios' },
+        { name: 'clientes', label: 'Clientes' },
+        { name: 'configuraciones', label: 'Configuraciones' },
+        { name: 'cargaInventario', label: 'Carga de Inventario' },
+        { name: 'descargaInventario', label: 'Descarga de Inventario' },
+        { name: 'agregarNuevoProducto', label: 'Agregar Nuevo Producto' },
+        { name: 'agregarProveedores', label: 'Agregar Proveedores' },
+        { name: 'cuentasPorPagar', label: 'Cuentas por Pagar' },
+        { name: 'cierreDeCaja', label: 'Cierre de Caja' },
+    ]
+
+    if (!hasPermission('registrarUsuarios') && user.rol !== 'admin') {
+        return (
+            <>
+                <div>No tienes permisos</div>
+                <Button
+                    onClick={onClose}
+                    className="block w-full text-center max-w-xs mx-auto bg-red-500 hover:bg-red-700 focus:bg-red-700 text-white rounded-lg px-3 py-3 font-semibold">
+                    Cerrar
+                </Button>
+            </>
+        )
+    }
+
     return (
-        <div>
+        <div className="max-w-3xl mx-auto">
             <div className="text-center mb-10">
                 <h1 className="font-bold text-3xl text-gray-900">
                     {editUser ? 'EDITAR USUARIO' : 'REGISTRAR'}
@@ -81,134 +216,157 @@ const Register = ({ user: editUser, onClose }) => {
                 </p>
             </div>
             <form onSubmit={submitForm}>
-                <div className="flex -mx-3">
-                    <div className="w-1/2 px-3 mb-10">
+                <div className="grid gap-4  sm:grid-cols-2">
+                    <div>
                         <Label
                             htmlFor="name"
-                            className="text-xs font-semibold px-1">
+                            className="block mb-2 text-sm font-medium">
                             Nombre
                         </Label>
-                        <div className="flex">
-                            <div className="w-10 z-10 pl-1 text-center pointer-events-none flex items-center justify-center">
-                                <i className="mdi mdi-account-outline text-gray-400 text-lg"></i>
-                            </div>
-                            <Input
-                                id="name"
-                                type="text"
-                                value={name}
-                                className="w-full -ml-10 pl-10 pr-3 py-2 rounded-lg border-2 border-gray-200 outline-none focus:border-indigo-500"
-                                onChange={event => setName(event.target.value)}
-                                required
-                            />
-                        </div>
-                        <InputError messages={errors.name} className="mt-2" />
+                        <input
+                            type="text"
+                            id="name"
+                            value={name}
+                            className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                            onChange={event => setName(event.target.value)}
+                            required
+                        />
+                        <InputError messages={errors?.name} className="mt-2" />
                     </div>
-                    <div className="w-1/2 px-3 mb-10">
+                    <div>
                         <Label
                             htmlFor="email"
-                            className="text-xs font-semibold px-1">
+                            className="block mb-2 text-sm font-medium">
                             Correo
                         </Label>
-                        <div className="flex">
-                            <div className="w-10 z-10 pl-1 text-center pointer-events-none flex items-center justify-center">
-                                <i className="mdi mdi-email-outline text-gray-400 text-lg"></i>
-                            </div>
-                            <Input
-                                id="email"
-                                type="email"
-                                value={email}
-                                className="w-full -ml-10 pl-10 pr-3 py-2 rounded-lg border-2 border-gray-200 outline-none focus:border-indigo-500"
-                                onChange={event => setEmail(event.target.value)}
-                                required
-                            />
-                        </div>
-                        <InputError messages={errors.email} className="mt-2" />
-                    </div>
-                </div>
-                <div className="flex -mx-3">
-                    <div className="w-1/2 px-3 mb-10">
-                        <Label
-                            htmlFor="password"
-                            className="text-xs font-semibold px-1">
-                            Contraseña
-                        </Label>
-                        <div className="flex">
-                            <div className="w-10 z-10 pl-1 text-center pointer-events-none flex items-center justify-center">
-                                <i className="mdi mdi-lock-outline text-gray-400 text-lg"></i>
-                            </div>
-                            <Input
-                                id="password"
-                                type="password"
-                                value={password}
-                                className="w-full -ml-10 pl-10 pr-3 py-2 rounded-lg border-2 border-gray-200 outline-none focus:border-indigo-500"
-                                onChange={event =>
-                                    setPassword(event.target.value)
-                                }
-                                required={!editUser}
-                                autoComplete="new-password"
-                            />
-                        </div>
-                        <InputError
-                            messages={errors.password}
-                            className="mt-2"
+                        <input
+                            type="email"
+                            id="email"
+                            value={email}
+                            className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                            onChange={event => setEmail(event.target.value)}
+                            required
                         />
+                        <InputError messages={errors?.email} className="mt-2" />
                     </div>
-                    <div className="w-1/2 px-3 mb-10">
-                        <Label
-                            htmlFor="passwordConfirmation"
-                            className="text-xs font-semibold px-1">
-                            Confirmar Contraseña
-                        </Label>
-                        <div className="flex">
-                            <div className="w-10 z-10 pl-1 text-center pointer-events-none flex items-center justify-center">
-                                <i className="mdi mdi-lock-outline text-gray-400 text-lg"></i>
-                            </div>
-                            <Input
-                                id="passwordConfirmation"
-                                type="password"
-                                value={passwordConfirmation}
-                                className="w-full -ml-10 pl-10 pr-3 py-2 rounded-lg border-2 border-gray-200 outline-none focus:border-indigo-500"
-                                onChange={event =>
-                                    setPasswordConfirmation(event.target.value)
-                                }
-                                required={!editUser}
-                            />
-                        </div>
-                        <InputError
-                            messages={errors.password_confirmation}
-                            className="mt-2"
-                        />
-                    </div>
-                </div>
-                <div className="flex  justify-around mx-3">
-                    {editUser && (
-                        <div className="w-1/2 mb-10">
-                            <div className="w-1/2 flex items-center justify-center">
+                    {!editUser && (
+                        <>
+                            <div>
                                 <Label
-                                    htmlFor="rol"
-                                    className="text-xs font-semibold px-1">
-                                    Rol
+                                    htmlFor="password"
+                                    className="block mb-2 text-sm font-medium">
+                                    Contraseña
                                 </Label>
-                                <div className="flex">
-                                    <select
-                                        id="rol"
-                                        value={rol}
-                                        onChange={event =>
-                                            setRol(event.target.value)
-                                        }
-                                        className="block w-full mt-1 border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                        <option value="user">Usuario</option>
-                                        <option value="admin">Admin</option>
-                                    </select>
-                                </div>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    value={password}
+                                    className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                                    onChange={event =>
+                                        setPassword(event.target.value)
+                                    }
+                                    required={!editUser}
+                                    autoComplete="new-password"
+                                />
+                                <InputError
+                                    messages={errors?.password}
+                                    className="mt-2"
+                                />
                             </div>
-                        </div>
+                            <div>
+                                <Label
+                                    htmlFor="passwordConfirmation"
+                                    className="block mb-2 text-sm font-medium">
+                                    Confirmar Contraseña
+                                </Label>
+                                <input
+                                    type="password"
+                                    id="passwordConfirmation"
+                                    value={passwordConfirmation}
+                                    className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                                    onChange={event =>
+                                        setPasswordConfirmation(
+                                            event.target.value,
+                                        )
+                                    }
+                                    required={!editUser}
+                                />
+                                <InputError
+                                    messages={errors?.password_confirmation}
+                                    className="mt-2"
+                                />
+                            </div>
+                        </>
                     )}
-                    <div className="w-1/2 px-3 mb-10">
-                        <Button className="block w-full text-center max-w-xs mx-auto bg-indigo-500 hover:bg-indigo-700 focus:bg-indigo-700 text-white rounded-lg px-3 py-3 font-semibold">
-                            {editUser ? 'ACTUALIZAR' : 'REGISTRAR'}
-                        </Button>
+                    <div>
+                        <Label
+                            htmlFor="rol"
+                            className="block mb-2 text-sm font-medium">
+                            Rol
+                        </Label>
+                        <select
+                            id="rol"
+                            value={rol}
+                            onChange={handleRoleChange}
+                            className="border border-gray-300 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                            <option value="user">Usuario</option>
+                            <option value="admin">Admin</option>
+                        </select>
                     </div>
+                    <div>
+                        <Label
+                            htmlFor="location"
+                            className="block mb-2 text-sm font-medium">
+                            Ubicación
+                        </Label>
+                        <select
+                            id="location"
+                            value={location}
+                            onChange={event => setLocation(event.target.value)}
+                            className="border border-gray-300 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                            <option value="" disabled>
+                                Selecciona una ubicación
+                            </option>
+                            <option value="Bejuma">Bejuma</option>
+                            <option value="Montalban">Montalbán</option>
+                        </select>
+                        <InputError
+                            messages={errors?.location}
+                            className="mt-2"
+                        />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                        <h2 className="font-bold text-xl mb-4">Permisos</h2>
+                        <div className="grid gap-2  sm:grid-cols-3">
+                            {permissionsOptions.map(option => (
+                                <div
+                                    key={option.name}
+                                    className="flex items-center mb-2">
+                                    <input
+                                        id={option.name}
+                                        name={option.name}
+                                        type="checkbox"
+                                        checked={
+                                            permissions[option.name] || false
+                                        }
+                                        onChange={handleCheckboxChange}
+                                        className="mr-2"
+                                    />
+                                    <label
+                                        htmlFor={option.name}
+                                        className="text-sm">
+                                        {option.label}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+                <div className="flex justify-end pl-4">
+                    <Button className="bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                        {editUser ? 'ACTUALIZAR' : 'REGISTRAR'}
+                    </Button>
                 </div>
             </form>
         </div>

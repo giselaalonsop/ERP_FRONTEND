@@ -9,24 +9,23 @@ import Swal from 'sweetalert2'
 import { EyeIcon, TrashIcon } from '@heroicons/react/outline'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons'
+import { useClientes } from '@/hooks/useClients'
+import HistorialComprasModal from '@/components/Historial'
+import RegisterClient from '@/components/RegisterClient'
 import Pagination from '@/components/Pagination'
 
 const Page = () => {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-    const [selectedUser, setSelectedUser] = useState(null)
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 10
     const {
-        user,
-        users,
-        usersError,
-        mutateUsers,
-        editUser,
-        deleteUser,
-    } = useAuth({ middleware: 'auth' })
+        clientes,
+        clientesError,
+        getHistorialCompras,
+        deleteClient,
+    } = useClientes()
     const { isDark } = useTheme()
 
     const openModal = (content, title) => {
@@ -41,23 +40,46 @@ const Page = () => {
         setModalTitle('')
     }
 
-    const toggleDropdown = user => {
-        setSelectedUser(user)
-        setIsDropdownOpen(!isDropdownOpen)
+    const showClientInfo = client => {
+        if (!client) return
+        Swal.fire({
+            title: 'Información del Cliente',
+            html: `
+                <div>
+                    <p><strong>Nombre:</strong> ${client.nombre}</p>
+                    <p><strong>Correo:</strong> ${client.correo_electronico}</p>
+                    <p><strong>Teléfono:</strong> ${client.numero_de_telefono}</p>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ver Historial de Compras',
+        }).then(result => {
+            if (result.isConfirmed) {
+                openModal(
+                    <HistorialComprasModal
+                        client={client}
+                        onClose={closeModal}
+                    />,
+                    'Historial de Compras',
+                )
+            }
+        })
     }
 
-    const closeDropdown = () => {
-        setIsDropdownOpen(false)
-    }
-
-    const handleEdit = user => {
+    const handleEdit = client => {
         openModal(
-            <Register user={user} onClose={closeModal} editMode={true} />,
-            'Editar Usuario',
+            <RegisterClient
+                client={client}
+                onClose={closeModal}
+                editMode={true}
+            />,
+            'Editar Cliente',
         )
     }
 
-    const handleDelete = async userId => {
+    const handleDelete = async clientId => {
         Swal.fire({
             title: '¿Estás seguro?',
             text: 'No podrás revertir esto!',
@@ -68,16 +90,16 @@ const Page = () => {
         }).then(async result => {
             if (result.isConfirmed) {
                 try {
-                    await deleteUser(userId)
+                    await deleteClient(clientId)
                     Swal.fire(
                         'Eliminado!',
-                        'El usuario ha sido eliminado.',
+                        'El cliente ha sido eliminado.',
                         'success',
                     )
                 } catch (error) {
                     Swal.fire(
                         'Error!',
-                        'Hubo un problema al eliminar el usuario.',
+                        'Hubo un problema al eliminar el cliente.',
                         'error',
                     )
                 }
@@ -85,46 +107,9 @@ const Page = () => {
         })
     }
 
-    if (!user) {
-        return <p>Loading...</p>
-    }
-
-    const showUserInfo = user => {
-        const permissionsList =
-            typeof user.permissions === 'string'
-                ? JSON.parse(user.permissions)
-                : user.permissions
-
-        Swal.fire({
-            title: 'Información del Usuario',
-            html: `
-                <div>
-                    <p><strong>Nombre:</strong> ${user.name}</p>
-                    <p><strong>Correo:</strong> ${user.email}</p>
-                    <p><strong>Rol:</strong> ${user.rol}</p>
-                    <p><strong>Permisos:</strong></p>
-                    <ul>
-                        ${Object.keys(permissionsList)
-                            .map(
-                                permission =>
-                                    `<li>${permission}: ${
-                                        permissionsList[permission]
-                                            ? '✔️'
-                                            : '🚫'
-                                    }</li>`,
-                            )
-                            .join('')}
-                    </ul>
-                </div>
-            `,
-            icon: 'info',
-            confirmButtonText: 'Cerrar',
-        })
-    }
-
     const startIndex = (currentPage - 1) * itemsPerPage
-    const paginatedUsers = users
-        ? users.slice(startIndex, startIndex + itemsPerPage)
+    const paginatedClientes = clientes
+        ? clientes.slice(startIndex, startIndex + itemsPerPage)
         : []
 
     return (
@@ -140,22 +125,22 @@ const Page = () => {
                             <button
                                 onClick={() =>
                                     openModal(
-                                        <Register
+                                        <RegisterClient
                                             onClose={closeModal}
                                             editMode={false}
                                         />,
-                                        'Nuevo Usuario',
+                                        'Nuevo Cliente',
                                     )
                                 }
                                 className="flex items-center px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-700 text-white font-semibold shadow whitespace-nowrap">
                                 <PlusIcon className="h-5 w-5 mr-2" />
-                                Nuevo Usuario
+                                Nuevo Cliente
                             </button>
                         </div>
                     </div>
 
                     <label htmlFor="table-search" className="sr-only">
-                        Search
+                        Buscar
                     </label>
                     <div className="relative">
                         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -178,14 +163,14 @@ const Page = () => {
                             type="text"
                             id="table-search-users"
                             className="block p-2 pl-10 text-sm rounded-lg w-80"
-                            placeholder="Search for users"
+                            placeholder="Buscar clientes"
                         />
                     </div>
                 </div>
 
-                {usersError ? (
-                    <div>Error al cargar los usuarios.</div>
-                ) : !users ? (
+                {clientesError ? (
+                    <div>Error al cargar los clientes.</div>
+                ) : !clientes ? (
                     <div>Cargando...</div>
                 ) : (
                     <div>
@@ -212,33 +197,33 @@ const Page = () => {
                                         </div>
                                     </th>
                                     <th scope="col" className="px-6 py-3">
-                                        Name
+                                        Nombre
                                     </th>
                                     <th scope="col" className="px-6 py-3">
-                                        Role
+                                        Correo
                                     </th>
                                     <th scope="col" className="px-6 py-3">
-                                        Status
+                                        Teléfono
                                     </th>
                                     <th scope="col" className="px-6 py-3">
-                                        Action
+                                        Acción
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {paginatedUsers.map(user => (
+                                {paginatedClientes.map(client => (
                                     <tr
-                                        key={user.id}
+                                        key={client.id}
                                         className="border-b cursor-pointer">
                                         <td className="w-4 p-4">
                                             <div className="flex items-center">
                                                 <input
-                                                    id={`checkbox-table-search-${user.id}`}
+                                                    id={`checkbox-table-search-${client.id}`}
                                                     type="checkbox"
                                                     className="w-4 h-4 rounded"
                                                 />
                                                 <label
-                                                    htmlFor={`checkbox-table-search-${user.id}`}
+                                                    htmlFor={`checkbox-table-search-${client.id}`}
                                                     className="sr-only">
                                                     checkbox
                                                 </label>
@@ -247,67 +232,54 @@ const Page = () => {
                                         <th
                                             scope="row"
                                             className="flex items-center px-6 py-4 whitespace-nowrap">
-                                            <img
-                                                className="w-10 h-10 rounded-full"
-                                                src="/docs/images/people/profile-picture-1.jpg"
-                                                alt={`${user.name} image`}
-                                            />
                                             <div className="pl-3">
                                                 <div className="text-base font-semibold">
-                                                    {user.name}
+                                                    {client.nombre}
                                                 </div>
                                                 <div className="font-normal text-gray-500">
-                                                    {user.email}
+                                                    {client.correo_electronico}
                                                 </div>
                                             </div>
                                         </th>
                                         <td className="px-6 py-4">
-                                            {user.rol}
+                                            {client.correo_electronico}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center">
-                                                <div className="h-2.5 w-2.5 rounded-full bg-green-500 mr-2"></div>
-                                                Online
-                                            </div>
+                                            {client.numero_de_telefono}
                                         </td>
-
-                                        <div className="relative">
-                                            <td className="px-6 py-4 flex space-x-2">
-                                                <button
-                                                    onClick={() =>
-                                                        showUserInfo(user)
-                                                    }
-                                                    className="text-blue-600 hover:text-blue-900">
-                                                    <EyeIcon className="h-5 w-5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        closeDropdown()
-                                                        handleEdit(user)
-                                                    }}
-                                                    className="text-green-600 hover:text-green-900">
-                                                    <FontAwesomeIcon
-                                                        className="h-4 w-4"
-                                                        icon={faPenToSquare}
-                                                    />
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        closeDropdown()
-                                                        handleDelete(user.id)
-                                                    }}
-                                                    className="text-red-600 hover:text-red-900">
-                                                    <TrashIcon className="h-5 w-5" />
-                                                </button>
-                                            </td>
-                                        </div>
+                                        <td className="px-6 py-4 flex space-x-2">
+                                            <button
+                                                onClick={() =>
+                                                    showClientInfo(client)
+                                                }
+                                                className="text-blue-600 hover:text-blue-900">
+                                                <EyeIcon className="h-5 w-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    handleEdit(client)
+                                                }}
+                                                className="text-green-600 hover:text-green-900">
+                                                <FontAwesomeIcon
+                                                    className="h-4 w-4"
+                                                    icon={faPenToSquare}
+                                                />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    handleDelete(client.id)
+                                                }}
+                                                className="text-red-600 hover:text-red-900">
+                                                <TrashIcon className="h-5 w-5" />
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                         <Pagination
                             currentPage={currentPage}
-                            totalItems={users.length}
+                            totalItems={clientes.length}
                             itemsPerPage={itemsPerPage}
                             onPageChange={setCurrentPage}
                         />

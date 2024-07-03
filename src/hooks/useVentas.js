@@ -16,6 +16,18 @@ export const useVentas = () => {
                 throw error
             }),
     )
+    const { data: ventasPendientes, error: ventasPendientesError, mutate: mutateVentasPendientes } = useSWR('/api/ventas-pendientes', () =>
+        axios
+            .get('/api/ventas-pendientes')
+            .then(res => res.data)
+            .catch(error => {
+                if (error.response.status === 401) {
+                    router.push('/login')
+                }
+                throw error
+            }),
+    )
+    
 
     const { data: ventaDetalles, error: ventaDetallesError, mutate: mutateVentaDetalles } = useSWR('/api/venta-detalles', () =>
         axios
@@ -67,6 +79,8 @@ export const useVentas = () => {
         ventas,
         ventaDetalles,
         ventasError,
+        ventasPendientes,
+        ventasPendientesError,
         ventaDetallesError,
         addVenta,
         addVentaDetalle

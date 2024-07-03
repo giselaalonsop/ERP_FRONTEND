@@ -9,6 +9,12 @@ import {
     faChartSimple,
     faNewspaper,
     faCartShopping,
+    faFileLines,
+    faGear,
+    faLayerGroup,
+    faUserGroup,
+    faCashRegister,
+    faRepeat,
 } from '@fortawesome/free-solid-svg-icons'
 import { HiChartPie, HiUser, HiViewBoards, HiShoppingBag } from 'react-icons/hi'
 import { useTheme } from '@/context/ThemeProvider'
@@ -17,6 +23,7 @@ const Sidebar = ({ user, logout }) => {
     const [sidebarOpen, setSidebarOpen] = useState(true)
     const [inventario, setInventario] = useState(true)
     const [ventas, setVentas] = useState(true)
+    const [compras, setCompras] = useState(true)
     const { isDark } = useTheme()
 
     return (
@@ -110,7 +117,7 @@ const Sidebar = ({ user, logout }) => {
 
                     <li>
                         <Link
-                            href="#"
+                            href="/Clientes"
                             className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
                             <span className="inline-flex justify-center items-center ml-4">
                                 <FontAwesomeIcon
@@ -221,7 +228,154 @@ const Sidebar = ({ user, logout }) => {
                                     </span>
                                 </Link>
                             </li>
+                            <li>
+                                <Link
+                                    href="/CobrosPendientes"
+                                    className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
+                                    <span className="inline-flex justify-center items-center ml-4">
+                                        <FontAwesomeIcon
+                                            icon={faFileLines}
+                                            className="w-6 h-6"
+                                        />
+                                    </span>
+                                    <span
+                                        className={`${
+                                            sidebarOpen ? 'inline' : 'hidden'
+                                        } ml-2 text-base tracking-wide truncate`}>
+                                        Cuentas por Cobrar
+                                    </span>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
+                                    href="/CierreCaja"
+                                    className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
+                                    <span className="inline-flex justify-center items-center ml-4">
+                                        <FontAwesomeIcon
+                                            icon={faCashRegister}
+                                            className="w-6 h-6"
+                                        />
+                                    </span>
+                                    <span
+                                        className={`${
+                                            sidebarOpen ? 'inline' : 'hidden'
+                                        } ml-2 text-base tracking-wide truncate`}>
+                                        Reporte Z
+                                    </span>
+                                </Link>
+                            </li>
                         </ul>
+                    </li>
+                    <li>
+                        <Link
+                            onClick={() => setCompras(!compras)}
+                            href="#"
+                            className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
+                            <span className="inline-flex justify-center items-center ml-4">
+                                <FontAwesomeIcon
+                                    icon={faLayerGroup}
+                                    className="w-6 h-6"
+                                />
+                            </span>
+                            <span
+                                className={`${
+                                    sidebarOpen ? 'inline' : 'hidden'
+                                } ml-2 text-base tracking-wide truncate`}>
+                                Compras
+                            </span>
+                        </Link>
+                        <ul className={`${compras ? 'block' : 'hidden'} ml-4`}>
+                            <li>
+                                <Link
+                                    href="/proovedores"
+                                    className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
+                                    <span className="inline-flex justify-center items-center ml-4">
+                                        <FontAwesomeIcon
+                                            className="w-6 h-6"
+                                            icon={faUserGroup}
+                                        />
+                                    </span>
+                                    <span
+                                        className={`${
+                                            sidebarOpen ? 'inline' : 'hidden'
+                                        } ml-2 text-base tracking-wide truncate`}>
+                                        Proovedores
+                                    </span>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
+                                    href="/compras"
+                                    className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
+                                    <span className="inline-flex justify-center items-center ml-4">
+                                        <FontAwesomeIcon
+                                            icon={faChartSimple}
+                                            className="w-6 h-6"
+                                        />
+                                    </span>
+                                    <span
+                                        className={`${
+                                            sidebarOpen ? 'inline' : 'hidden'
+                                        } ml-2 text-base tracking-wide truncate`}>
+                                        Historial
+                                    </span>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
+                                    href="/PagosPendientes"
+                                    className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
+                                    <span className="inline-flex justify-center items-center ml-4">
+                                        <FontAwesomeIcon
+                                            icon={faFileLines}
+                                            className="w-6 h-6"
+                                        />
+                                    </span>
+                                    <span
+                                        className={`${
+                                            sidebarOpen ? 'inline' : 'hidden'
+                                        } ml-2 text-base tracking-wide truncate`}>
+                                        Cuentas por pagar
+                                    </span>
+                                </Link>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <Link
+                            href="/movimientos"
+                            className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
+                            <span className="inline-flex justify-center items-center ml-4">
+                                <FontAwesomeIcon
+                                    icon={faRepeat}
+                                    className="w-6 h-6"
+                                />
+                            </span>
+                            <span
+                                className={`${
+                                    sidebarOpen ? 'inline' : 'hidden'
+                                } ml-2 text-base tracking-wide truncate`}>
+                                Movimientos
+                            </span>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link
+                            href="/configuracion"
+                            className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
+                            <span className="inline-flex justify-center items-center ml-4">
+                                <FontAwesomeIcon
+                                    icon={faGear}
+                                    className="w-6 h-6"
+                                />
+                            </span>
+                            <span
+                                className={`${
+                                    sidebarOpen ? 'inline' : 'hidden'
+                                } ml-2 text-base tracking-wide truncate`}>
+                                Configuracion
+                            </span>
+                        </Link>
                     </li>
 
                     <li onClick={logout}>

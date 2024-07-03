@@ -160,6 +160,13 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
       throw error
     }
   }
+  const hasPermission = (permission) => {
+    if (!user || !user.permissions) return false
+
+    const userPermissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions
+
+    return userPermissions[permission]
+  }
 
   useEffect(() => {
     if (middleware === 'guest' && redirectIfAuthenticated && user)
@@ -185,6 +192,8 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
     mutateUsers,
     registerUser,
     editUser,
-    deleteUser
+    deleteUser,
+
+    hasPermission,
   }
 }

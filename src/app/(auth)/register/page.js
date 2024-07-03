@@ -8,21 +8,15 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 const Register = () => {
-    const { register, user } = useAuth({ middleware: 'guest', redirectIfAuthenticated: '/dashboard' });
+    const { register } = useAuth({ middleware: 'guest', redirectIfAuthenticated: '/dashboard' });
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordConfirmation, setPasswordConfirmation] = useState('');
-    const [rol, setRol] = useState('user');
     const [errors, setErrors] = useState([]);
 
-    useEffect(() => {
-        if (user && user.rol !== 'admin') {
-            setRol('user');
-        }
-    }, [user]);
-
+   
     const submitForm = async event => {
         event.preventDefault();
 
@@ -31,7 +25,6 @@ const Register = () => {
             email,
             password,
             password_confirmation: passwordConfirmation,
-            rol,
             setErrors,
         });
     };
@@ -67,15 +60,7 @@ const Register = () => {
                                     <Input id="passwordConfirmation" type="password" value={passwordConfirmation} className="block mt-1 w-full" onChange={event => setPasswordConfirmation(event.target.value)} required />
                                     <InputError messages={errors.password_confirmation} className="mt-2" />
                                 </div>
-                                {user && user.rol === 'admin' && (
-                                    <div className="mt-4">
-                                        <Label htmlFor="rol">Role</Label>
-                                        <select id="rol" value={rol} onChange={event => setRol(event.target.value)} className="block mt-1 w-full">
-                                            <option value="user">User</option>
-                                            <option value="admin">Admin</option>
-                                        </select>
-                                    </div>
-                                )}
+                                
                                 <div className="flex items-center justify-end mt-4">
                                     <Link href="/login" className="underline text-sm text-gray-600 hover:text-gray-900">Already registered?</Link>
                                     <Button className="ml-4">Register</Button>

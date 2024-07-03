@@ -1,11 +1,14 @@
 'use client'
-import React from 'react'
+import React, { useState } from 'react'
 import { useVentas } from '@/hooks/useVentas'
 import { EyeIcon, TrashIcon, DocumentIcon } from '@heroicons/react/outline'
 import Swal from 'sweetalert2'
+import Pagination from '@/components/Pagination'
 
 const SalesTable = () => {
     const { ventas, ventasError, deleteVenta } = useVentas()
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 10
 
     const handleDelete = id => {
         Swal.fire({
@@ -26,6 +29,9 @@ const SalesTable = () => {
 
     if (ventasError) return <div>Error al cargar las ventas.</div>
     if (!ventas) return <div>Cargando...</div>
+
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const paginatedVentas = ventas.slice(startIndex, startIndex + itemsPerPage)
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
@@ -53,14 +59,16 @@ const SalesTable = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {ventas.map(venta => (
+                    {paginatedVentas.map(venta => (
                         <tr key={venta.id} className="bg-white border-b">
                             <td className="px-6 py-4">{venta.cliente}</td>
                             <td className="px-6 py-4">{venta.usuario}</td>
                             <td className="px-6 py-4">
                                 {venta.numero_de_venta}
                             </td>
-                            <td className="px-6 py-4">{venta.total_venta}</td>
+                            <td className="px-6 py-4">
+                                {venta.total_venta_dol}
+                            </td>
                             <td className="px-6 py-4">
                                 {new Date(venta.fecha).toLocaleString()}
                             </td>
@@ -85,6 +93,12 @@ const SalesTable = () => {
                     ))}
                 </tbody>
             </table>
+            <Pagination
+                currentPage={currentPage}
+                totalItems={ventas.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+            />
         </div>
     )
 }
