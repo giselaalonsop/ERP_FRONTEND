@@ -89,14 +89,12 @@ const ConfigurationForm = () => {
             formData.append('logo', logoFile)
         }
         formData.append('numero_sucursales', 2)
-        console.log('formData:', formData)
 
         try {
-            const response = id
-                ? await updateConfiguracion(id, formData)
-                : await createConfiguracion(formData)
+            const response = await createConfiguracion(formData)
             if (response.status === 200 || response.status === 201) {
                 Swal.fire('Configuración guardada', '', 'success')
+                
             }
         } catch (error) {
             console.error('Error:', error)

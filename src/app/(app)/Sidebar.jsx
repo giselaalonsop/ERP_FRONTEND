@@ -343,7 +343,7 @@ const Sidebar = ({ user, logout }) => {
                     </li>
                     <li>
                         <Link
-                            href="/movimientos"
+                            href="/Movimientos"
                             className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
                             <span className="inline-flex justify-center items-center ml-4">
                                 <FontAwesomeIcon

@@ -23,6 +23,7 @@ const Page = () => {
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
     const [selectedCategory, setSelectedCategory] = useState('')
+    const [selectedLocation, setSelectedLocation] = useState('General')
     const [searchText, setSearchText] = useState('')
 
     const openModal = (content, title) => {
@@ -61,7 +62,7 @@ const Page = () => {
                         onClick={() =>
                             openModal(
                                 <AddProductPage onClose={closeModal} />,
-                                'Carga de Inventario',
+                                'Nuevo Producto',
                             )
                         }
                         className="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-semibold rounded-md shadow">
@@ -99,12 +100,14 @@ const Page = () => {
                 </div>
                 <SearchWithDropdown
                     onCategorySelect={setSelectedCategory}
+                    onLocationSelect={setSelectedLocation}
                     onSearchTextChange={setSearchText}
                 />
             </div>
 
             <ProductsTable
                 selectedCategory={selectedCategory}
+                selectedLocation={selectedLocation}
                 searchText={searchText}
             />
 

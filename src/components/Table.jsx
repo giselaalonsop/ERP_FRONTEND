@@ -2,15 +2,18 @@
 import React, { useState, useEffect } from 'react'
 import { useProduct } from '@/hooks/useProduct'
 import { useTheme } from '@/context/ThemeProvider'
-import Modal, { ProductModal } from '@/components/Modal'
+import Modal from '@/components/Modal'
 import 'tailwindcss/tailwind.css'
-import AnotherForm from '@/components/DescargaInventario'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrashAlt, faEdit } from '@fortawesome/free-solid-svg-icons'
+import { EyeIcon, TrashIcon } from '@heroicons/react/outline'
+import { faPenToSquare } from '@fortawesome/free-solid-svg-icons'
+import AddProductPage from './ProductForm'
+import ProductDetail from './ProductDetail'
+import Swal from 'sweetalert2'
 
-const ProductTable = ({ selectedCategory, searchText }) => {
+const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
     const { isDark } = useTheme()
-    const { products, getProducts, removeProduct, updateProduct } = useProduct()
+    const { products, removeProduct } = useProduct()
     const [errors, setErrors] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
     const [currentPage, setCurrentPage] = useState(1)
@@ -18,8 +21,6 @@ const ProductTable = ({ selectedCategory, searchText }) => {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
-
-    const [selectedLocation, setSelectedLocation] = useState('General')
 
     const openModal = (content, title) => {
         setModalContent(content)
@@ -34,8 +35,10 @@ const ProductTable = ({ selectedCategory, searchText }) => {
     }
 
     useEffect(() => {
-        getProducts().finally(() => setIsLoading(false))
-    }, [])
+        if (products) {
+            setIsLoading(false)
+        }
+    }, [products])
 
     const handlePrevious = () => {
         if (currentPage > 1) {
@@ -50,37 +53,65 @@ const ProductTable = ({ selectedCategory, searchText }) => {
     }
 
     const handleRemoveProduct = id => {
-        removeProduct(id)
+        Swal.fire({
+            title: '¿Está seguro?',
+            text: 'No podrás revertir esto!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminarlo!',
+        }).then(result => {
+            if (result.isConfirmed) {
+                removeProduct(id)
+            }
+        })
     }
 
-    const handleUpdateProducto = product => {
+    const handleUpdateProduct = product => {
         openModal(
-            <AnotherForm product={product} onClose={closeModal} />,
+            <AddProductPage product={product} onClose={closeModal} />,
             'Actualizar Producto',
         )
     }
 
+    const handleShowProduct = product => {
+        openModal(<ProductDetail product={product} />, 'Detalles del Producto')
+    }
+
     const startIndex = (currentPage - 1) * itemsPerPage
 
-    const filteredProducts = products.filter(product => {
-        const matchesCategory = selectedCategory
-            ? product.categoria === selectedCategory
-            : true
-        const matchesSearchText =
-            product.nombre.toLowerCase().includes(searchText.toLowerCase()) ||
-            product.codigo_barras
-                .toLowerCase()
-                .includes(searchText.toLowerCase())
-        const matchesLocation =
-            selectedLocation === 'General' ||
-            product.ubicacion === selectedLocation
-        return matchesCategory && matchesSearchText && matchesLocation
-    })
+    const filteredProducts =
+        products?.filter(product => {
+            const matchesCategory = selectedCategory
+                ? product.categoria.toLowerCase() ===
+                  selectedCategory.toLowerCase()
+                : true
+            const matchesSearchText =
+                product.nombre
+                    .toLowerCase()
+                    .includes(searchText.toLowerCase()) ||
+                product.codigo_barras
+                    .toLowerCase()
+                    .includes(searchText.toLowerCase())
+            const matchesLocation =
+                selectedLocation === 'General' ||
+                product.ubicacion.toLowerCase() ===
+                    selectedLocation.toLowerCase()
+            return matchesCategory && matchesSearchText && matchesLocation
+        }) || []
 
-    const selectedProducts = filteredProducts.slice(
+    const selectedProducts = filteredProducts?.slice(
         startIndex,
         startIndex + itemsPerPage,
     )
+
+    const calculatePrecioVenta = (precioCompra, porcentajeGanancia) => {
+        const precioVenta =
+            parseFloat(precioCompra) +
+            parseFloat(precioCompra) * (parseFloat(porcentajeGanancia) / 100)
+        return isNaN(precioVenta) ? 0 : precioVenta
+    }
 
     if (errors) {
         return (
@@ -98,39 +129,6 @@ const ProductTable = ({ selectedCategory, searchText }) => {
                     {modalContent}
                 </Modal>
                 <div className="flex flex-col mb-4">
-                    <div className="flex justify-between">
-                        <div>
-                            <button
-                                className={`relative z-10 inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                                    isDark
-                                        ? 'text-gray-300 ring-gray-700 hover:bg-gray-800'
-                                        : 'text-gray-900 ring-gray-300 hover:bg-gray-50'
-                                } ring-1 ring-inset focus:z-20 focus:outline-offset-0`}
-                                onClick={() => setSelectedLocation('ejuma')}>
-                                Bejuma
-                            </button>
-                            <button
-                                className={`relative z-10 inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                                    isDark
-                                        ? 'text-gray-300 ring-gray-700 hover:bg-gray-800'
-                                        : 'text-gray-900 ring-gray-300 hover:bg-gray-50'
-                                } ring-1 ring-inset focus:z-20 focus:outline-offset-0`}
-                                onClick={() =>
-                                    setSelectedLocation('montalban')
-                                }>
-                                Montalban
-                            </button>
-                            <button
-                                className={`relative z-10 inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                                    isDark
-                                        ? 'text-gray-300 ring-gray-700 hover:bg-gray-800'
-                                        : 'text-gray-900 ring-gray-300 hover:bg-gray-50'
-                                } ring-1 ring-inset focus:z-20 focus:outline-offset-0`}
-                                onClick={() => setSelectedLocation('General')}>
-                                General
-                            </button>
-                        </div>
-                    </div>
                     <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
                             <div
@@ -143,7 +141,7 @@ const ProductTable = ({ selectedCategory, searchText }) => {
                                     className={`min-w-full divide-y ${
                                         isDark
                                             ? 'divide-gray-700'
-                                            : 'divide-gray-200'
+                                            : 'divide-gray-300'
                                     }`}>
                                     <thead
                                         className={`${
@@ -152,25 +150,34 @@ const ProductTable = ({ selectedCategory, searchText }) => {
                                                 : 'bg-gray-200'
                                         }`}>
                                         <tr>
-                                            <th className="py-3.5 px-4 text-sm font-normal text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                                            <th className="py-3.5 px-4 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
                                                 Código de Barras
                                             </th>
-                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
                                                 Nombre
                                             </th>
-                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
                                                 Categoría
                                             </th>
-                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
                                                 Estado
                                             </th>
-                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
                                                 Precio de Compra
                                             </th>
-                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
+                                                Precio de Venta
+                                            </th>
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
+                                                Cantidad en Stock
+                                            </th>
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
+                                                Ubicación
+                                            </th>
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
                                                 Imagen
                                             </th>
-                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
                                                 Acción
                                             </th>
                                         </tr>
@@ -181,43 +188,43 @@ const ProductTable = ({ selectedCategory, searchText }) => {
                                         } divide-y ${
                                             isDark
                                                 ? 'divide-gray-700'
-                                                : 'divide-gray-200'
+                                                : 'divide-gray-300'
                                         }`}>
                                         {isLoading ? (
                                             <tr>
                                                 <td
-                                                    colSpan="7"
+                                                    colSpan="10"
                                                     className="px-4 py-4 text-sm text-center text-gray-500 dark:text-gray-300">
                                                     Cargando productos...
                                                 </td>
                                             </tr>
-                                        ) : selectedProducts.length === 0 ? (
+                                        ) : selectedProducts?.length === 0 ? (
                                             <tr>
                                                 <td
-                                                    colSpan="7"
+                                                    colSpan="10"
                                                     className="px-4 py-4 text-sm text-center text-gray-500 dark:text-gray-300">
                                                     No se encontraron registros
                                                     en esta categoría.
                                                 </td>
                                             </tr>
                                         ) : (
-                                            selectedProducts.map(
+                                            selectedProducts?.map(
                                                 (product, index) => (
                                                     <tr
                                                         key={index}
                                                         className="cursor-pointer">
-                                                        <td className="px-4 py-4 text-sm font-medium text-gray-700 dark:text-gray-200 whitespace-nowrap">
+                                                        <td className="px-4 py-4 text-sm font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">
                                                             {
                                                                 product.codigo_barras
                                                             }
                                                         </td>
-                                                        <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-nowrap">
+                                                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-300 whitespace-nowrap">
                                                             {product.nombre}
                                                         </td>
-                                                        <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-nowrap">
+                                                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-300 whitespace-nowrap">
                                                             {product.categoria}
                                                         </td>
-                                                        <td className="px-4 py-4 text-sm font-medium text-gray-700 whitespace-nowrap">
+                                                        <td className="px-4 py-4 text-sm font-medium text-gray-800 whitespace-nowrap">
                                                             <div
                                                                 className={`inline-flex items-center px-3 py-1 rounded-full gap-x-2 ${
                                                                     product.cantidad_en_stock >
@@ -256,12 +263,26 @@ const ProductTable = ({ selectedCategory, searchText }) => {
                                                                 </h2>
                                                             </div>
                                                         </td>
-                                                        <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-nowrap">
+                                                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-300 whitespace-nowrap">
                                                             {
                                                                 product.precio_compra
                                                             }
                                                         </td>
-                                                        <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-nowrap">
+                                                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-300 whitespace-nowrap">
+                                                            {calculatePrecioVenta(
+                                                                product.precio_compra,
+                                                                product.porcentaje_ganancia,
+                                                            ).toFixed(2)}
+                                                        </td>
+                                                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-300 whitespace-nowrap">
+                                                            {
+                                                                product.cantidad_en_stock
+                                                            }
+                                                        </td>
+                                                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-300 whitespace-nowrap">
+                                                            {product.ubicacion}
+                                                        </td>
+                                                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-300 whitespace-nowrap">
                                                             <img
                                                                 className="w-16 h-16 object-cover rounded"
                                                                 src={
@@ -272,38 +293,42 @@ const ProductTable = ({ selectedCategory, searchText }) => {
                                                                 }
                                                             />
                                                         </td>
-                                                        <td className="px-4 py-4 text-sm text-center whitespace-nowrap">
-                                                            <FontAwesomeIcon
-                                                                icon={
-                                                                    faTrashAlt
-                                                                }
-                                                                className={`mt-4 cursor-pointer mx-4 ${
-                                                                    isDark
-                                                                        ? 'text-gray-300 hover:text-red-500'
-                                                                        : 'text-gray-700 hover:text-red-500'
-                                                                }`}
-                                                                size="lg"
-                                                                onClick={() =>
-                                                                    handleRemoveProduct(
-                                                                        product.id,
-                                                                    )
-                                                                }
-                                                            />
-                                                            <FontAwesomeIcon
-                                                                icon={faEdit}
-                                                                className={`mt-4 cursor-pointer mx-2 ${
-                                                                    isDark
-                                                                        ? 'text-gray-300 hover:text-blue-500'
-                                                                        : 'text-gray-700 hover:text-blue-500'
-                                                                }`}
-                                                                size="lg"
-                                                                onClick={() =>
-                                                                    handleUpdateProducto(
-                                                                        product,
-                                                                    )
-                                                                }
-                                                            />
-                                                        </td>
+                                                        <div className="relative">
+                                                            <td className="px-6 py-4 flex space-x-2">
+                                                                <button
+                                                                    onClick={() =>
+                                                                        handleShowProduct(
+                                                                            product,
+                                                                        )
+                                                                    }
+                                                                    className="text-blue-600 hover:text-blue-900">
+                                                                    <EyeIcon className="h-5 w-5" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        handleUpdateProduct(
+                                                                            product,
+                                                                        )
+                                                                    }}
+                                                                    className="text-green-600 hover:text-green-900">
+                                                                    <FontAwesomeIcon
+                                                                        className="h-4 w-4"
+                                                                        icon={
+                                                                            faPenToSquare
+                                                                        }
+                                                                    />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        handleRemoveProduct(
+                                                                            product.id,
+                                                                        )
+                                                                    }}
+                                                                    className="text-red-600 hover:text-red-900">
+                                                                    <TrashIcon className="h-5 w-5" />
+                                                                </button>
+                                                            </td>
+                                                        </div>
                                                     </tr>
                                                 ),
                                             )
@@ -334,7 +359,7 @@ const ProductTable = ({ selectedCategory, searchText }) => {
                         <button
                             onClick={handleNext}
                             disabled={
-                                currentPage * itemsPerPage >= products.length
+                                currentPage * itemsPerPage >= products?.length
                             }
                             className={`relative ml-3 inline-flex items-center rounded-md border ${
                                 isDark
@@ -360,13 +385,13 @@ const ProductTable = ({ selectedCategory, searchText }) => {
                                     {' '}
                                     {Math.min(
                                         startIndex + itemsPerPage,
-                                        products.length,
+                                        products?.length,
                                     )}{' '}
                                 </span>
                                 de
                                 <span className="font-medium">
                                     {' '}
-                                    {products.length}{' '}
+                                    {products?.length}{' '}
                                 </span>
                                 resultados
                             </p>
@@ -408,7 +433,7 @@ const ProductTable = ({ selectedCategory, searchText }) => {
                                 </button>
                                 {currentPage <
                                     Math.ceil(
-                                        products.length / itemsPerPage,
+                                        products?.length / itemsPerPage,
                                     ) && (
                                     <>
                                         <button
@@ -432,7 +457,7 @@ const ProductTable = ({ selectedCategory, searchText }) => {
                                             onClick={() =>
                                                 setCurrentPage(
                                                     Math.ceil(
-                                                        products.length /
+                                                        products?.length /
                                                             itemsPerPage,
                                                     ),
                                                 )
@@ -443,7 +468,7 @@ const ProductTable = ({ selectedCategory, searchText }) => {
                                                     : 'text-gray-900 ring-gray-300 hover:bg-gray-50'
                                             } ring-1 ring-inset focus:z-20 focus:outline-offset-0`}>
                                             {Math.ceil(
-                                                products.length / itemsPerPage,
+                                                products?.length / itemsPerPage,
                                             )}
                                         </button>
                                     </>
@@ -452,7 +477,7 @@ const ProductTable = ({ selectedCategory, searchText }) => {
                                     onClick={handleNext}
                                     disabled={
                                         currentPage * itemsPerPage >=
-                                        products.length
+                                        products?.length
                                     }
                                     className={`relative inline-flex items-center rounded-r-md px-2 py-2 ${
                                         isDark

@@ -34,7 +34,8 @@ const Register = ({ user: editUser, onClose }) => {
         cuentasPorPagar: false,
         cierreDeCaja: false,
     })
-    const [errors, setErrors] = useState([])
+    const [errors, setErrors] = useState({})
+    const [touched, setTouched] = useState({})
 
     const setAdminPermissions = () => {
         setPermissions({
@@ -94,6 +95,51 @@ const Register = ({ user: editUser, onClose }) => {
         }
     }, [editUser])
 
+    useEffect(() => {
+        validateForm()
+    }, [
+        name,
+        email,
+        password,
+        passwordConfirmation,
+        rol,
+        location,
+        permissions,
+    ])
+
+    const validateForm = () => {
+        const newErrors = {}
+        if (!name.trim()) {
+            newErrors.name = 'El nombre no puede estar vacío'
+        }
+        if (!/^[A-Za-z\s]+$/.test(name)) {
+            newErrors.name = 'El nombre solo debe contener letras y espacios'
+        }
+        if (!email.trim()) {
+            newErrors.email = 'El correo no puede estar vacío'
+        } else if (
+            !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$/.test(email)
+        ) {
+            newErrors.email = 'Correo electrónico no válido'
+        }
+        if (!editUser) {
+            if (!password.trim()) {
+                newErrors.password = 'La contraseña no puede estar vacía'
+            } else if (password.length < 6) {
+                newErrors.password =
+                    'La contraseña debe tener al menos 6 caracteres'
+            }
+            if (password !== passwordConfirmation) {
+                newErrors.password_confirmation = 'Las contraseñas no coinciden'
+            }
+        }
+        if (!location.trim()) {
+            newErrors.location = 'La ubicación no puede estar vacía'
+        }
+        setErrors(newErrors)
+        return Object.keys(newErrors).length === 0
+    }
+
     const handleCheckboxChange = event => {
         setPermissions({
             ...permissions,
@@ -101,9 +147,59 @@ const Register = ({ user: editUser, onClose }) => {
         })
     }
 
+    const handleNameChange = event => {
+        const newName = event.target.value
+        setName(
+            newName
+                .replace(/[^a-zA-Z\s]/g, '') // Remueve caracteres no permitidos
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' '),
+        )
+    }
+
+    const handleBlur = field => {
+        setTouched({
+            ...touched,
+            [field]: true,
+        })
+    }
+
+    const handleEmailChange = event => {
+        const newEmail = event.target.value
+        setEmail(newEmail.replace(/[^a-zA-Z0-9@._-]/g, '')) // Remueve caracteres no permitidos en el email
+    }
+
+    const handlePasswordChange = event => {
+        const newPassword = event.target.value
+        setPassword(newPassword)
+    }
+
+    const handlePasswordConfirmationChange = event => {
+        const newPasswordConfirmation = event.target.value
+        setPasswordConfirmation(newPasswordConfirmation)
+    }
+
+    const handleLocationChange = event => {
+        const newLocation = event.target.value
+        setLocation(newLocation.replace(/[^a-zA-Z\s]/g, '')) // Remueve caracteres no permitidos
+    }
+
     const submitForm = async event => {
         event.preventDefault()
-        setErrors([])
+        setErrors({})
+        setTouched({
+            name: true,
+            email: true,
+            password: true,
+            passwordConfirmation: true,
+            location: true,
+        })
+
+        if (!validateForm()) {
+            Swal.fire('Error en la validación', '', 'error')
+            return
+        }
 
         try {
             let response
@@ -124,7 +220,7 @@ const Register = ({ user: editUser, onClose }) => {
                     rol,
                     location,
                     permissions,
-                    setErrors, // Pass setErrors correctly
+                    setErrors,
                 })
             }
 
@@ -205,10 +301,7 @@ const Register = ({ user: editUser, onClose }) => {
 
     return (
         <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-10">
-                <h1 className="font-bold text-3xl text-gray-900">
-                    {editUser ? 'EDITAR USUARIO' : 'REGISTRAR'}
-                </h1>
+            <div className="text-center mb-8">
                 <p>
                     {editUser
                         ? 'Actualiza la información del usuario'
@@ -228,10 +321,21 @@ const Register = ({ user: editUser, onClose }) => {
                             id="name"
                             value={name}
                             className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                            onChange={event => setName(event.target.value)}
+                            onChange={handleNameChange}
+                            onBlur={() => handleBlur('name')}
                             required
+                            placeholder='Ej: "Juan Pérez"'
+                            pattern="[A-Za-z\s]*" // Permite solo letras y espacios
                         />
-                        <InputError messages={errors?.name} className="mt-2" />
+                        <div
+                            style={{
+                                minHeight: '24px',
+                                marginTop: '4px',
+                                color: 'red',
+                                fontSize: '12px',
+                            }}>
+                            {touched.name && errors?.name && errors.name}
+                        </div>
                     </div>
                     <div>
                         <Label
@@ -244,10 +348,20 @@ const Register = ({ user: editUser, onClose }) => {
                             id="email"
                             value={email}
                             className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                            onChange={event => setEmail(event.target.value)}
+                            onChange={handleEmailChange}
+                            onBlur={() => handleBlur('email')}
                             required
+                            placeholder="Ej: ejemplo@gmail.com "
                         />
-                        <InputError messages={errors?.email} className="mt-2" />
+                        <div
+                            style={{
+                                minHeight: '24px',
+                                marginTop: '4px',
+                                color: 'red',
+                                fontSize: '12px',
+                            }}>
+                            {touched.email && errors?.email && errors.email}
+                        </div>
                     </div>
                     {!editUser && (
                         <>
@@ -262,16 +376,23 @@ const Register = ({ user: editUser, onClose }) => {
                                     id="password"
                                     value={password}
                                     className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                                    onChange={event =>
-                                        setPassword(event.target.value)
-                                    }
+                                    onChange={handlePasswordChange}
+                                    onBlur={() => handleBlur('password')}
                                     required={!editUser}
                                     autoComplete="new-password"
+                                    placeholder="Ingrese su contraseña"
                                 />
-                                <InputError
-                                    messages={errors?.password}
-                                    className="mt-2"
-                                />
+                                <div
+                                    style={{
+                                        minHeight: '24px',
+                                        marginTop: '4px',
+                                        color: 'red',
+                                        fontSize: '12px',
+                                    }}>
+                                    {touched.password &&
+                                        errors?.password &&
+                                        errors.password}
+                                </div>
                             </div>
                             <div>
                                 <Label
@@ -284,17 +405,23 @@ const Register = ({ user: editUser, onClose }) => {
                                     id="passwordConfirmation"
                                     value={passwordConfirmation}
                                     className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                                    onChange={event =>
-                                        setPasswordConfirmation(
-                                            event.target.value,
-                                        )
+                                    onChange={handlePasswordConfirmationChange}
+                                    onBlur={() =>
+                                        handleBlur('passwordConfirmation')
                                     }
                                     required={!editUser}
                                 />
-                                <InputError
-                                    messages={errors?.password_confirmation}
-                                    className="mt-2"
-                                />
+                                <div
+                                    style={{
+                                        minHeight: '24px',
+                                        marginTop: '4px',
+                                        color: 'red',
+                                        fontSize: '12px',
+                                    }}>
+                                    {touched.passwordConfirmation &&
+                                        errors?.password_confirmation &&
+                                        errors.password_confirmation}
+                                </div>
                             </div>
                         </>
                     )}
@@ -308,10 +435,20 @@ const Register = ({ user: editUser, onClose }) => {
                             id="rol"
                             value={rol}
                             onChange={handleRoleChange}
+                            onBlur={() => handleBlur('rol')}
                             className="border border-gray-300 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
                             <option value="user">Usuario</option>
                             <option value="admin">Admin</option>
                         </select>
+                        <div
+                            style={{
+                                minHeight: '24px',
+                                marginTop: '4px',
+                                color: 'red',
+                                fontSize: '12px',
+                            }}>
+                            {touched.rol && errors?.rol && errors.rol}
+                        </div>
                     </div>
                     <div>
                         <Label
@@ -322,7 +459,8 @@ const Register = ({ user: editUser, onClose }) => {
                         <select
                             id="location"
                             value={location}
-                            onChange={event => setLocation(event.target.value)}
+                            onChange={handleLocationChange}
+                            onBlur={() => handleBlur('location')}
                             className="border border-gray-300 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
                             <option value="" disabled>
                                 Selecciona una ubicación
@@ -330,10 +468,17 @@ const Register = ({ user: editUser, onClose }) => {
                             <option value="Bejuma">Bejuma</option>
                             <option value="Montalban">Montalbán</option>
                         </select>
-                        <InputError
-                            messages={errors?.location}
-                            className="mt-2"
-                        />
+                        <div
+                            style={{
+                                minHeight: '24px',
+                                marginTop: '4px',
+                                color: 'red',
+                                fontSize: '12px',
+                            }}>
+                            {touched.location &&
+                                errors?.location &&
+                                errors.location}
+                        </div>
                     </div>
 
                     <div className="sm:col-span-2">

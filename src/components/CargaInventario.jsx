@@ -12,7 +12,7 @@ import Modal from '@/components/Modal'
 import Label from './Label'
 
 const CargaInventario = () => {
-    const { products, cargarInventario, addProduct, getProducts } = useProduct()
+    const { products, cargarInventario } = useProduct()
     const [filteredProducts, setFilteredProducts] = useState([])
     const [selectedProduct, setSelectedProduct] = useState(null)
     const [cantidad, setCantidad] = useState('')
@@ -22,23 +22,8 @@ const CargaInventario = () => {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
-    const [isLoading, setIsLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState('')
     const autoCompleteRef = useRef(null)
-
-    useEffect(() => {
-        const fetchProducts = async () => {
-            await getProducts()
-            setIsLoading(false)
-        }
-        fetchProducts()
-    }, [])
-
-    useEffect(() => {
-        if (!isLoading && searchQuery) {
-            searchProduct({ query: searchQuery })
-        }
-    }, [isLoading, searchQuery])
 
     const openModal = (content, title) => {
         setModalContent(content)
@@ -61,7 +46,7 @@ const CargaInventario = () => {
                 product.codigo_barras.toLowerCase().includes(query),
         )
 
-        if (filtered.length === 0 && !isLoading) {
+        if (filtered.length === 0) {
             filtered.push({ id: 'new', nombre: 'Agregar nuevo producto' })
         }
 
@@ -74,7 +59,7 @@ const CargaInventario = () => {
         if (selected.id === 'new') {
             openModal(
                 <AddProductPage onClose={closeModal} />,
-                'Add a New Product',
+                'Agregar Nuevo Producto',
             )
         } else {
             setSelectedProduct(selected)
@@ -88,7 +73,7 @@ const CargaInventario = () => {
             setSelectedProduct(null)
             setCantidad('')
         } else {
-            Swal.fire('Error', 'Please fill all the fields', 'error')
+            Swal.fire('Error', 'Por favor completa todos los campos', 'error')
         }
     }
 
@@ -105,34 +90,23 @@ const CargaInventario = () => {
                         <label
                             htmlFor="product"
                             className="block mb-2 text-sm font-medium">
-                            Product
+                            Producto
                         </label>
                         <AutoComplete
                             ref={autoCompleteRef}
                             value={selectedProduct}
-                            suggestions={
-                                isLoading
-                                    ? [{ nombre: 'Cargando...' }]
-                                    : filteredProducts
-                            }
+                            suggestions={filteredProducts}
                             completeMethod={searchProduct}
                             field="nombre"
-                            itemTemplate={item => {
-                                if (item.nombre === 'Cargando...') {
-                                    return <div>{item.nombre}</div>
-                                }
-                                return item.id !== 'new' ? (
-                                    <div>
-                                        {item.codigo_barras} - {item.nombre} -{' '}
-                                        {item.cantidad_en_stock}
-                                    </div>
-                                ) : (
-                                    <div>{item.nombre}</div>
-                                )
-                            }}
+                            itemTemplate={item => (
+                                <div>
+                                    {item.codigo_barras} - {item.nombre} -{' '}
+                                    {item.cantidad_en_stock}
+                                </div>
+                            )}
                             onChange={e => setSelectedProduct(e.value)}
                             onSelect={handleProductSelect}
-                            inputClassName={`bg-gray-50 border  text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                            inputClassName={`bg-gray-50 border text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
                             dropdown
                             forceSelection={false}
                             completeOnFocus
@@ -157,7 +131,7 @@ const CargaInventario = () => {
                         <label
                             htmlFor="almacen"
                             className="block mb-2 text-sm font-medium">
-                            Almacen
+                            Almacén
                         </label>
                         <select
                             id="almacen"
@@ -169,17 +143,17 @@ const CargaInventario = () => {
                             className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-primary-600 focus:border-primary-600">
                             <option value="montalban">Montalban</option>
                             <option value="bejuma">Bejuma</option>
-                            <option value="bejuma">General</option>
+                            <option value="general">General</option>
                         </select>
                     </div>
                     <div className="mb-4 w-full">
                         <label
-                            htmlFor="Motivo"
+                            htmlFor="motivo"
                             className="block mb-2 text-sm font-medium">
                             Motivo
                         </label>
                         <input
-                            type="description"
+                            type="text"
                             id="motivo"
                             className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-primary-600 focus:border-primary-600"
                         />

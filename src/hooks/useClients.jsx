@@ -33,7 +33,7 @@ export const useClientes = () => {
             }
         } catch (error) {
             if (error.response) {
-                throw error.response
+                return error.response
             } else {
                 throw new Error('Error al registrar cliente')
             }

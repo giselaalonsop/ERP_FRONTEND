@@ -1,7 +1,6 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useVentas } from '@/hooks/useVentas'
-import { useClientes } from '@/hooks/useClients'
 import { PencilAltIcon, TrashIcon } from '@heroicons/react/outline'
 import Swal from 'sweetalert2'
 import Pagination from '@/components/Pagination'
@@ -11,7 +10,6 @@ import { useAuth } from '@/hooks/auth'
 
 const CuentasPorCobrar = () => {
     const { ventasPendientes, ventasPendientesError } = useVentas()
-    const { clientes, clientesError } = useClientes()
     const { user } = useAuth()
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 10
@@ -38,9 +36,6 @@ const CuentasPorCobrar = () => {
             <ConfirmFactura
                 setProcesado={() => {}}
                 TotalGeneral={venta.total_venta_dol}
-                cliente={clientes.find(
-                    cliente => cliente.cedula === venta.cliente,
-                )}
                 selectedProducts={venta.detalles}
                 location={user.location}
                 onSuccess={handleUpdateSuccess}
@@ -86,8 +81,7 @@ const CuentasPorCobrar = () => {
 
     if (ventasPendientesError)
         return <div>Error al cargar las ventas pendientes.</div>
-    if (clientesError) return <div>Error al cargar los clientes.</div>
-    if (!ventasPendientes || !clientes) return <div>Cargando...</div>
+    if (!ventasPendientes) return <div>Cargando...</div>
 
     const startIndex = (currentPage - 1) * itemsPerPage
     const paginatedVentas = ventasPendientes.slice(
@@ -105,13 +99,7 @@ const CuentasPorCobrar = () => {
                 <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                     <tr>
                         <th scope="col" className="px-6 py-3">
-                            Cliente
-                        </th>
-                        <th scope="col" className="px-6 py-3">
                             Cédula
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                            Teléfono
                         </th>
                         <th scope="col" className="px-6 py-3">
                             Fecha
@@ -125,42 +113,34 @@ const CuentasPorCobrar = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {paginatedVentas.map(venta => {
-                        const cliente = clientes.find(
-                            cliente => cliente.cedula === venta.cliente,
-                        )
-                        return (
-                            <tr key={venta.id} className="bg-white border-b">
-                                <td className="px-6 py-4">
-                                    {cliente ? cliente.nombre : 'Desconocido'}
-                                </td>
-                                <td className="px-6 py-4">{venta.cliente}</td>
-                                <td className="px-6 py-4">
-                                    {cliente
-                                        ? cliente.numero_de_telefono
-                                        : 'N/A'}
-                                </td>
-                                <td className="px-6 py-4">
-                                    {new Date(venta.fecha).toLocaleString()}
-                                </td>
-                                <td className="px-6 py-4">
-                                    {venta.total_venta_dol.toFixed(2)}
-                                </td>
-                                <td className="px-6 py-4 flex space-x-2">
-                                    <button
-                                        onClick={() => handleEdit(venta)}
-                                        className="text-blue-600 hover:text-blue-900">
-                                        <PencilAltIcon className="h-5 w-5" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(venta.id)}
-                                        className="text-red-600 hover:text-red-900">
-                                        <TrashIcon className="h-5 w-5" />
-                                    </button>
-                                </td>
-                            </tr>
-                        )
-                    })}
+                    {paginatedVentas.map(venta => (
+                        <tr key={venta.id} className="bg-white border-b">
+                            <td className="px-6 py-4">{venta.cliente}</td>
+                            <td className="px-6 py-4">
+                                {new Date(venta.fecha).toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4">
+                                {venta.total_venta_dol != null &&
+                                !isNaN(venta.total_venta_dol)
+                                    ? parseFloat(venta.total_venta_dol).toFixed(
+                                          2,
+                                      )
+                                    : 'N/A'}
+                            </td>
+                            <td className="px-6 py-4 flex space-x-2">
+                                <button
+                                    onClick={() => handleEdit(venta)}
+                                    className="text-blue-600 hover:text-blue-900">
+                                    <PencilAltIcon className="h-5 w-5" />
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(venta.id)}
+                                    className="text-red-600 hover:text-red-900">
+                                    <TrashIcon className="h-5 w-5" />
+                                </button>
+                            </td>
+                        </tr>
+                    ))}
                 </tbody>
             </table>
             <Pagination

@@ -3,9 +3,23 @@ import axios from '@/lib/axios';
 
 const useConfiguracion = () => {
     const [configuracion, setConfiguracion] = useState(null);
+    const[logo, setLogo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
+    useEffect(()=>{
+        const fetchConfiguracion = async () => {
+            try {
+                const response = await axios.get('/configuracion');
+                setConfiguracion(response.data);
+            } catch (err) {
+                setError(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchConfiguracion();
+    
+    }, []);
     useEffect(() => {
         const fetchConfiguracion = async () => {
             try {
@@ -31,14 +45,6 @@ const useConfiguracion = () => {
         }
     };
 
-    const updateConfiguracion = async (id, data) => {
-        try {
-            const response = await axios.put(`/api/configuracion/${id}`, data);
-            setConfiguracion(response.data);
-        } catch (err) {
-            setError(err);
-        }
-    };
 
     const deleteConfiguracion = async (id) => {
         try {
@@ -54,8 +60,8 @@ const useConfiguracion = () => {
         loading,
         error,
         createConfiguracion,
-        updateConfiguracion,
         deleteConfiguracion,
+        logo,
     };
 };
 

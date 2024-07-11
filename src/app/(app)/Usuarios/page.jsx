@@ -8,7 +8,7 @@ import Register from '@/components/RegisterForm'
 import Swal from 'sweetalert2'
 import { EyeIcon, TrashIcon } from '@heroicons/react/outline'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPenToSquare } from '@fortawesome/free-solid-svg-icons'
+import { faPenToSquare, faUserCheck } from '@fortawesome/free-solid-svg-icons'
 import Pagination from '@/components/Pagination'
 
 const Page = () => {
@@ -198,30 +198,22 @@ const Page = () => {
                             <thead className="text-xs uppercase">
                                 <tr>
                                     <th scope="col" className="p-4">
-                                        <div className="flex items-center">
-                                            <input
-                                                id="checkbox-all-search"
-                                                type="checkbox"
-                                                className="w-4 h-4"
-                                            />
-                                            <label
-                                                htmlFor="checkbox-all-search"
-                                                className="sr-only">
-                                                checkbox
-                                            </label>
-                                        </div>
+                                        <div className="flex items-center"></div>
                                     </th>
                                     <th scope="col" className="px-6 py-3">
-                                        Name
+                                        Nombre
                                     </th>
                                     <th scope="col" className="px-6 py-3">
-                                        Role
+                                        Rol
                                     </th>
                                     <th scope="col" className="px-6 py-3">
-                                        Status
+                                        Correo
                                     </th>
                                     <th scope="col" className="px-6 py-3">
-                                        Action
+                                        Sede
+                                    </th>
+                                    <th scope="col" className="px-6 py-3">
+                                        Acciones
                                     </th>
                                 </tr>
                             </thead>
@@ -231,26 +223,13 @@ const Page = () => {
                                         key={user.id}
                                         className="border-b cursor-pointer">
                                         <td className="w-4 p-4">
-                                            <div className="flex items-center">
-                                                <input
-                                                    id={`checkbox-table-search-${user.id}`}
-                                                    type="checkbox"
-                                                    className="w-4 h-4 rounded"
-                                                />
-                                                <label
-                                                    htmlFor={`checkbox-table-search-${user.id}`}
-                                                    className="sr-only">
-                                                    checkbox
-                                                </label>
-                                            </div>
+                                            <div className="flex items-center"></div>
                                         </td>
                                         <th
                                             scope="row"
                                             className="flex items-center px-6 py-4 whitespace-nowrap">
-                                            <img
-                                                className="w-10 h-10 rounded-full"
-                                                src="/docs/images/people/profile-picture-1.jpg"
-                                                alt={`${user.name} image`}
+                                            <FontAwesomeIcon
+                                                icon={faUserCheck}
                                             />
                                             <div className="pl-3">
                                                 <div className="text-base font-semibold">
@@ -267,10 +246,12 @@ const Page = () => {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center">
                                                 <div className="h-2.5 w-2.5 rounded-full bg-green-500 mr-2"></div>
-                                                Online
+                                                {user.email}
                                             </div>
                                         </td>
-
+                                        <td className="px-6 py-4">
+                                            {user.location}
+                                        </td>
                                         <div className="relative">
                                             <td className="px-6 py-4 flex space-x-2">
                                                 <button

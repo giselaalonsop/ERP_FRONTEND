@@ -8,6 +8,7 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
   const router = useRouter()
   const params = useParams()
 
+   
   const { data: user, error, mutate } = useSWR('/api/user', () =>
     axios
       .get('/api/user')
@@ -74,21 +75,22 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
 
   
 
+  
   const login = async ({ setErrors, setStatus, ...props }) => {
     await csrf()
 
     setErrors([])
     setStatus(null)
 
-    try {
-      await axios.post('/login', props)
-      mutate()
-    } catch (error) {
-      if (error.response.status !== 422) throw error
+    axios
+        .post('/login', props)
+        .then(() => mutate())
+        .catch(error => {
+            if (error.response.status !== 422) throw error
 
-      setErrors(error.response.data.errors)
-    }
-  }
+            setErrors(error.response.data.errors)
+        })
+}
 
   const forgotPassword = async ({ setErrors, setStatus, email }) => {
     await csrf()
@@ -193,7 +195,6 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
     registerUser,
     editUser,
     deleteUser,
-
     hasPermission,
   }
 }

@@ -1,4 +1,3 @@
-'use client'
 import React, { useState, useEffect } from 'react'
 import DropzoneComponent from './Dropzone'
 import { useProduct } from '@/hooks/useProduct'
@@ -18,14 +17,19 @@ const getCurrentDate = () => {
     return `${year}-${month}-${day}`
 }
 
-const AddProductPage = ({ onClose }) => {
+const capitalizeWords = str => {
+    return str.replace(/\b\w/g, char => char.toUpperCase()).replace(/\d+/g, '')
+}
+
+const AddProductPage = ({ product, onClose }) => {
     const { categories, getCategoria, addCategoria } = useCategories()
-    const { addProduct, getProducts } = useProduct()
+    const { addProduct, updateProduct } = useProduct()
     const [step, setStep] = useState(1)
     const [newCategory, setNewCategory] = useState('')
     const [isAddingCategory, setIsAddingCategory] = useState(false)
     const [errors, setErrors] = useState({})
     const [responseMessage, setResponseMessage] = useState(null)
+    const [touchedFields, setTouchedFields] = useState({})
     const [formData, setFormData] = useState({
         codigo_barras: '',
         nombre: '',
@@ -50,11 +54,16 @@ const AddProductPage = ({ onClose }) => {
 
     useEffect(() => {
         const fetchProductsAndCategories = async () => {
-            await getProducts()
             await getCategoria()
         }
         fetchProductsAndCategories()
     }, [])
+
+    useEffect(() => {
+        if (product) {
+            setFormData(product)
+        }
+    }, [product])
 
     useEffect(() => {
         if (responseMessage) {
@@ -103,7 +112,9 @@ const AddProductPage = ({ onClose }) => {
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0
     }
-
+    useEffect(() => {
+        validateStep(step)
+    }, [step, formData])
     const handleNextStep = () => {
         if (validateStep(step)) {
             setStep(prevStep => Math.min(prevStep + 1, 3))
@@ -118,7 +129,24 @@ const AddProductPage = ({ onClose }) => {
         const { name, value } = e.target
         setFormData(prevData => ({
             ...prevData,
-            [name]: value,
+            [name]:
+                name === 'nombre' ||
+                name === 'descripcion' ||
+                name === 'categoria' ||
+                name === 'unidad_de_medida' ||
+                name === 'forma_de_venta' ||
+                name === 'forma_de_venta_mayor' ||
+                name === 'proveedor'
+                    ? capitalizeWords(value)
+                    : value,
+        }))
+    }
+
+    const handleBlur = e => {
+        const { name } = e.target
+        setTouchedFields(prevTouchedFields => ({
+            ...prevTouchedFields,
+            [name]: true,
         }))
     }
 
@@ -147,46 +175,48 @@ const AddProductPage = ({ onClose }) => {
         }))
     }
 
-    const handleSubmit = e => {
+    const handleSubmit = async e => {
         e.preventDefault()
         if (validateStep(3)) {
-            addProduct({
-                ...formData,
-                setErrors,
-                setResponseMessage,
-            })
-                .then(response => {
-                    if (response && response.status === 201) {
-                        setFormData({
-                            codigo_barras: '',
-                            nombre: '',
-                            descripcion: '',
-                            categoria: '',
-                            imagen: null,
-                            cantidad_en_stock: '',
-                            cantidad_en_stock_mayor: '',
-                            unidad_de_medida: '',
-                            fecha_entrada: getCurrentDate(),
-                            fecha_caducidad: '',
-                            peso: '',
-                            precio_compra: '',
-                            porcentaje_ganancia: '',
-                            porcentaje_ganancia_mayor: '',
-                            forma_de_venta: '',
-                            forma_de_venta_mayor: '',
-                            cantidad_por_caja: '',
-                            proveedor: '',
-                            ubicacion:
-                                localStorage.getItem('almacen') || 'General',
-                        })
-                        setStep(1)
-                        Swal.fire('Producto registrado', '', 'success')
-                    }
-                })
-                .catch(error => {
-                    console.error('Error al guardar el producto', error)
-                    Swal.fire('Error al registrar el producto', '', 'error')
-                })
+            try {
+                if (product) {
+                    await updateProduct(product.id, formData)
+                    Swal.fire('Producto actualizado', '', 'success')
+                } else {
+                    await addProduct({
+                        ...formData,
+                        setErrors,
+                        setResponseMessage,
+                    })
+                    setFormData({
+                        codigo_barras: '',
+                        nombre: '',
+                        descripcion: '',
+                        categoria: '',
+                        imagen: null,
+                        cantidad_en_stock: '',
+                        cantidad_en_stock_mayor: '',
+                        unidad_de_medida: '',
+                        fecha_entrada: getCurrentDate(),
+                        fecha_caducidad: '',
+                        peso: '',
+                        precio_compra: '',
+                        porcentaje_ganancia: '',
+                        porcentaje_ganancia_mayor: '',
+                        forma_de_venta: '',
+                        forma_de_venta_mayor: '',
+                        proveedor: '',
+                        cantidad_por_caja: '',
+                        ubicacion: localStorage.getItem('almacen') || 'General',
+                    })
+                    setStep(1)
+                    Swal.fire('Producto registrado', '', 'success')
+                }
+                onClose()
+            } catch (error) {
+                console.error('Error al guardar el producto', error)
+                Swal.fire('Error al registrar el producto', '', 'error')
+            }
         }
     }
 
@@ -224,7 +254,9 @@ const AddProductPage = ({ onClose }) => {
     return (
         <div className="max-w-3xl mx-auto">
             <div className="text-center mb-4">
-                <h2 className="text-2xl font-bold">Agregar Producto</h2>
+                <h2 className="text-2xl font-bold">
+                    {product ? 'Editar Producto' : 'Agregar Producto'}
+                </h2>
             </div>
             <div className="relative bg-white rounded-lg shadow-lg p-6">
                 <div className="absolute top-4 left-0 right-0 flex justify-between mb-4 px-6">
@@ -262,16 +294,20 @@ const AddProductPage = ({ onClose }) => {
                                         name="codigo_barras"
                                         value={formData.codigo_barras}
                                         onChange={handleChange}
+                                        onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
                                             errors.codigo_barras
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                        placeholder="Ingrese el código de barras"
                                     />
-                                    <InputError
-                                        messages={errors.codigo_barras}
-                                        className="mt-2"
-                                    />
+                                    {touchedFields.codigo_barras && (
+                                        <InputError
+                                            messages={errors.codigo_barras}
+                                            className="mt-2"
+                                        />
+                                    )}
                                 </div>
                                 <div>
                                     <Label htmlFor="nombre">
@@ -283,16 +319,20 @@ const AddProductPage = ({ onClose }) => {
                                         name="nombre"
                                         value={formData.nombre}
                                         onChange={handleChange}
+                                        onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
                                             errors.nombre
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                        placeholder="Ingrese el nombre del producto"
                                     />
-                                    <InputError
-                                        messages={errors.nombre}
-                                        className="mt-2"
-                                    />
+                                    {touchedFields.nombre && (
+                                        <InputError
+                                            messages={errors.nombre}
+                                            className="mt-2"
+                                        />
+                                    )}
                                 </div>
                                 <div className="sm:col-span-2 grid grid-cols-2 gap-4">
                                     <div>
@@ -311,6 +351,7 @@ const AddProductPage = ({ onClose }) => {
                                                             e.target.value,
                                                         )
                                                     }
+                                                    onBlur={handleBlur}
                                                     className={`bg-gray-50 border ${
                                                         errors.categoria
                                                             ? 'border-red-500'
@@ -331,6 +372,7 @@ const AddProductPage = ({ onClose }) => {
                                                 name="categoria"
                                                 value={formData.categoria}
                                                 onChange={handleCategoryChange}
+                                                onBlur={handleBlur}
                                                 className={`bg-gray-50 border ${
                                                     errors.categoria
                                                         ? 'border-red-500'
@@ -351,10 +393,12 @@ const AddProductPage = ({ onClose }) => {
                                                 </option>
                                             </select>
                                         )}
-                                        <InputError
-                                            messages={errors.categoria}
-                                            className="mt-2"
-                                        />
+                                        {touchedFields.categoria && (
+                                            <InputError
+                                                messages={errors.categoria}
+                                                className="mt-2"
+                                            />
+                                        )}
                                     </div>
                                     <div>
                                         <Label htmlFor="almacen">Almacén</Label>
@@ -387,8 +431,16 @@ const AddProductPage = ({ onClose }) => {
                                             rows="4"
                                             value={formData.descripcion}
                                             onChange={handleChange}
+                                            onBlur={handleBlur}
                                             className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-600 focus:border-primary-600"
+                                            placeholder="Ingrese la descripción del producto"
                                         />
+                                        {touchedFields.descripcion && (
+                                            <InputError
+                                                messages={errors.descripcion}
+                                                className="mt-2"
+                                            />
+                                        )}
                                     </div>
                                     <div>
                                         <Label>Imagen</Label>
@@ -412,18 +464,22 @@ const AddProductPage = ({ onClose }) => {
                                         name="cantidad_en_stock_mayor"
                                         value={formData.cantidad_en_stock_mayor}
                                         onChange={handleChange}
+                                        onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
                                             errors.cantidad_en_stock_mayor
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                        placeholder="Ingrese la cantidad en stock (Mayor)"
                                     />
-                                    <InputError
-                                        messages={
-                                            errors.cantidad_en_stock_mayor
-                                        }
-                                        className="mt-2"
-                                    />
+                                    {touchedFields.cantidad_en_stock_mayor && (
+                                        <InputError
+                                            messages={
+                                                errors.cantidad_en_stock_mayor
+                                            }
+                                            className="mt-2"
+                                        />
+                                    )}
                                 </div>
                                 <div>
                                     <Label htmlFor="cantidad_por_caja">
@@ -435,16 +491,20 @@ const AddProductPage = ({ onClose }) => {
                                         name="cantidad_por_caja"
                                         value={formData.cantidad_por_caja}
                                         onChange={handleCantidadPorCajaChange}
+                                        onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
                                             errors.cantidad_por_caja
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                        placeholder="Ingrese la cantidad por caja"
                                     />
-                                    <InputError
-                                        messages={errors.cantidad_por_caja}
-                                        className="mt-2"
-                                    />
+                                    {touchedFields.cantidad_por_caja && (
+                                        <InputError
+                                            messages={errors.cantidad_por_caja}
+                                            className="mt-2"
+                                        />
+                                    )}
                                 </div>
                                 <div>
                                     <Label htmlFor="cantidad_en_stock">
@@ -456,16 +516,20 @@ const AddProductPage = ({ onClose }) => {
                                         name="cantidad_en_stock"
                                         value={formData.cantidad_en_stock}
                                         onChange={handleChange}
+                                        onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
                                             errors.cantidad_en_stock
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                        placeholder="Ingrese la cantidad en stock (Detal)"
                                     />
-                                    <InputError
-                                        messages={errors.cantidad_en_stock}
-                                        className="mt-2"
-                                    />
+                                    {touchedFields.cantidad_en_stock && (
+                                        <InputError
+                                            messages={errors.cantidad_en_stock}
+                                            className="mt-2"
+                                        />
+                                    )}
                                 </div>
                                 <div>
                                     <Label htmlFor="unidad_de_medida">
@@ -477,16 +541,20 @@ const AddProductPage = ({ onClose }) => {
                                         name="unidad_de_medida"
                                         value={formData.unidad_de_medida}
                                         onChange={handleChange}
+                                        onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
                                             errors.unidad_de_medida
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                        placeholder="Ingrese la unidad de medida"
                                     />
-                                    <InputError
-                                        messages={errors.unidad_de_medida}
-                                        className="mt-2"
-                                    />
+                                    {touchedFields.unidad_de_medida && (
+                                        <InputError
+                                            messages={errors.unidad_de_medida}
+                                            className="mt-2"
+                                        />
+                                    )}
                                 </div>
                                 <div>
                                     <Label htmlFor="fecha_entrada">
@@ -498,16 +566,19 @@ const AddProductPage = ({ onClose }) => {
                                         name="fecha_entrada"
                                         value={formData.fecha_entrada}
                                         onChange={handleChange}
+                                        onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
                                             errors.fecha_entrada
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
                                     />
-                                    <InputError
-                                        messages={errors.fecha_entrada}
-                                        className="mt-2"
-                                    />
+                                    {touchedFields.fecha_entrada && (
+                                        <InputError
+                                            messages={errors.fecha_entrada}
+                                            className="mt-2"
+                                        />
+                                    )}
                                 </div>
                                 <div>
                                     <Label htmlFor="fecha_caducidad">
@@ -519,8 +590,16 @@ const AddProductPage = ({ onClose }) => {
                                         name="fecha_caducidad"
                                         value={formData.fecha_caducidad}
                                         onChange={handleChange}
+                                        onBlur={handleBlur}
                                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                                        placeholder="Ingrese la fecha de caducidad"
                                     />
+                                    {touchedFields.fecha_caducidad && (
+                                        <InputError
+                                            messages={errors.fecha_caducidad}
+                                            className="mt-2"
+                                        />
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -534,8 +613,20 @@ const AddProductPage = ({ onClose }) => {
                                         name="peso"
                                         value={formData.peso}
                                         onChange={handleChange}
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                                        onBlur={handleBlur}
+                                        className={`bg-gray-50 border ${
+                                            errors.peso
+                                                ? 'border-red-500'
+                                                : 'border-gray-300'
+                                        } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                        placeholder="Ingrese el peso"
                                     />
+                                    {touchedFields.peso && (
+                                        <InputError
+                                            messages={errors.peso}
+                                            className="mt-2"
+                                        />
+                                    )}
                                 </div>
                                 <div>
                                     <Label htmlFor="precio_compra">
@@ -547,16 +638,20 @@ const AddProductPage = ({ onClose }) => {
                                         name="precio_compra"
                                         value={formData.precio_compra}
                                         onChange={handleChange}
+                                        onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
                                             errors.precio_compra
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                        placeholder="Ingrese el precio de compra"
                                     />
-                                    <InputError
-                                        messages={errors.precio_compra}
-                                        className="mt-2"
-                                    />
+                                    {touchedFields.precio_compra && (
+                                        <InputError
+                                            messages={errors.precio_compra}
+                                            className="mt-2"
+                                        />
+                                    )}
                                 </div>
                                 <div>
                                     <Label htmlFor="porcentaje_ganancia">
@@ -568,16 +663,22 @@ const AddProductPage = ({ onClose }) => {
                                         name="porcentaje_ganancia"
                                         value={formData.porcentaje_ganancia}
                                         onChange={handleChange}
+                                        onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
                                             errors.porcentaje_ganancia
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                        placeholder="Ingrese el porcentaje de ganancia"
                                     />
-                                    <InputError
-                                        messages={errors.porcentaje_ganancia}
-                                        className="mt-2"
-                                    />
+                                    {touchedFields.porcentaje_ganancia && (
+                                        <InputError
+                                            messages={
+                                                errors.porcentaje_ganancia
+                                            }
+                                            className="mt-2"
+                                        />
+                                    )}
                                 </div>
                                 <div>
                                     <Label htmlFor="porcentaje_ganancia_mayor">
@@ -591,18 +692,22 @@ const AddProductPage = ({ onClose }) => {
                                             formData.porcentaje_ganancia_mayor
                                         }
                                         onChange={handleChange}
+                                        onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
                                             errors.porcentaje_ganancia_mayor
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                        placeholder="Ingrese el porcentaje de ganancia (Mayor)"
                                     />
-                                    <InputError
-                                        messages={
-                                            errors.porcentaje_ganancia_mayor
-                                        }
-                                        className="mt-2"
-                                    />
+                                    {touchedFields.porcentaje_ganancia_mayor && (
+                                        <InputError
+                                            messages={
+                                                errors.porcentaje_ganancia_mayor
+                                            }
+                                            className="mt-2"
+                                        />
+                                    )}
                                 </div>
                                 <div>
                                     <Label htmlFor="forma_de_venta">
@@ -614,16 +719,20 @@ const AddProductPage = ({ onClose }) => {
                                         name="forma_de_venta"
                                         value={formData.forma_de_venta}
                                         onChange={handleChange}
+                                        onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
                                             errors.forma_de_venta
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                        placeholder="Ingrese la forma de venta"
                                     />
-                                    <InputError
-                                        messages={errors.forma_de_venta}
-                                        className="mt-2"
-                                    />
+                                    {touchedFields.forma_de_venta && (
+                                        <InputError
+                                            messages={errors.forma_de_venta}
+                                            className="mt-2"
+                                        />
+                                    )}
                                 </div>
                                 <div>
                                     <Label htmlFor="forma_de_venta_mayor">
@@ -635,16 +744,22 @@ const AddProductPage = ({ onClose }) => {
                                         name="forma_de_venta_mayor"
                                         value={formData.forma_de_venta_mayor}
                                         onChange={handleChange}
+                                        onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
                                             errors.forma_de_venta_mayor
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                        placeholder="Ingrese la forma de venta (Mayor)"
                                     />
-                                    <InputError
-                                        messages={errors.forma_de_venta_mayor}
-                                        className="mt-2"
-                                    />
+                                    {touchedFields.forma_de_venta_mayor && (
+                                        <InputError
+                                            messages={
+                                                errors.forma_de_venta_mayor
+                                            }
+                                            className="mt-2"
+                                        />
+                                    )}
                                 </div>
                                 <div>
                                     <Label htmlFor="proveedor">Proveedor</Label>
@@ -654,16 +769,20 @@ const AddProductPage = ({ onClose }) => {
                                         name="proveedor"
                                         value={formData.proveedor}
                                         onChange={handleChange}
+                                        onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
                                             errors.proveedor
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
-                                        } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                        } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w/full p-2.5`}
+                                        placeholder="Ingrese el proveedor"
                                     />
-                                    <InputError
-                                        messages={errors.proveedor}
-                                        className="mt-2"
-                                    />
+                                    {touchedFields.proveedor && (
+                                        <InputError
+                                            messages={errors.proveedor}
+                                            className="mt-2"
+                                        />
+                                    )}
                                 </div>
                             </div>
                         )}
