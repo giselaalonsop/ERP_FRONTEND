@@ -1,7 +1,7 @@
 'use client'
 
 import Loading from '@/app/(app)/Loading'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 import { useAuth } from '@/hooks/auth'
 import Navigation from './Navigation'
@@ -9,10 +9,16 @@ import Sidebar from './Sidebar'
 import Navbar from './Navbar'
 import { useTheme } from '@/context/ThemeProvider'
 import { Component } from '@/components/Footer'
+import useConfiguracion from '@/hooks/useConfiguracion'
 
 const AppLayout = ({ children, header }) => {
     const { user, logout } = useAuth({ middleware: 'auth' })
     const { isDark } = useTheme();
+    const {configuracion}=useConfiguracion()
+    //guardar configuracion en localstorage
+    useEffect(() => {
+        localStorage.setItem('configuracion', JSON.stringify(configuracion))
+    }, [configuracion])
 
     if (!user) {
         return <Loading />

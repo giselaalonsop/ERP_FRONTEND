@@ -11,6 +11,7 @@ const useConfiguracion = () => {
             try {
                 const response = await axios.get('/configuracion');
                 setConfiguracion(response.data);
+                setLogo(response.data.logo);
             } catch (err) {
                 setError(err);
             } finally {

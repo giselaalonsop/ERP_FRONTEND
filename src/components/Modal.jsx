@@ -6,7 +6,7 @@ const Modal = ({ isOpen, onClose, children, title }) => {
             <div
                 style={{ maxWidth: '60rem', height: '80%' }}
                 className="relative mx-auto shadow-xl rounded-xl bg-white w-full  max-w-4xl h-3/4 overflow-y-auto mt-28">
-                <div className="absolute py-8 px-5 md:px-10 bg-white shadow-md rounded border  w-full h-full flex flex-col">
+                <div className="absolute py-8 px-5 md:px-10 bg-white rounded   w-full h-full flex flex-col">
                     <div className="w-full flex justify-between text-gray-600 mb-3">
                         <h1 className="text-gray-800 font-lg font-bold tracking-normal leading-tight">
                             {title}

@@ -2,6 +2,8 @@
 import React from 'react'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faDownload } from '@fortawesome/free-solid-svg-icons'
 
 const PdfGenerator = ({ htmlContentRef, fileName }) => {
     const generatePdf = async () => {
@@ -19,8 +21,8 @@ const PdfGenerator = ({ htmlContentRef, fileName }) => {
     return (
         <button
             onClick={generatePdf}
-            className="rounded-lg  px-5 py-2.5 text-sm font-medium  focus:outline-none focus:ring-4 focus:ring-primary-300 ">
-            Descargar
+            className="absolute top-10 right-20 m-2 text-black">
+            <FontAwesomeIcon icon={faDownload} size="2x" />
         </button>
     )
 }

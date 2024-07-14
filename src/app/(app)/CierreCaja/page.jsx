@@ -4,17 +4,26 @@ import { useCaja } from '@/hooks/useCaja'
 import Swal from 'sweetalert2'
 import { useAuth } from '@/hooks/auth'
 import { Button } from 'flowbite-react'
+import { format } from 'date-fns'
 
 const CierreDeCaja = () => {
     const { obtenerCierreDeCaja, cerrarCaja } = useCaja()
     const { user } = useAuth()
     const [cierreDeCaja, setCierreDeCaja] = useState(null)
+    const [cajaCerrada, setCajaCerrada] = useState(false)
 
     useEffect(() => {
         const fetchCierreDeCaja = async () => {
             try {
                 const data = await obtenerCierreDeCaja(user.location)
-                setCierreDeCaja(data)
+                if (
+                    data.message &&
+                    data.message === 'La caja del día ya fue cerrada.'
+                ) {
+                    setCajaCerrada(true)
+                } else {
+                    setCierreDeCaja(data)
+                }
             } catch (error) {
                 console.error('Error al obtener cierre de caja', error)
             }
@@ -37,8 +46,18 @@ const CierreDeCaja = () => {
         }
     }
 
+    if (cajaCerrada) {
+        return (
+            <div className="text-center">La caja del día ya fue cerrada.</div>
+        )
+    }
+
     if (!cierreDeCaja) {
         return <div className="text-center">Cargando...</div>
+    }
+
+    const formatDate = dateString => {
+        return format(new Date(dateString), 'dd-MM-yyyy HH:mm:ss')
     }
 
     return (
@@ -58,7 +77,7 @@ const CierreDeCaja = () => {
                 <p className="font-semibold">
                     Fecha de Apertura:{' '}
                     <span className="font-normal">
-                        {new Date(cierreDeCaja.created_at).toLocaleString()}
+                        {formatDate(cierreDeCaja.created_at)}
                     </span>
                 </p>
             </div>
@@ -106,8 +125,8 @@ const CierreDeCaja = () => {
                         <button
                             onClick={handleCerrarCaja}
                             type="button"
-                            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
-                         focus:ring-blue-300 font-medium rounded-lg  max-auto py-2.5 me-2 mb-2
+                            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
+                         focus:ring-blue-300 font-medium rounded-lg py-2.5 mb-2
                           dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none
                            dark:focus:ring-blue-800">
                             Cerrar Caja

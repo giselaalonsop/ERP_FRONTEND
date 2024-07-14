@@ -27,8 +27,16 @@ const ConfirmFactura = ({
     const { user } = useAuth()
     const htmlContentRef = useRef(null)
     const [isPending, setIsPending] = useState(false)
+    const [ventaData, setVentaData] = useState({})
+    const [exchangeRate, setExchangeRate] = useState(0)
+    useEffect(() => {
+        fetch('https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=bcv')
+            .then(res => res.json())
+            .then(data => setExchangeRate(data.monitors.usd.price))
+    }, [])
 
-    const exchangeRate = 28 // Supongamos que 1$ = 28 Bs, este valor puede ser actualizado desde una API
+    const configuracion = JSON.parse(localStorage.getItem('configuracion'))
+    const logoUrl = `http://localhost:8000/${configuracion.logo}`
 
     useEffect(() => {
         factura
@@ -87,26 +95,34 @@ const ConfirmFactura = ({
 
     useEffect(() => {
         const totalEntered = Object.keys(amounts).reduce((acc, method) => {
+            let amount = parseFloat(amounts[method] || 0)
             if (method !== 'Dolares en efectivo' && method !== 'Zelle') {
-                return acc + (amounts[method] || 0) / exchangeRate
+                amount = amount / exchangeRate // Convertir a dólares
             }
-            return acc + (amounts[method] || 0)
+            return acc + amount
         }, 0)
 
         const totalChange = Object.keys(changes).reduce((acc, method) => {
+            let change = parseFloat(changes[method] || 0)
             if (method !== 'Dolares en efectivo' && method !== 'Zelle') {
-                return acc + (changes[method] || 0) / exchangeRate
+                change = change / exchangeRate // Convertir a dólares
             }
-            return acc + (changes[method] || 0)
+            return acc + change
         }, 0)
 
         const remaining = TotalGeneral - totalEntered + totalChange
-        setRemainingAmount(parseFloat(remaining.toFixed(2)))
+        setRemainingAmount(parseFloat(remaining))
     }, [amounts, changes, TotalGeneral])
+
+    const remainingAmountInBs = remainingAmount * exchangeRate
 
     const handleSubmit = async e => {
         e.preventDefault()
-        if (remainingAmount.toFixed(2) === '0.00' || isPending) {
+        if (
+            remainingAmount.toFixed(2) === '0.00' ||
+            remainingAmount.toFixed(2) === '-0.00' ||
+            isPending
+        ) {
             const paymentData = isPending
                 ? [
                       {
@@ -115,22 +131,19 @@ const ConfirmFactura = ({
                           change: 0,
                       },
                   ]
-                : Object.keys(amounts).map(method => ({
+                : selectedPayments.map(method => ({
                       method: paymentMethodsEnum[method],
-                      amount:
-                          method !== 'Dolares en efectivo' && method !== 'Zelle'
-                              ? (amounts[method] || 0) / exchangeRate
-                              : amounts[method] || 0,
-                      change: changes[method] || 0,
+                      amount: amounts[method] ? parseFloat(amounts[method]) : 0,
+                      change: changes[method] ? parseFloat(changes[method]) : 0,
                   }))
-
-            const metodoPago = paymentData.map(p => p.method).join(', ')
+            console.log(paymentData)
+            const metodoPago = paymentData
 
             const ventaData = {
                 cliente: cliente.cedula,
                 usuario: user.name,
                 numero_de_venta: Math.floor(Math.random() * 1000),
-                comprobante: 'Comprobante1',
+                comprobante: 'Factura',
                 estado: isPending ? 'Pendiente' : 'Aceptado',
                 mayor_o_detal: isMayor ? 'Mayor' : 'Detal',
                 location,
@@ -163,12 +176,13 @@ const ConfirmFactura = ({
                                       100)
                             : product.precio_compra *
                               (1 +
-                                  (product.porcentaje_ganancia_mayor -
+                                  (product.porcentaje_ganancia -
                                       cliente.descuento) /
                                       100)),
                 })),
                 descuento: cliente.descuento > 0 ? cliente.descuento : 0,
             }
+            setVentaData(ventaData)
 
             const dataCaja = {
                 location: user.location,
@@ -224,172 +238,103 @@ const ConfirmFactura = ({
     }
 
     return factura ? (
-        <div ref={htmlContentRef}>
-            <div className="mt-4 grid grid-cols-2 gap-4">
-                <h2
-                    className={`text-xl font-semibold ${
-                        isDark ? 'text-gray-300' : 'text-gray-900'
-                    }`}>
-                    Resumen de la Factura
-                </h2>
-                <PdfGenerator
-                    className={`justify-end ${
-                        isDark
-                            ? 'text-gray-300 bg-red-700'
-                            : 'text-gray-900 bg-red-400'
-                    }`}
-                    htmlContentRef={htmlContentRef}
-                    fileName="factura"
-                />
-            </div>
-
+        <>
             <div
-                className={`mt-6 space-y-4 border-b border-t ${
-                    isDark ? 'border-gray-700' : 'border-gray-200'
-                } py-8`}>
-                <h4
-                    className={`text-lg font-semibold ${
-                        isDark ? 'text-gray-300' : 'text-gray-900'
-                    }`}>
-                    Información del Cliente
-                </h4>
-                <dl>
-                    <dt
-                        className={`text-base font-medium ${
-                            isDark ? 'text-gray-300' : 'text-gray-900'
-                        }`}>
-                        Nombre
-                    </dt>
-                    <dd
-                        className={`mt-1 text-base ${
-                            isDark ? 'text-gray-400' : 'text-gray-500'
-                        }`}>
-                        {cliente?.nombre}
-                    </dd>
-                    <dt
-                        className={`text-base font-medium ${
-                            isDark ? 'text-gray-300' : 'text-gray-900'
-                        }`}>
-                        Cédula
-                    </dt>
-                    <dd
-                        className={`mt-1 text-base ${
-                            isDark ? 'text-gray-400' : 'text-gray-500'
-                        }`}>
-                        {cliente?.cedula}
-                    </dd>
-                    <dt
-                        className={`text-base font-medium ${
-                            isDark ? 'text-gray-300' : 'text-gray-900'
-                        }`}>
-                        Nombre de la Empresa
-                    </dt>
-                    <dd
-                        className={`mt-1 text-base ${
-                            isDark ? 'text-gray-400' : 'text-gray-500'
-                        }`}>
-                        {cliente?.empresa}
-                    </dd>
-                </dl>
-            </div>
+                ref={htmlContentRef}
+                className="bg-white border rounded-lg shadow-lg px-6 py-8 max-w-md mx-auto mt-8">
+                <h1 className="font-bold text-2xl my-4 text-center text-blue-600">
+                    {configuracion.nombre_empresa}
+                </h1>
+                <hr className="mb-2" />
+                <div className="text-center text-gray-700 mb-4">
+                    RIF: {configuracion.rif}
+                </div>
+                <div className="flex justify-between mb-6">
+                    <h1 className="text-lg font-bold">Invoice</h1>
+                    <div className="text-gray-700">
+                        <div>Fecha: {new Date().toLocaleDateString()}</div>
+                        <div>Factura #: {ventaData.numero_de_venta}</div>
+                    </div>
+                </div>
+                <div className="mb-8">
+                    <h2 className="text-lg font-bold mb-4">Comprador:</h2>
+                    <div className="text-gray-700 mb-2">{cliente.nombre}</div>
+                    <div className="text-gray-700 mb-2">
+                        Descuento: {cliente.descuento + '%' || 'N/A'}
+                    </div>
+                    <div className="text-gray-700 mb-2">
+                        {cliente.direccion || 'N/A'}
+                    </div>
 
-            <div
-                className={`mt-6 ${
-                    isDark ? 'border-gray-700' : 'border-gray-200'
-                } border-b`}>
-                <h4
-                    className={`text-xl font-semibold ${
-                        isDark ? 'text-gray-300' : 'text-gray-900'
-                    }`}>
-                    Detalles de la Venta
-                </h4>
-                <div className="relative overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead>
-                            <tr>
-                                <th className="px-4 py-2">Producto</th>
-                                <th className="px-4 py-2">Cantidad</th>
-                                <th className="px-4 py-2">Precio Unitario</th>
-                                <th className="px-4 py-2">Total</th>
+                    <div className="text-gray-700">
+                        {cliente.correo_electronico || 'N/A'}
+                    </div>
+                </div>
+                <table className="w-full mb-8">
+                    <thead>
+                        <tr>
+                            <th className="text-left font-bold text-gray-700">
+                                #
+                            </th>
+                            <th className="text-left font-bold text-gray-700">
+                                Description
+                            </th>
+                            <th className="text-right font-bold text-gray-700">
+                                Cantidad
+                            </th>
+                            <th className="text-right font-bold text-gray-700">
+                                Total
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {ventaData.productos.map((product, index) => (
+                            <tr key={index}>
+                                <td className="text-left text-gray-700">
+                                    {index + 1}
+                                </td>
+                                <td className="text-left text-gray-700">
+                                    {product.nombre}
+                                </td>
+                                <td className="text-right text-gray-700">
+                                    {product.cantidad}
+                                </td>
+                                <td className="text-right text-gray-700">
+                                    ${product.total.toFixed(2)}
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {selectedProducts.map((product, index) => (
-                                <tr key={index}>
-                                    <td className="px-4 py-2">
-                                        {product.nombre}
-                                    </td>
-                                    <td className="px-4 py-2">
-                                        {product.cantidad}
-                                    </td>
-                                    <td className="px-4 py-2">
-                                        $
-                                        {isMayor
-                                            ? (
-                                                  product.precio_compra *
-                                                  (1 +
-                                                      product.porcentaje_ganancia_mayor -
-                                                      cliente.descuento / 100)
-                                              ).toFixed(2)
-                                            : (
-                                                  product.precio_compra *
-                                                  (1 +
-                                                      product.porcentaje_ganancia -
-                                                      cliente.descuento / 100)
-                                              ).toFixed(2)}
-                                    </td>
-                                    <td className="px-4 py-2">
-                                        $
-                                        {(
-                                            product.cantidad *
-                                            (isMayor
-                                                ? product.precio_compra *
-                                                  (1 +
-                                                      product.porcentaje_ganancia_mayor -
-                                                      cliente.descuento / 100)
-                                                : product.precio_compra *
-                                                  (1 +
-                                                      product.porcentaje_ganancia -
-                                                      cliente.descuento / 100))
-                                        ).toFixed(2)}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                        ))}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td
+                                colSpan="3"
+                                className="text-left font-bold text-gray-700">
+                                Total
+                            </td>
+                            <td className="text-right font-bold text-gray-700">
+                                ${ventaData.total_venta_dol.toFixed(2)}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td
+                                colSpan="3"
+                                className="text-left font-bold text-gray-700">
+                                Total en Bs
+                            </td>
+                            <td className="text-right font-bold text-gray-700">
+                                {(
+                                    ventaData.total_venta_dol * exchangeRate
+                                ).toFixed(2)}{' '}
+                                Bs
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <div className="text-gray-700 mb-2">Gracias por tu compra!</div>
             </div>
-            <div className="mt-4 grid grid-cols-2 items-center">
-                <h4
-                    className={`text-xl font-semibold ${
-                        isDark ? 'text-gray-300' : 'text-gray-900'
-                    }`}>
-                    Resumen del Pedido
-                </h4>
-                <div className="text-right">
-                    <p
-                        className={`text-base ${
-                            isDark ? 'text-gray-300' : 'text-gray-900'
-                        }`}>
-                        Total: ${TotalGeneral.toFixed(2)}
-                    </p>
-                    <p
-                        className={`text-base ${
-                            isDark ? 'text-gray-300' : 'text-gray-900'
-                        }`}>
-                        Total en Bs: {(TotalGeneral * exchangeRate).toFixed(2)}{' '}
-                        Bs
-                    </p>
-                    <p
-                        className={`text-base ${
-                            isDark ? 'text-gray-300' : 'text-gray-900'
-                        }`}>
-                        Restante en Bs:{' '}
-                        {(remainingAmount * exchangeRate).toFixed(2)} Bs
-                    </p>
-                </div>
-            </div>
-        </div>
+            <PdfGenerator htmlContentRef={htmlContentRef} fileName="factura" />
+        </>
     ) : (
         <div>
             <form onSubmit={handleSubmit}>
@@ -465,7 +410,10 @@ const ConfirmFactura = ({
                                         !selectedPayments.includes(method) ||
                                         isPending
                                     }
-                                    required
+                                    required={
+                                        selectedPayments.includes(method) &&
+                                        !isPending
+                                    }
                                 />
                             </div>
                             <div className="col-span-1">

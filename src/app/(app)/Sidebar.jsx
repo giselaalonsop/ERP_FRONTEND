@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -18,6 +18,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { HiChartPie, HiUser, HiViewBoards, HiShoppingBag } from 'react-icons/hi'
 import { useTheme } from '@/context/ThemeProvider'
+import useConfiguracion from '@/hooks/useConfiguracion'
 
 const Sidebar = ({ user, logout }) => {
     const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -25,7 +26,17 @@ const Sidebar = ({ user, logout }) => {
     const [ventas, setVentas] = useState(true)
     const [compras, setCompras] = useState(true)
     const { isDark } = useTheme()
-
+    const [img, setImg] = useState('')
+    const { logo, loading } = useConfiguracion()
+    useEffect(() => {
+        if (loading) {
+            return
+        }
+        if (logo) {
+            const logoPath = `http://localhost:8000/${logo}`
+            setImg(logoPath)
+        }
+    }, [logo])
     return (
         <div
             className={`${sidebarOpen ? 'w-64' : 'w-20'} ${
@@ -45,6 +56,14 @@ const Sidebar = ({ user, logout }) => {
                     justifyContent: sidebarOpen ? 'right' : 'center',
                     paddingRight: sidebarOpen ? '10px' : '0px',
                 }}>
+                {sidebarOpen && (
+                    <img
+                        src={img}
+                        alt="Logo"
+                        className="h-10 w-auto px-2"
+                        style={{ marginRight: 'auto' }}
+                    />
+                )}
                 <button onClick={() => setSidebarOpen(!sidebarOpen)}>
                     <svg
                         className="h-8 w-8"
@@ -287,7 +306,7 @@ const Sidebar = ({ user, logout }) => {
                         <ul className={`${compras ? 'block' : 'hidden'} ml-4`}>
                             <li>
                                 <Link
-                                    href="/proovedores"
+                                    href="/proveedores"
                                     className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
                                     <span className="inline-flex justify-center items-center ml-4">
                                         <FontAwesomeIcon
@@ -299,7 +318,7 @@ const Sidebar = ({ user, logout }) => {
                                         className={`${
                                             sidebarOpen ? 'inline' : 'hidden'
                                         } ml-2 text-base tracking-wide truncate`}>
-                                        Proovedores
+                                        Proveedores
                                     </span>
                                 </Link>
                             </li>
@@ -318,24 +337,6 @@ const Sidebar = ({ user, logout }) => {
                                             sidebarOpen ? 'inline' : 'hidden'
                                         } ml-2 text-base tracking-wide truncate`}>
                                         Historial
-                                    </span>
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    href="/PagosPendientes"
-                                    className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
-                                    <span className="inline-flex justify-center items-center ml-4">
-                                        <FontAwesomeIcon
-                                            icon={faFileLines}
-                                            className="w-6 h-6"
-                                        />
-                                    </span>
-                                    <span
-                                        className={`${
-                                            sidebarOpen ? 'inline' : 'hidden'
-                                        } ml-2 text-base tracking-wide truncate`}>
-                                        Cuentas por pagar
                                     </span>
                                 </Link>
                             </li>

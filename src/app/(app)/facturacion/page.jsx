@@ -67,7 +67,7 @@ const Facturacion = () => {
 
     useEffect(() => {
         if (searchTerm.length >= 3) {
-            const results = productos.filter(
+            const results = productos?.filter(
                 product =>
                     product.cantidad_en_stock > 0 &&
                     product.ubicacion.toLowerCase() ===
@@ -102,26 +102,7 @@ const Facturacion = () => {
                 p => p.codigo_barras === product.codigo_barras,
             )
             if (existingProductIndex > -1) {
-                const updatedProducts = [...prev]
-                const existingProduct = updatedProducts[existingProductIndex]
-                const newCantidad =
-                    existingProduct.cantidad +
-                    (formaDeVenta === 'peso' ? 0.1 : 1)
-
-                if (newCantidad <= existingProduct.cantidad_en_stock) {
-                    existingProduct.cantidad = newCantidad
-                    existingProduct.total =
-                        newCantidad * existingProduct.precio_venta
-                    updatedProducts[existingProductIndex] = existingProduct
-                } else {
-                    Swal.fire(
-                        'Error',
-                        'Cantidad supera el stock disponible',
-                        'error',
-                    )
-                }
-
-                return updatedProducts
+                return prev
             }
 
             return [
