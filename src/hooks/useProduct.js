@@ -33,9 +33,13 @@ export const useProduct = () => {
                 Swal.fire("Error al guardar los datos", "", "error");
             }
         } catch (error) {
-            if (error.response.status !== 422) throw error;
-            setErrors(error.response.data.errors);
-            Swal.fire("Error al guardar los datos", "", "error");
+            if (error.response.status === 422) {
+                setErrors(error.response.data.errors);
+                Swal.fire("Error: Producto duplicado", error.response.data.error, "error");
+            } else {
+                Swal.fire("Error al guardar los datos", "", "error");
+                throw error;
+            }
         }
     };
 

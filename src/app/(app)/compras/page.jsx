@@ -13,6 +13,7 @@ import { PlusIcon } from '@heroicons/react/solid'
 import { ChevronDownIcon, SearchIcon } from '@heroicons/react/solid'
 import { AutoComplete } from 'primereact/autocomplete'
 
+
 const Page = () => {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalContent, setModalContent] = useState(null)
@@ -25,6 +26,7 @@ const Page = () => {
     const router = useRouter()
     const { proveedores, proveedoresError } = useProveedores()
     const { compras, comprasError } = useCompras()
+   
 
     useEffect(() => {
         if (user && user.rol !== 'admin') {

@@ -7,6 +7,8 @@ import Pagination from '@/components/Pagination'
 import Modal from '@/components/Modal'
 import ConfirmFactura from '@/components/ConfirmFactura'
 import { useAuth } from '@/hooks/auth'
+import { format } from 'date-fns'
+import { useClientes } from '@/hooks/useClients'
 
 const CuentasPorCobrar = () => {
     const { ventasPendientes, ventasPendientesError } = useVentas()
@@ -17,7 +19,10 @@ const CuentasPorCobrar = () => {
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
     const [selectedVenta, setSelectedVenta] = useState(null)
-
+    const { clientes } = useClientes()
+    const formatDate = dateString => {
+        return format(new Date(dateString), 'dd-MM-yyyy HH:mm:ss')
+    }
     const openModal = (content, title) => {
         setModalContent(content)
         setModalTitle(title)
@@ -31,15 +36,21 @@ const CuentasPorCobrar = () => {
     }
 
     const handleEdit = venta => {
+        const cliente = clientes?.find(
+            cliente => cliente.cedula == venta.cliente,
+        )
+
         setSelectedVenta(venta)
         openModal(
             <ConfirmFactura
                 setProcesado={() => {}}
                 TotalGeneral={venta.total_venta_dol}
+                cliente={cliente}
                 selectedProducts={venta.detalles}
                 location={user.location}
                 onSuccess={handleUpdateSuccess}
                 isMayor={venta.mayor_o_detal === 'Mayor'}
+                venta={venta}
             />,
             'Actualizar Venta',
         )
@@ -79,6 +90,13 @@ const CuentasPorCobrar = () => {
         })
     }
 
+    if (ventasPendientes?.length === 0) {
+        return (
+            <div className="text-center text-gray-500  py-2">
+                No hay ventas por cobrar.
+            </div>
+        )
+    }
     if (ventasPendientesError)
         return <div>Error al cargar las ventas pendientes.</div>
     if (!ventasPendientes) return <div>Cargando...</div>
@@ -117,7 +135,7 @@ const CuentasPorCobrar = () => {
                         <tr key={venta.id} className="bg-white border-b">
                             <td className="px-6 py-4">{venta.cliente}</td>
                             <td className="px-6 py-4">
-                                {new Date(venta.fecha).toLocaleString()}
+                                {formatDate(venta.created_at)}
                             </td>
                             <td className="px-6 py-4">
                                 {venta.total_venta_dol != null &&

@@ -74,6 +74,47 @@ export const useVentas = () => {
             throw error
         }
     }
+    const getVentaDetalles = async (id) => {
+        await csrf()
+
+        try {
+            const response = await axios.get(`/api/ventas/${id}`)
+            return response.data
+        } catch (error) {
+            Swal.fire("Error al obtener detalles de la venta", "", "error")
+            throw error
+        }
+    }
+
+    const deleteVenta = async (id) => {
+        await csrf()
+
+        try {
+            const response = await axios.delete(`/api/ventas/${id}`)
+            mutateVentas()
+            if (response.status === 204) {
+                Swal.fire('Venta Eliminada', '', 'success')
+            }
+        } catch (error) {
+            Swal.fire('Error al eliminar venta', '', 'error')
+            throw error
+        }
+    }
+     const updateVenta = async (id, data) => {
+        await csrf()
+
+        try {
+            const response = await axios.put(`/api/ventas/${id}`, data)
+            mutateVentas()
+            mutateVentasPendientes()
+            if (response.status === 200) {
+                Swal.fire('Venta Actualizada', '', 'success')
+            }
+        } catch (error) {
+            Swal.fire('Error al actualizar venta', '', 'error')
+            throw error
+        }
+    }
 
     return {
         ventas,
@@ -83,6 +124,10 @@ export const useVentas = () => {
         ventasPendientesError,
         ventaDetallesError,
         addVenta,
-        addVentaDetalle
+        addVentaDetalle,
+        getVentaDetalles,
+        deleteVenta,
+        updateVenta,
+        mutateVentasPendientes,
     }
 }

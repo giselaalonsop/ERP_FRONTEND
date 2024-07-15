@@ -8,6 +8,7 @@ import Button from '@/components/Button'
 import Pagination from '@/components/Pagination'
 import RegisterCompra from '@/components/RegisterCompra'
 import Swal from 'sweetalert2'
+import { format } from 'date-fns'
 
 const ComprasTable = ({ compras }) => {
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -15,7 +16,13 @@ const ComprasTable = ({ compras }) => {
     const [modalTitle, setModalTitle] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 10
-
+    const formatDate = dateString => {
+        const date = new Date(dateString)
+        if (isNaN(date)) {
+            return 'Fecha inválida'
+        }
+        return format(date, 'dd-MM-yyyy HH:mm:ss')
+    }
     const { deleteCompra } = useCompras()
 
     const openModal = (content, title) => {
@@ -155,7 +162,7 @@ const ComprasTable = ({ compras }) => {
                                             </div>
                                         </th>
                                         <td className="px-6 py-4">
-                                            {compra.fecha}
+                                            {formatDate(compra.created_at)}
                                         </td>
                                         <td className="px-6 py-4">
                                             {compra.monto_total}

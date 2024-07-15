@@ -264,7 +264,6 @@ const AddProductPage = ({ product, onClose }) => {
                 }
                 if (product) {
                     await updateProduct(product.id, dataToSend)
-                    Swal.fire('Producto actualizado', '', 'success')
                 } else {
                     await addProduct({
                         ...dataToSend,
@@ -293,12 +292,10 @@ const AddProductPage = ({ product, onClose }) => {
                         ubicacion: localStorage.getItem('almacen') || 'General',
                     })
                     setStep(1)
-                    Swal.fire('Producto registrado', '', 'success')
                 }
                 onClose()
             } catch (error) {
                 console.error('Error al guardar el producto', error)
-                Swal.fire('Error al registrar el producto', '', 'error')
             }
         } else {
             markFieldsAsTouched(step)

@@ -25,6 +25,9 @@ export const useCaja = () => {
             return response.data
         } catch (error) {
             console.error('Error al obtener cierre de caja', error)
+            if (error.response && error.response.status === 400) {
+                return { error: error.response.data.error }
+            }
             throw error
         }
     }
@@ -32,9 +35,9 @@ export const useCaja = () => {
     const cerrarCaja = async ubicacion => {
         await csrf()
         try {
-            const response = await axios.post(
-                `/api/cierre-de-caja/cerrar/${ubicacion}`,
-            )
+            const response = await axios.post('/api/cierre-de-caja/cerrar', {
+                ubicacion,
+            })
             return response.data
         } catch (error) {
             console.error('Error al cerrar caja', error)

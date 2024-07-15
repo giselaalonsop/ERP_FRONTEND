@@ -10,14 +10,19 @@ import Navbar from './Navbar'
 import { useTheme } from '@/context/ThemeProvider'
 import { Component } from '@/components/Footer'
 import useConfiguracion from '@/hooks/useConfiguracion'
+import { useProduct } from '@/hooks/useProduct'
 
 const AppLayout = ({ children, header }) => {
     const { user, logout } = useAuth({ middleware: 'auth' })
     const { isDark } = useTheme();
     const {configuracion}=useConfiguracion()
+    const {productos}=useProduct()
+
     //guardar configuracion en localstorage
     useEffect(() => {
         localStorage.setItem('configuracion', JSON.stringify(configuracion))
+        localStorage.setItem('productos', JSON.stringify(productos))
+
     }, [configuracion])
 
     if (!user) {

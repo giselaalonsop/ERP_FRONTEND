@@ -16,10 +16,7 @@ const CierreDeCaja = () => {
         const fetchCierreDeCaja = async () => {
             try {
                 const data = await obtenerCierreDeCaja(user.location)
-                if (
-                    data.message &&
-                    data.message === 'La caja del día ya fue cerrada.'
-                ) {
+                if (data.error) {
                     setCajaCerrada(true)
                 } else {
                     setCierreDeCaja(data)
@@ -48,7 +45,10 @@ const CierreDeCaja = () => {
 
     if (cajaCerrada) {
         return (
-            <div className="text-center">La caja del día ya fue cerrada.</div>
+            <div className="text-center">
+                La caja del día ya fue cerrada o no hay caja abierta ni cerrada
+                para hoy en esta ubicación.
+            </div>
         )
     }
 
@@ -57,7 +57,11 @@ const CierreDeCaja = () => {
     }
 
     const formatDate = dateString => {
-        return format(new Date(dateString), 'dd-MM-yyyy HH:mm:ss')
+        const date = new Date(dateString)
+        if (isNaN(date)) {
+            return 'Fecha inválida'
+        }
+        return format(date, 'dd-MM-yyyy HH:mm:ss')
     }
 
     return (

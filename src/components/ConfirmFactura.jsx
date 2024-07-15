@@ -15,9 +15,10 @@ const ConfirmFactura = ({
     location,
     onSuccess,
     isMayor,
+    venta, // Nueva propiedad para la venta en edición
 }) => {
     const { isDark } = useTheme()
-    const { addVenta } = useVentas()
+    const { addVenta, updateVenta } = useVentas() // Añadimos updateVenta
     const { registrarVentaEnCaja } = useCaja()
     const [selectedPayments, setSelectedPayments] = useState([])
     const [amounts, setAmounts] = useState({})
@@ -29,6 +30,7 @@ const ConfirmFactura = ({
     const [isPending, setIsPending] = useState(false)
     const [ventaData, setVentaData] = useState({})
     const [exchangeRate, setExchangeRate] = useState(0)
+
     useEffect(() => {
         fetch('https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=bcv')
             .then(res => res.json())
@@ -36,7 +38,6 @@ const ConfirmFactura = ({
     }, [])
 
     const configuracion = JSON.parse(localStorage.getItem('configuracion'))
-    const logoUrl = `http://localhost:8000/${configuracion.logo}`
 
     useEffect(() => {
         factura
@@ -58,6 +59,15 @@ const ConfirmFactura = ({
         'Bolivares en efectivo': 'bs_efectivo',
         'Pagar Luego': 'pagar_luego', // Método de pago para pagos pendientes
     }
+
+    // Cargar datos de la venta en edición
+    useEffect(() => {
+        if (venta) {
+            setIsPending(venta.estado === 'Pendiente')
+            setRemainingAmount(parseFloat(venta.total_venta_dol))
+            TotalGeneral = parseFloat(TotalGeneral)
+        }
+    }, [venta])
 
     const handleCheckboxChange = method => {
         setSelectedPayments(prevState =>
@@ -142,7 +152,9 @@ const ConfirmFactura = ({
             const ventaData = {
                 cliente: cliente.cedula,
                 usuario: user.name,
-                numero_de_venta: Math.floor(Math.random() * 1000),
+                numero_de_venta: venta
+                    ? venta.numero_de_venta
+                    : Math.floor(Math.random() * 1000),
                 comprobante: 'Factura',
                 estado: isPending ? 'Pendiente' : 'Aceptado',
                 mayor_o_detal: isMayor ? 'Mayor' : 'Detal',
@@ -191,17 +203,16 @@ const ConfirmFactura = ({
             }
 
             try {
-                await addVenta(ventaData)
+                if (venta) {
+                    await updateVenta(venta.id, ventaData)
+                } else {
+                    await addVenta(ventaData)
+                }
+
                 if (!isPending) {
                     await registrarVentaEnCaja(dataCaja)
                 }
-                Swal.fire(
-                    isPending ? 'Guardado' : 'Facturado',
-                    isPending
-                        ? 'La venta ha sido guardada como pendiente.'
-                        : 'La venta ha sido procesada exitosamente.',
-                    'success',
-                )
+
                 onSuccess()
                 setFactura(true)
             } catch (error) {
@@ -436,8 +447,15 @@ const ConfirmFactura = ({
                                     }
                                     disabled={
                                         !selectedPayments.includes(method) ||
-                                        isPending
+                                        isPending ||
+                                        method === 'Punto de venta' // Agregar esta condición
                                     }
+                                    style={{
+                                        display:
+                                            method === 'Punto de venta'
+                                                ? 'none'
+                                                : 'block', // Agregar esta condición
+                                    }}
                                 />
                             </div>
                         </div>
@@ -449,7 +467,9 @@ const ConfirmFactura = ({
                             isDark ? 'text-gray-300' : 'text-gray-900'
                         }`}>
                         Total: $
-                        {TotalGeneral ? TotalGeneral.toFixed(2) : '0.00'}
+                        {typeof TotalGeneral === 'number'
+                            ? TotalGeneral.toFixed(2)
+                            : parseFloat(TotalGeneral).toFixed(2)}
                     </p>
                     <p
                         className={`text-sm font-medium ${
@@ -458,14 +478,19 @@ const ConfirmFactura = ({
                                 : 'text-red-500'
                         }`}>
                         Restante: $
-                        {remainingAmount ? remainingAmount.toFixed(2) : '0.00'}
+                        {typeof remainingAmount === 'number'
+                            ? remainingAmount.toFixed(2)
+                            : '0.00'}
                     </p>
                     <p
                         className={`text-sm font-medium ${
                             isDark ? 'text-gray-300' : 'text-gray-900'
                         }`}>
                         Restante en Bs:{' '}
-                        {(remainingAmount * exchangeRate).toFixed(2)} Bs
+                        {typeof remainingAmountInBs === 'number'
+                            ? remainingAmountInBs.toFixed(2)
+                            : '0.00'}{' '}
+                        Bs
                     </p>
                 </div>
                 <button

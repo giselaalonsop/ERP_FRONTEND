@@ -37,6 +37,7 @@
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
     "react-modal": "^3.16.1",
+    "react-to-print": "^2.15.1",
     "sweetalert2": "^11.6.13",
     "swr": "^1.3.0",
     "tailwind-merge": "^2.3.0"
