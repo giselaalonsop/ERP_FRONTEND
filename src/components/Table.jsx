@@ -285,9 +285,7 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
                                                         <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-300 whitespace-nowrap">
                                                             <img
                                                                 className="w-16 h-16 object-cover rounded"
-                                                                src={
-                                                                    product.imagen
-                                                                }
+                                                                src={`http://localhost:8000/${product.imagen}`}
                                                                 alt={
                                                                     product.nombre
                                                                 }

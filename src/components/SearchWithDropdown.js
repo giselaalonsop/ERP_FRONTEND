@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ChevronDownIcon, SearchIcon } from '@heroicons/react/solid';
 import { useTheme } from '@/context/ThemeProvider';
 import { useCategories } from '@/hooks/useCategories';
@@ -9,11 +9,7 @@ const SearchWithDropdown = ({ onCategorySelect, onLocationSelect, onSearchTextCh
   const [selectedCategory, setSelectedCategory] = useState('All categories');
   const [selectedLocation, setSelectedLocation] = useState('General');
   const { isDark } = useTheme();
-  const { categories, getCategoria } = useCategories();
-
-  useEffect(() => {
-    getCategoria();
-  }, []);
+  const { categories, isLoading, isError } = useCategories();
 
   const toggleCategoryDropdown = () => {
     setIsCategoryOpen(!isCategoryOpen);
@@ -38,6 +34,9 @@ const SearchWithDropdown = ({ onCategorySelect, onLocationSelect, onSearchTextCh
   const handleSearchChange = (e) => {
     onSearchTextChange(e.target.value);
   };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div>Error loading categories</div>;
 
   return (
     <div className="relative flex justify-start space-x-4">

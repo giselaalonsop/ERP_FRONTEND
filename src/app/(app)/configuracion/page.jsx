@@ -12,12 +12,13 @@ import 'tailwindcss/tailwind.css'
 const ConfigurationForm = () => {
     const { hasPermission, user } = useAuth({ middleware: 'auth' })
     const {
-        configuracion,
+        configuracion: configData,
         createConfiguracion,
         updateConfiguracion,
         loading,
     } = useConfiguracion()
 
+    const [isLoaded, setIsLoaded] = useState(false)
     const [id, setId] = useState(null)
     const [iva, setIva] = useState('')
     const [porcentajeGanancia, setPorcentajeGanancia] = useState('')
@@ -32,24 +33,48 @@ const ConfigurationForm = () => {
     const [logoPreview, setLogoPreview] = useState('')
     const [errors, setErrors] = useState([])
 
+    // Carga inicial desde localStorage
     useEffect(() => {
-        if (configuracion) {
-            setId(configuracion.id)
-            setIva(configuracion.IVA || '')
-            setPorcentajeGanancia(configuracion.porcentaje_ganancia || '')
-            setNombreEmpresa(configuracion.nombre_empresa || '')
-            setTelefono(configuracion.telefono || '')
-            setRif(configuracion.rif || '')
-            setCorreo(configuracion.correo || '')
-            setDirecciones(configuracion.direcciones || [])
-            setPagoMovil(configuracion.pago_movil || [])
-            setTransferencias(configuracion.transferencias || [])
-            if (configuracion.logo) {
-                const logoPath = `http://localhost:8000/${configuracion.logo}`
+        const storedConfig = JSON.parse(localStorage.getItem('configuracion'))
+        if (storedConfig) {
+            setId(storedConfig.id)
+            setIva(storedConfig.IVA || '')
+            setPorcentajeGanancia(storedConfig.porcentaje_ganancia || '')
+            setNombreEmpresa(storedConfig.nombre_empresa || '')
+            setTelefono(storedConfig.telefono || '')
+            setRif(storedConfig.rif || '')
+            setCorreo(storedConfig.correo || '')
+            setDirecciones(storedConfig.direcciones || [])
+            setPagoMovil(storedConfig.pago_movil || [])
+            setTransferencias(storedConfig.transferencias || [])
+            if (storedConfig.logo) {
+                const logoPath = `http://localhost:8000/${storedConfig.logo}`
                 setLogoPreview(logoPath)
             }
         }
-    }, [configuracion])
+        setIsLoaded(true)
+    }, [])
+
+    // Sincroniza configuracion desde el hook
+    useEffect(() => {
+        if (configData) {
+            setId(configData.id)
+            setIva(configData.IVA || '')
+            setPorcentajeGanancia(configData.porcentaje_ganancia || '')
+            setNombreEmpresa(configData.nombre_empresa || '')
+            setTelefono(configData.telefono || '')
+            setRif(configData.rif || '')
+            setCorreo(configData.correo || '')
+            setDirecciones(configData.direcciones || [])
+            setPagoMovil(configData.pago_movil || [])
+            setTransferencias(configData.transferencias || [])
+            if (configData.logo) {
+                const logoPath = `http://localhost:8000/${configData.logo}`
+                setLogoPreview(logoPath)
+            }
+            localStorage.setItem('configuracion', JSON.stringify(configData))
+        }
+    }, [configData])
 
     const handleArrayChange = setter => event => {
         const value = event.target.value.split(',').map(item => item.trim())
@@ -94,7 +119,11 @@ const ConfigurationForm = () => {
             const response = await createConfiguracion(formData)
             if (response.status === 200 || response.status === 201) {
                 Swal.fire('Configuración guardada', '', 'success')
-                
+                // Actualiza localStorage después de guardar
+                localStorage.setItem(
+                    'configuracion',
+                    JSON.stringify(configData),
+                )
             }
         } catch (error) {
             console.error('Error:', error)
@@ -115,12 +144,12 @@ const ConfigurationForm = () => {
         )
     }
 
-    if (loading) {
+    if (!isLoaded || loading) {
         return <div>Loading...</div>
     }
 
     return (
-        <div className="max-w-3xl mx-auto bg-blue-50 p-8 rounded-lg shadow-lg">
+        <div className="max-w-3xl mx-auto">
             <div className="text-center mb-10">
                 <h1 className="text-2xl font-semibold">Configuración</h1>
                 <p>Actualiza la configuración de la empresa</p>

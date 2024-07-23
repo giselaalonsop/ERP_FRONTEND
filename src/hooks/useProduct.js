@@ -2,8 +2,10 @@ import axios from '@/lib/axios';
 import Swal from 'sweetalert2';
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
+import { set } from 'date-fns';
 
 export const useProduct = () => {
+    const [errors, setErrors] = useState([]);
     const { data: products, error, mutate } = useSWR('/api/productos', () =>
         axios
             .get('/api/productos')
@@ -18,35 +20,50 @@ export const useProduct = () => {
 
     const csrf = () => axios.get('/sanctum/csrf-cookie');
 
-    const addProduct = async ({ setErrors, ...props }) => {
-        await csrf();
+    const addProduct = async (data) => {
         setErrors([]);
 
+    
+        await csrf();
+    
         try {
-            const response = await axios.post('/api/productos', props);
-            if (response.status === 201) {
-                Swal.fire("Registro procesado", "", "success");
-                mutate(); // Actualiza los productos después de agregar uno nuevo
-                return response;
+            const response = await axios.post('/api/productos', data, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            if (response.status === 200 || response.status === 201) {
+                Swal.fire("Producto agregado", "", "success");
+                mutate(); // Actualiza los productos después de agregar uno
             } else {
-                console.error("Error al guardar los datos");
-                Swal.fire("Error al guardar los datos", "", "error");
+                console.error("Error al agregar el producto");
+                Swal.fire("Error al agregar el producto", "", "error");
             }
-        } catch (error) {
-            if (error.response.status === 422) {
-                setErrors(error.response.data.errors);
-                Swal.fire("Error: Producto duplicado", error.response.data.error, "error");
-            } else {
-                Swal.fire("Error al guardar los datos", "", "error");
-                throw error;
-            }
+            
+        } catch (err) {
+            setErrors(err.response.data.errors);
+            if (err.response.status !== 422) throw err;
+            Swal.fire("Error al agregar el producto", err, "error");
+           
         }
     };
+    
 
-    const updateProduct = async (id, data) => {
+    const updateProduct = async (id, dataToSend) => {
+
         await csrf();
+
+        for (var pair of dataToSend.entries()) {
+            console.log(pair[0] + ': ' + pair[1])
+            
+        }
         try {
-            const response = await axios.put(`/api/productos/${id}`, data);
+            const response = await axios.post(`/api/productos/${id}`, dataToSend, {
+                headers: {
+                    'method': 'PUT',
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
             if (response.status === 200 || response.status === 201) {
                 Swal.fire("Producto actualizado", "", "success");
                 mutate(); 
@@ -87,6 +104,7 @@ export const useProduct = () => {
 
         try {
             const response = await axios.post(`/api/productos/${productoId}/cargar`, {
+                
                 codigo_barras: selectedProduct.codigo_barras,
                 nombre: selectedProduct.nombre,
                 descripcion: selectedProduct.descripcion,
@@ -121,7 +139,7 @@ export const useProduct = () => {
         }
     };
 
-    const descargarInventario = async (productoId, cantidad_a_descargar, ubicacion_origen, ubicacion_destino = null, cantidad_a_enviar = null) => {
+    const descargarInventario = async (productoId, cantidad_a_descargar, ubicacion_origen, ubicacion_destino, cantidad_a_enviar) => {
         await csrf();
 
         const selectedProduct = products.find(product => product.id === productoId);

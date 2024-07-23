@@ -18,7 +18,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { HiChartPie, HiUser, HiViewBoards, HiShoppingBag } from 'react-icons/hi'
 import { useTheme } from '@/context/ThemeProvider'
-import useConfiguracion from '@/hooks/useConfiguracion'
+
 
 const Sidebar = ({ user, logout }) => {
     const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -27,16 +27,14 @@ const Sidebar = ({ user, logout }) => {
     const [compras, setCompras] = useState(true)
     const { isDark } = useTheme()
     const [img, setImg] = useState('')
-    const { logo, loading } = useConfiguracion()
+    const configuracion = JSON.parse(localStorage.getItem('configuracion'))
+
     useEffect(() => {
-        if (loading) {
-            return
-        }
-        if (logo) {
-            const logoPath = `http://localhost:8000/${logo}`
+        if (configuracion) {
+            const logoPath = `http://localhost:8000/${configuracion.logo}`
             setImg(logoPath)
         }
-    }, [logo])
+    }, [configuracion])
     return (
         <div
             className={`${sidebarOpen ? 'w-64' : 'w-20'} ${
@@ -56,7 +54,7 @@ const Sidebar = ({ user, logout }) => {
                     justifyContent: sidebarOpen ? 'right' : 'center',
                     paddingRight: sidebarOpen ? '10px' : '0px',
                 }}>
-                {sidebarOpen && (
+                {sidebarOpen && configuracion && (
                     <img
                         src={img}
                         alt="Logo"

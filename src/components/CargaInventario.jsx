@@ -40,7 +40,14 @@ const CargaInventario = () => {
     const searchProduct = event => {
         const query = event.query.toLowerCase()
         setSearchQuery(query)
-        const filtered = products.filter(
+        const uniqueProducts = products.reduce((acc, product) => {
+            if (!acc.some(p => p.codigo_barras === product.codigo_barras)) {
+                acc.push(product)
+            }
+            return acc
+        }, [])
+
+        const filtered = uniqueProducts.filter(
             product =>
                 product.nombre.toLowerCase().includes(query) ||
                 product.codigo_barras.toLowerCase().includes(query),
@@ -100,8 +107,7 @@ const CargaInventario = () => {
                             field="nombre"
                             itemTemplate={item => (
                                 <div>
-                                    {item.codigo_barras} - {item.nombre} -{' '}
-                                    {item.cantidad_en_stock}
+                                    {item.codigo_barras} - {item.nombre}
                                 </div>
                             )}
                             onChange={e => setSelectedProduct(e.value)}
@@ -122,6 +128,7 @@ const CargaInventario = () => {
                         <input
                             type="number"
                             id="cantidad"
+                            min="1"
                             value={cantidad}
                             onChange={e => setCantidad(e.target.value)}
                             className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-primary-600 focus:border-primary-600"

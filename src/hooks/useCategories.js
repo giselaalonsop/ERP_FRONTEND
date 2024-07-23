@@ -1,45 +1,39 @@
+import useSWR from 'swr';
 import axios from '@/lib/axios';
-import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 
+const fetcher = url => axios.get(url).then(res => res.data);
+
 export const useCategories = () => {
-    const [categories, setCategories] = useState([]);
-    const [errors, setErrors] = useState([]);
+  const {
+    data: categories,
+    error: categoriesError,
+    mutate: mutateCategories,
+  } = useSWR('/api/categorias', fetcher);
 
-    // Método para obtener todas las categorías
-    const getCategoria = async () => {
-        try {
-            const response = await axios.get('/api/categorias');
-            setCategories(response.data);
-        } catch (error) {
-            console.error('Error al obtener las categorías', error);
-            setErrors(error.response.data.errors || []);
-        }
-    };
+  const csrf = () => axios.get('/sanctum/csrf-cookie');
 
-    // Método para agregar una nueva categoría
-    const addCategoria = async (categoryData) => {
-        try {
-            const response = await axios.post('/api/categorias', categoryData);
-            if (response.status === 201) {
-                Swal.fire('Categoría creada', '', 'success');
-                getCategoria(); // Actualiza la lista de categorías
-            }
-        } catch (error) {
-            console.error('Error al crear la categoría', error);
-            setErrors(error.response.data.errors || []);
-            Swal.fire('Error al crear la categoría', '', 'error');
-        }
-    };
+  const addCategoria = async (categoryData) => {
+    await csrf();
+    try {
+      const response = await axios.post('/api/categorias', categoryData);
+      if (response.status === 201) {
+        Swal.fire('Categoría creada', '', 'success');
+        mutateCategories(); // Refrescar los datos
+      }
+    } catch (error) {
+      console.error('Error al crear la categoría', error);
+      Swal.fire('Error al crear la categoría', '', 'error');
+      throw error;
+    }
+  };
 
-    useEffect(() => {
-        getCategoria(); // Obtener las categorías al cargar el hook
-    }, []);
-
-    return {
-        categories,
-        getCategoria,
-        addCategoria,
-        errors,
-    };
+  return {
+    categories,
+    categoriesError,
+    addCategoria,
+    mutateCategories,
+    isLoading: !categoriesError && !categories,
+    isError: categoriesError,
+  };
 };

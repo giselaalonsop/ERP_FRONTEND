@@ -12,6 +12,8 @@ import { AutoComplete } from 'primereact/autocomplete'
 import { useProveedores } from '@/hooks/useProveedores'
 import RegisterProveedor from '@/components/RegisterProveedorForm'
 import Modal from '@/components/Modal'
+import { image } from '@tensorflow/tfjs'
+import { useDropzone } from 'react-dropzone'
 
 const getCurrentDate = () => {
     const today = new Date()
@@ -27,7 +29,7 @@ const capitalizeWords = str => {
 
 const AddProductPage = ({ product, onClose }) => {
     const configuracion = JSON.parse(localStorage.getItem('configuracion'))
-    const { categories, getCategoria, addCategoria } = useCategories()
+    const { categories, addCategoria, isLoading, isError } = useCategories()
     const { addProduct, updateProduct } = useProduct()
     const [step, setStep] = useState(1)
     const [newCategory, setNewCategory] = useState('')
@@ -65,20 +67,18 @@ const AddProductPage = ({ product, onClose }) => {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
-
-    useEffect(() => {
-        const fetchProductsAndCategories = async () => {
-            await getCategoria()
-        }
-        fetchProductsAndCategories()
-    }, [])
+    const [logoFile, setLogoFile] = useState(null)
+    const [logoPreview, setLogoPreview] = useState('')
 
     useEffect(() => {
         if (product) {
             setFormData(product)
-            const proveedor = proveedores.find(
+            if (product.imagen) {
+                setLogoPreview(`http://localhost:8000/${product.imagen}`)
+            }
+            const proveedor = proveedores?.find(
                 proveedor =>
-                    parseInt(proveedor.id) == parseInt(product.proveedor),
+                    parseInt(proveedor.id) === parseInt(product.proveedor),
             )
             if (proveedor) {
                 setSelectedProveedor(proveedor)
@@ -227,13 +227,6 @@ const AddProductPage = ({ product, onClose }) => {
         }))
     }
 
-    const handleDrop = acceptedFiles => {
-        setFormData(prevData => ({
-            ...prevData,
-            imagen: acceptedFiles[0],
-        }))
-    }
-
     const handleAlmacenChange = e => {
         const value = e.target.value
         setFormData(prevData => ({
@@ -254,51 +247,31 @@ const AddProductPage = ({ product, onClose }) => {
 
     const handleSubmit = async e => {
         e.preventDefault()
-        if (validateStep(3)) {
-            try {
-                const dataToSend = {
-                    ...formData,
-                    precio_compra: sumarIVA
-                        ? formData.precio_compra * (1 + configuracion.IVA / 100)
-                        : formData.precio_compra,
-                }
-                if (product) {
-                    await updateProduct(product.id, dataToSend)
-                } else {
-                    await addProduct({
-                        ...dataToSend,
-                        setErrors,
-                        setResponseMessage,
-                    })
-                    setFormData({
-                        codigo_barras: '',
-                        nombre: '',
-                        descripcion: '',
-                        categoria: '',
-                        imagen: null,
-                        cantidad_en_stock: '',
-                        cantidad_en_stock_mayor: '',
-                        unidad_de_medida: '',
-                        fecha_entrada: getCurrentDate(),
-                        fecha_caducidad: '',
-                        peso: '',
-                        precio_compra: '',
-                        porcentaje_ganancia: configuracion.porcentaje_ganancia,
-                        porcentaje_ganancia_mayor: '',
-                        forma_de_venta: '',
-                        forma_de_venta_mayor: '',
-                        proveedor: '',
-                        cantidad_por_caja: '',
-                        ubicacion: localStorage.getItem('almacen') || 'General',
-                    })
-                    setStep(1)
-                }
-                onClose()
-            } catch (error) {
-                console.error('Error al guardar el producto', error)
+
+        const dataToSend = new FormData()
+        Object.keys(formData).forEach(key => {
+            if (formData[key] !== null && formData[key] !== '') {
+                dataToSend.append(key, formData[key])
             }
-        } else {
-            markFieldsAsTouched(step)
+        })
+
+        if (logoFile) {
+            dataToSend.append('imagen', logoFile)
+        }
+
+        // Log para verificar los datos que se envían
+        for (let pair of dataToSend.entries()) {
+            console.log(pair[0] + ', ' + pair[1])
+        }
+
+        try {
+            const response = product
+                ? await updateProduct(product.id, dataToSend)
+                : await addProduct(dataToSend)
+            setResponseMessage('Producto guardado con éxito')
+            onClose()
+        } catch (error) {
+            console.error('Error al guardar el producto', error)
         }
     }
 
@@ -360,6 +333,20 @@ const AddProductPage = ({ product, onClose }) => {
     }
 
     const steps = ['Información', 'Stock', 'Precios']
+    const onDrop = acceptedFiles => {
+        const file = acceptedFiles[0]
+        setLogoFile(file)
+        const reader = new FileReader()
+        reader.onload = () => {
+            setLogoPreview(reader.result)
+        }
+        reader.readAsDataURL(file)
+    }
+
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop,
+        accept: 'image/*',
+    })
 
     return (
         <div className="max-w-3xl mx-auto">
@@ -371,7 +358,7 @@ const AddProductPage = ({ product, onClose }) => {
                     {product ? 'Editar Producto' : 'Agregar Producto'}
                 </h2>
             </div>
-            <div className="relative bg-white rounded-lg shadow-lg p-6">
+            <div className="relative bg-white  p-6">
                 <div className="absolute top-4 left-0 right-0 flex justify-between mb-4 px-6">
                     {steps.map((label, index) => (
                         <div
@@ -410,7 +397,9 @@ const AddProductPage = ({ product, onClose }) => {
                                         onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
                                             errors.codigo_barras
-                                                ? 'border-red-500'
+                                                ? touchedFields.codigo_barras
+                                                    ? 'border-red-500'
+                                                    : 'border-gray-300'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
                                         placeholder="Ingrese el código de barras"
@@ -437,7 +426,9 @@ const AddProductPage = ({ product, onClose }) => {
                                         onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
                                             errors.nombre
-                                                ? 'border-red-500'
+                                                ? touchedFields.nombre
+                                                    ? 'border-red-500'
+                                                    : 'border-gray-300'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
                                         placeholder="Ingrese el nombre del producto"
@@ -470,7 +461,8 @@ const AddProductPage = ({ product, onClose }) => {
                                                     }
                                                     onBlur={handleBlur}
                                                     className={`bg-gray-50 border ${
-                                                        errors.categoria
+                                                        errors.categoria &&
+                                                        touchedFields.categoria
                                                             ? 'border-red-500'
                                                             : 'border-gray-300'
                                                     } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
@@ -491,7 +483,8 @@ const AddProductPage = ({ product, onClose }) => {
                                                 onChange={handleCategoryChange}
                                                 onBlur={handleBlur}
                                                 className={`bg-gray-50 border ${
-                                                    errors.categoria
+                                                    errors.categoria &&
+                                                    touchedFields.categoria
                                                         ? 'border-red-500'
                                                         : 'border-gray-300'
                                                 } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}>
@@ -565,11 +558,42 @@ const AddProductPage = ({ product, onClose }) => {
                                             )}
                                         </div>
                                     </div>
-                                    <div>
-                                        <Label>Imagen</Label>
-                                        <DropzoneComponent
-                                            onDrop={handleDrop}
-                                            file={formData.imagen}
+                                    <div className="sm:col-span-1 sm:row-span-2">
+                                        <Label
+                                            htmlFor="logo"
+                                            className="block mb-2 text-sm font-medium">
+                                            Logo
+                                        </Label>
+                                        <div
+                                            {...getRootProps()}
+                                            className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer ${
+                                                isDragActive
+                                                    ? 'border-blue-600'
+                                                    : 'border-gray-300'
+                                            }`}
+                                            style={{ height: '140px' }}>
+                                            <input {...getInputProps()} />
+                                            {logoPreview ? (
+                                                <img
+                                                    src={logoPreview}
+                                                    alt="Logo preview"
+                                                    className="rounded-lg mx-auto object-cover"
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '100%',
+                                                    }}
+                                                />
+                                            ) : (
+                                                <p className="text-sm text-gray-500">
+                                                    Arrastra y suelta un archivo
+                                                    aquí, o haz clic para
+                                                    seleccionar uno
+                                                </p>
+                                            )}
+                                        </div>
+                                        <InputError
+                                            messages={errors?.logo}
+                                            className="mt-2"
                                         />
                                     </div>
                                 </div>
@@ -583,13 +607,15 @@ const AddProductPage = ({ product, onClose }) => {
                                     </Label>
                                     <Input
                                         type="number"
+                                        min="0"
                                         id="cantidad_en_stock_mayor"
                                         name="cantidad_en_stock_mayor"
                                         value={formData.cantidad_en_stock_mayor}
                                         onChange={handleChange}
                                         onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
-                                            errors.cantidad_en_stock_mayor
+                                            errors.cantidad_en_stock_mayor &&
+                                            touchedFields.cantidad_en_stock_mayor
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
@@ -614,11 +640,13 @@ const AddProductPage = ({ product, onClose }) => {
                                         type="number"
                                         id="cantidad_por_caja"
                                         name="cantidad_por_caja"
+                                        min="0"
                                         value={formData.cantidad_por_caja}
                                         onChange={handleCantidadPorCajaChange}
                                         onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
-                                            errors.cantidad_por_caja
+                                            errors.cantidad_por_caja &&
+                                            touchedFields.cantidad_por_caja
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
@@ -643,11 +671,13 @@ const AddProductPage = ({ product, onClose }) => {
                                         type="number"
                                         id="cantidad_en_stock"
                                         name="cantidad_en_stock"
+                                        min="0"
                                         value={formData.cantidad_en_stock}
                                         onChange={handleChange}
                                         onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
-                                            errors.cantidad_en_stock
+                                            errors.cantidad_en_stock &&
+                                            touchedFields.cantidad_en_stock
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
@@ -703,11 +733,17 @@ const AddProductPage = ({ product, onClose }) => {
                                         type="date"
                                         id="fecha_entrada"
                                         name="fecha_entrada"
+                                        max={
+                                            new Date()
+                                                .toISOString()
+                                                .split('T')[0]
+                                        }
                                         value={formData.fecha_entrada}
                                         onChange={handleChange}
                                         onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
-                                            errors.fecha_entrada
+                                            errors.fecha_entrada &&
+                                            touchedFields.fecha_entrada
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
@@ -729,6 +765,11 @@ const AddProductPage = ({ product, onClose }) => {
                                         type="date"
                                         id="fecha_caducidad"
                                         name="fecha_caducidad"
+                                        min={
+                                            new Date()
+                                                .toISOString()
+                                                .split('T')[0]
+                                        }
                                         value={formData.fecha_caducidad}
                                         onChange={handleChange}
                                         onBlur={handleBlur}
@@ -760,7 +801,7 @@ const AddProductPage = ({ product, onClose }) => {
                                         onChange={handleChange}
                                         onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
-                                            errors.peso
+                                            errors.peso && touchedFields.peso
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
@@ -787,7 +828,8 @@ const AddProductPage = ({ product, onClose }) => {
                                         onChange={handleChange}
                                         onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
-                                            errors.precio_compra
+                                            errors.precio_compra &&
+                                            touchedFields.precio_compra
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
@@ -814,7 +856,8 @@ const AddProductPage = ({ product, onClose }) => {
                                         onChange={handleChange}
                                         onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
-                                            errors.porcentaje_ganancia
+                                            errors.porcentaje_ganancia &&
+                                            touchedFields.porcentaje_ganancia
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
@@ -845,7 +888,8 @@ const AddProductPage = ({ product, onClose }) => {
                                         onChange={handleChange}
                                         onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
-                                            errors.porcentaje_ganancia_mayor
+                                            errors.porcentaje_ganancia_mayor &&
+                                            touchedFields.porcentaje_ganancia_mayor
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
@@ -874,7 +918,8 @@ const AddProductPage = ({ product, onClose }) => {
                                         onChange={handleChange}
                                         onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
-                                            errors.forma_de_venta
+                                            errors.forma_de_venta &&
+                                            touchedFields.forma_de_venta
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
@@ -901,7 +946,8 @@ const AddProductPage = ({ product, onClose }) => {
                                         onChange={handleChange}
                                         onBlur={handleBlur}
                                         className={`bg-gray-50 border ${
-                                            errors.forma_de_venta_mayor
+                                            errors.forma_de_venta_mayor &&
+                                            touchedFields.forma_de_venta_mayor
                                                 ? 'border-red-500'
                                                 : 'border-gray-300'
                                         } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}

@@ -111,7 +111,7 @@ const Page = () => {
                 searchText={searchText}
             />
 
-            <div className="mt-6">
+            {/* <div className="mt-6">
                 <div className="flex flex-wrap -mx-6">
                     <div className="w-full px-6 sm:w-1/2 xl:w-1/3">
                         <div className="flex items-center px-5 py-6 shadow-sm rounded-md bg-slate-100">
@@ -168,7 +168,7 @@ const Page = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> */}
         </div>
     )
 }

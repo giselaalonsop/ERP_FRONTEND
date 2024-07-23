@@ -1,7 +1,7 @@
 'use client'
 
 import Loading from '@/app/(app)/Loading'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { useAuth } from '@/hooks/auth'
 import Navigation from './Navigation'
@@ -10,22 +10,33 @@ import Navbar from './Navbar'
 import { useTheme } from '@/context/ThemeProvider'
 import { Component } from '@/components/Footer'
 import useConfiguracion from '@/hooks/useConfiguracion'
-import { useProduct } from '@/hooks/useProduct'
 
 const AppLayout = ({ children, header }) => {
     const { user, logout } = useAuth({ middleware: 'auth' })
-    const { isDark } = useTheme();
-    const {configuracion}=useConfiguracion()
-    const {productos}=useProduct()
+    const { isDark } = useTheme()
+    const { configuracion } = useConfiguracion()
+    
+    
+    const [isLoaded, setIsLoaded] = useState(false)
 
-    //guardar configuracion en localstorage
     useEffect(() => {
-        localStorage.setItem('configuracion', JSON.stringify(configuracion))
-        localStorage.setItem('productos', JSON.stringify(productos))
+        if (
+            configuracion &&
+            user 
 
-    }, [configuracion])
+        ) {
+            localStorage.setItem('configuracion', JSON.stringify(configuracion))
+            localStorage.setItem('user', JSON.stringify(user))
+            setIsLoaded(true)
+        }
+    }, [configuracion, user, ])
 
-    if (!user) {
+    if (
+        !isLoaded ||
+        !user ||
+        !configuracion 
+  
+    ) {
         return <Loading />
     }
 
@@ -35,28 +46,21 @@ const AppLayout = ({ children, header }) => {
             <div className={`${
                 isDark ? 'bg-gray-800 text-white' : ' bg-white text-gray-800'
             } flex h-screen transition-all duration-300`}>
-            <Sidebar user={user} logout={logout} />
-        <div className={`${
-                isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
-            }flex flex-col flex-grow h-full transition-all duration-300 overflow-y-auto`}
-            >
-            <Navbar />
-          
-            <main className={`${isDark? 'bg-gray-900':' bg-indigo-50'} mx-2 my-3  rounded-md flex-grow p-6 overflow-y-auto `}
-            >
-                {children}
-               
-            </main>
-            <Component />
-        </div>
-        
+                <Sidebar user={user} logout={logout} />
+                <div className={`${
+                    isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
+                }flex flex-col flex-grow h-full transition-all duration-300 overflow-y-auto`}
+                >
+                    <Navbar />
+                    <main className={`${isDark ? 'bg-gray-900' : ' bg-indigo-50'} mx-2 my-3  rounded-md flex-grow p-6 overflow-y-auto `}
+                    >
+                        {children}
+                    </main>
+                    <Component />
+                </div>
             </div>
-           
-        
-    </div>
-   
+        </div>
     )
 }
 
 export default AppLayout
-

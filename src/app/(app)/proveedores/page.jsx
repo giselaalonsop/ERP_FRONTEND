@@ -42,6 +42,7 @@ const ProveedoresPage = () => {
                     <p><strong>Correo:</strong> ${proveedor.correo}</p>
                     <p><strong>Teléfono:</strong> ${proveedor.telefono}</p>
                     <p><strong>Dirección:</strong> ${proveedor.direccion}</p>
+                    <p><strong>Empresas:</strong> ${proveedor.empresa}</p>
                 </div>
             `,
             icon: 'info',
@@ -185,6 +186,9 @@ const ProveedoresPage = () => {
                                         Nombre
                                     </th>
                                     <th scope="col" className="px-6 py-3">
+                                        Empresa
+                                    </th>
+                                    <th scope="col" className="px-6 py-3">
                                         Correo
                                     </th>
                                     <th scope="col" className="px-6 py-3">
@@ -229,6 +233,9 @@ const ProveedoresPage = () => {
                                                 </div>
                                             </div>
                                         </th>
+                                        <td className="px-6 py-4">
+                                            {proveedor.empresa}
+                                        </td>
                                         <td className="px-6 py-4">
                                             {proveedor.correo}
                                         </td>
