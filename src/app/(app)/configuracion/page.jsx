@@ -8,6 +8,7 @@ import Swal from 'sweetalert2'
 import { useDropzone } from 'react-dropzone'
 import useConfiguracion from '@/hooks/useConfiguracion'
 import 'tailwindcss/tailwind.css'
+import { useTheme } from '@/context/ThemeProvider'
 
 const ConfigurationForm = () => {
     const { hasPermission, user } = useAuth({ middleware: 'auth' })
@@ -17,6 +18,7 @@ const ConfigurationForm = () => {
         updateConfiguracion,
         loading,
     } = useConfiguracion()
+    const { isDark } = useTheme()
 
     const [isLoaded, setIsLoaded] = useState(false)
     const [id, setId] = useState(null)
@@ -31,7 +33,8 @@ const ConfigurationForm = () => {
     const [transferencias, setTransferencias] = useState([])
     const [logoFile, setLogoFile] = useState(null)
     const [logoPreview, setLogoPreview] = useState('')
-    const [errors, setErrors] = useState([])
+    const [errors, setErrors] = useState({})
+    const [touchedFields, setTouchedFields] = useState({})
 
     // Carga inicial desde localStorage
     useEffect(() => {
@@ -96,9 +99,88 @@ const ConfigurationForm = () => {
         accept: 'image/*',
     })
 
+    const handleBlur = e => {
+        const { name, value } = e.target
+        setTouchedFields(prevTouchedFields => ({
+            ...prevTouchedFields,
+            [name]: true,
+        }))
+        validateField(name, value)
+    }
+
+    const validateField = (name, value) => {
+        let newErrors = {}
+
+        switch (name) {
+            case 'nombre_empresa':
+                if (!value) {
+                    newErrors.nombre_empresa =
+                        'Nombre de la empresa es requerido'
+                }
+                break
+            case 'rif':
+                if (!value) {
+                    newErrors.rif = 'RIF es requerido'
+                }
+                break
+            case 'iva':
+                if (!value || isNaN(value)) {
+                    newErrors.iva = 'IVA debe ser un número'
+                }
+                break
+            case 'porcentaje_ganancia':
+                if (!value || isNaN(value)) {
+                    newErrors.porcentaje_ganancia =
+                        'Porcentaje de ganancia debe ser un número'
+                }
+                break
+            case 'telefono':
+                if (!value || isNaN(value)) {
+                    newErrors.telefono = 'Teléfono debe ser un número'
+                }
+                break
+            case 'correo':
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+                if (!value || !emailRegex.test(value)) {
+                    newErrors.correo = 'Correo inválido'
+                }
+                break
+            default:
+                break
+        }
+
+        setErrors(prevErrors => ({
+            ...prevErrors,
+            ...newErrors,
+        }))
+    }
+
+    const handleChange = e => {
+        const { name, value } = e.target
+        let newValue = value
+
+        if (['iva', 'porcentaje_ganancia', 'telefono'].includes(name)) {
+            newValue = value.replace(/[^\d]/g, '')
+        }
+
+        switch (name) {
+            case 'iva':
+                setIva(newValue)
+                break
+            case 'porcentaje_ganancia':
+                setPorcentajeGanancia(newValue)
+                break
+            case 'telefono':
+                setTelefono(newValue)
+                break
+            default:
+                break
+        }
+    }
+
     const submitForm = async event => {
         event.preventDefault()
-        setErrors([])
+        setErrors({})
 
         const formData = new FormData()
         formData.append('IVA', iva)
@@ -149,12 +231,15 @@ const ConfigurationForm = () => {
     }
 
     return (
-        <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-10">
+        <div
+            className={`max-w-3xl mx-auto rounded-md shadow-sm shadow-slate-300 ${
+                isDark ? 'bg-gray-800 text-gray-400' : 'bg-white text-black'
+            }`}>
+            <div className="text-center mb-10 pt-4">
                 <h1 className="text-2xl font-semibold">Configuración</h1>
                 <p>Actualiza la configuración de la empresa</p>
             </div>
-            <form onSubmit={submitForm}>
+            <form onSubmit={submitForm} className={`m-4 p-6 `}>
                 <div className="grid gap-4 sm:grid-cols-2">
                     <div className="sm:col-span-1 sm:row-span-2">
                         <Label
@@ -175,7 +260,9 @@ const ConfigurationForm = () => {
                                 <img
                                     src={logoPreview}
                                     alt="Logo preview"
-                                    className="rounded-lg mx-auto object-cover"
+                                    className={`${
+                                        isDark ? 'bg-gray-800' : 'bg-gray-50'
+                                    } rounded-lg mx-auto object-cover`}
                                     style={{ width: '100%', height: '100%' }}
                                 />
                             ) : (
@@ -196,11 +283,13 @@ const ConfigurationForm = () => {
                         <input
                             type="text"
                             id="nombre_empresa"
+                            name="nombre_empresa"
+                            className={`${
+                                isDark ? 'bg-gray-800' : 'bg-gray-50'
+                            } border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
                             value={nombreEmpresa}
-                            className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                            onChange={event =>
-                                setNombreEmpresa(event.target.value)
-                            }
+                            onChange={handleChange}
+                            onBlur={handleBlur}
                             required
                         />
                         <InputError
@@ -217,9 +306,13 @@ const ConfigurationForm = () => {
                         <input
                             type="text"
                             id="rif"
+                            name="rif"
                             value={rif}
-                            className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                            onChange={event => setRif(event.target.value)}
+                            className={`${
+                                isDark ? 'bg-gray-800' : 'bg-gray-50'
+                            } border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
                             required
                         />
                         <InputError messages={errors?.rif} className="mt-2" />
@@ -233,12 +326,16 @@ const ConfigurationForm = () => {
                         <input
                             type="text"
                             id="iva"
+                            name="iva"
                             value={iva}
-                            className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                            onChange={event => setIva(event.target.value)}
+                            className={`${
+                                isDark ? 'bg-gray-800' : 'bg-gray-50'
+                            } border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
                             required
                         />
-                        <InputError messages={errors?.IVA} className="mt-2" />
+                        <InputError messages={errors?.iva} className="mt-2" />
                     </div>
                     <div className="sm:col-span-1">
                         <Label
@@ -249,11 +346,13 @@ const ConfigurationForm = () => {
                         <input
                             type="text"
                             id="porcentaje_ganancia"
+                            name="porcentaje_ganancia"
                             value={porcentajeGanancia}
-                            className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                            onChange={event =>
-                                setPorcentajeGanancia(event.target.value)
-                            }
+                            className={`${
+                                isDark ? 'bg-gray-800' : 'bg-gray-50'
+                            } border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
                             required
                         />
                         <InputError
@@ -270,9 +369,13 @@ const ConfigurationForm = () => {
                         <input
                             type="text"
                             id="telefono"
+                            name="telefono"
                             value={telefono}
-                            className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                            onChange={event => setTelefono(event.target.value)}
+                            className={`${
+                                isDark ? 'bg-gray-800' : 'bg-gray-50'
+                            } border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
                             required
                         />
                         <InputError
@@ -289,9 +392,13 @@ const ConfigurationForm = () => {
                         <input
                             type="email"
                             id="correo"
+                            name="correo"
                             value={correo}
-                            className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                            onChange={event => setCorreo(event.target.value)}
+                            className={`${
+                                isDark ? 'bg-gray-800' : 'bg-gray-50'
+                            } border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
                             required
                         />
                         <InputError
@@ -299,59 +406,8 @@ const ConfigurationForm = () => {
                             className="mt-2"
                         />
                     </div>
-                    <div className="sm:col-span-2">
-                        <Label
-                            htmlFor="direcciones"
-                            className="block mb-2 text-sm font-medium">
-                            Direcciones
-                        </Label>
-                        <textarea
-                            id="direcciones"
-                            value={direcciones.join(', ')}
-                            className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                            onChange={handleArrayChange(setDirecciones)}
-                        />
-                        <InputError
-                            messages={errors?.direcciones}
-                            className="mt-2"
-                        />
-                    </div>
-                    <div className="sm:col-span-2">
-                        <Label
-                            htmlFor="pago_movil"
-                            className="block mb-2 text-sm font-medium">
-                            Pago Móvil
-                        </Label>
-                        <textarea
-                            id="pago_movil"
-                            value={pagoMovil.join(', ')}
-                            className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                            onChange={handleArrayChange(setPagoMovil)}
-                        />
-                        <InputError
-                            messages={errors?.pago_movil}
-                            className="mt-2"
-                        />
-                    </div>
-                    <div className="sm:col-span-2">
-                        <Label
-                            htmlFor="transferencias"
-                            className="block mb-2 text-sm font-medium">
-                            Transferencias
-                        </Label>
-                        <textarea
-                            id="transferencias"
-                            value={transferencias.join(', ')}
-                            className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                            onChange={handleArrayChange(setTransferencias)}
-                        />
-                        <InputError
-                            messages={errors?.transferencias}
-                            className="mt-2"
-                        />
-                    </div>
                 </div>
-                <div className="flex justify-end mt-4">
+                <div className="flex justify-end mt-4 mb-8">
                     <Button className="bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
                         GUARDAR
                     </Button>

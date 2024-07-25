@@ -208,7 +208,6 @@ const AddProductPage = ({ product, onClose }) => {
             ...prevData,
             [name]:
                 name === 'nombre' ||
-                name === 'descripcion' ||
                 name === 'categoria' ||
                 name === 'unidad_de_medida' ||
                 name === 'forma_de_venta' ||
@@ -216,6 +215,7 @@ const AddProductPage = ({ product, onClose }) => {
                 name === 'proveedor'
                     ? capitalizeWords(value)
                     : value,
+            [name]: name === 'codigo_barras' ? value.replace(/\D/g, '') : value,
         }))
     }
 
@@ -491,7 +491,7 @@ const AddProductPage = ({ product, onClose }) => {
                                                 <option value="">
                                                     Seleccione una categoría
                                                 </option>
-                                                {categories.map(category => (
+                                                {categories?.map(category => (
                                                     <option
                                                         key={category.id}
                                                         value={category.nombre}>
@@ -562,7 +562,7 @@ const AddProductPage = ({ product, onClose }) => {
                                         <Label
                                             htmlFor="logo"
                                             className="block mb-2 text-sm font-medium">
-                                            Logo
+                                            Imagen
                                         </Label>
                                         <div
                                             {...getRootProps()}
@@ -571,7 +571,7 @@ const AddProductPage = ({ product, onClose }) => {
                                                     ? 'border-blue-600'
                                                     : 'border-gray-300'
                                             }`}
-                                            style={{ height: '140px' }}>
+                                            style={{ height: '120px' }}>
                                             <input {...getInputProps()} />
                                             {logoPreview ? (
                                                 <img
@@ -794,9 +794,10 @@ const AddProductPage = ({ product, onClose }) => {
                                 <div>
                                     <Label htmlFor="peso">Peso</Label>
                                     <Input
-                                        type="text"
+                                        type="number"
                                         id="peso"
                                         name="peso"
+                                        min="0"
                                         value={formData.peso}
                                         onChange={handleChange}
                                         onBlur={handleBlur}
@@ -821,9 +822,10 @@ const AddProductPage = ({ product, onClose }) => {
                                         Precio de Compra
                                     </Label>
                                     <Input
-                                        type="text"
+                                        type="number"
                                         id="precio_compra"
                                         name="precio_compra"
+                                        min="0"
                                         value={formData.precio_compra}
                                         onChange={handleChange}
                                         onBlur={handleBlur}
@@ -849,9 +851,10 @@ const AddProductPage = ({ product, onClose }) => {
                                         Porcentaje de Ganancia
                                     </Label>
                                     <Input
-                                        type="text"
+                                        type="number"
                                         id="porcentaje_ganancia"
                                         name="porcentaje_ganancia"
+                                        min="0"
                                         value={formData.porcentaje_ganancia}
                                         onChange={handleChange}
                                         onBlur={handleBlur}
@@ -879,9 +882,10 @@ const AddProductPage = ({ product, onClose }) => {
                                         Porcentaje de Ganancia (Mayor)
                                     </Label>
                                     <Input
-                                        type="text"
+                                        type="number"
                                         id="porcentaje_ganancia_mayor"
                                         name="porcentaje_ganancia_mayor"
+                                        min="0"
                                         value={
                                             formData.porcentaje_ganancia_mayor
                                         }

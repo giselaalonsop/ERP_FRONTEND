@@ -19,7 +19,6 @@ import {
 import { HiChartPie, HiUser, HiViewBoards, HiShoppingBag } from 'react-icons/hi'
 import { useTheme } from '@/context/ThemeProvider'
 
-
 const Sidebar = ({ user, logout }) => {
     const [sidebarOpen, setSidebarOpen] = useState(true)
     const [inventario, setInventario] = useState(true)
@@ -189,7 +188,7 @@ const Sidebar = ({ user, logout }) => {
                             </li>
                         </ul>
                     </li>
-                    <li></li>
+
                     <li>
                         <Link
                             onClick={() => setVentas(!ventas)}

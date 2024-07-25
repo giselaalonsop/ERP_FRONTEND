@@ -34,6 +34,21 @@ const ProveedoresPage = () => {
 
     const showProveedorInfo = proveedor => {
         if (!proveedor) return
+
+        const cuentas = proveedor.numeros_de_cuenta
+            .map(
+                cuenta => `
+            <div key="${cuenta.id}">
+                <p><strong>Banco:</strong> ${cuenta.banco}</p>
+                <p><strong>Número:</strong> ${cuenta.numero_cuenta}</p>
+                <p><strong>Pago móvil:</strong> ${
+                    cuenta.pago_movil ? 'Sí' : 'No'
+                }</p>
+            </div>
+        `,
+            )
+            .join('')
+
         Swal.fire({
             title: 'Información del Proveedor',
             html: `
@@ -43,6 +58,8 @@ const ProveedoresPage = () => {
                     <p><strong>Teléfono:</strong> ${proveedor.telefono}</p>
                     <p><strong>Dirección:</strong> ${proveedor.direccion}</p>
                     <p><strong>Empresas:</strong> ${proveedor.empresa}</p>
+                    <p><strong>Datos Bancarios:</strong></p>
+                    ${cuentas.length > 0 ? cuentas : '<p>No Vinculado</p>'}
                 </div>
             `,
             icon: 'info',
@@ -198,10 +215,14 @@ const ProveedoresPage = () => {
                                         Dirección
                                     </th>
                                     <th scope="col" className="px-6 py-3">
+                                        Datos Bancarios
+                                    </th>
+                                    <th scope="col" className="px-6 py-3">
                                         Acción
                                     </th>
                                 </tr>
                             </thead>
+
                             <tbody>
                                 {paginatedProveedores.map(proveedor => (
                                     <tr
@@ -245,6 +266,12 @@ const ProveedoresPage = () => {
                                         <td className="px-6 py-4">
                                             {proveedor.direccion}
                                         </td>
+                                        <td className="px-6 py-4">
+                                            {proveedor.numeros_de_cuenta
+                                                .length > 0
+                                                ? 'Sí'
+                                                : 'No Vinculado'}
+                                        </td>
                                         <td className="px-6 py-4 flex space-x-2">
                                             <button
                                                 onClick={() =>
@@ -254,9 +281,9 @@ const ProveedoresPage = () => {
                                                 <EyeIcon className="h-5 w-5" />
                                             </button>
                                             <button
-                                                onClick={() => {
+                                                onClick={() =>
                                                     handleEdit(proveedor)
-                                                }}
+                                                }
                                                 className="text-green-600 hover:text-green-900">
                                                 <FontAwesomeIcon
                                                     className="h-4 w-4"
@@ -264,9 +291,9 @@ const ProveedoresPage = () => {
                                                 />
                                             </button>
                                             <button
-                                                onClick={() => {
+                                                onClick={() =>
                                                     handleDelete(proveedor.id)
-                                                }}
+                                                }
                                                 className="text-red-600 hover:text-red-900">
                                                 <TrashIcon className="h-5 w-5" />
                                             </button>

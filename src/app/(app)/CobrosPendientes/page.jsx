@@ -120,6 +120,9 @@ const CuentasPorCobrar = () => {
                             Cédula
                         </th>
                         <th scope="col" className="px-6 py-3">
+                            Nombre
+                        </th>
+                        <th scope="col" className="px-6 py-3">
                             Fecha
                         </th>
                         <th scope="col" className="px-6 py-3">
@@ -134,6 +137,17 @@ const CuentasPorCobrar = () => {
                     {paginatedVentas.map(venta => (
                         <tr key={venta.id} className="bg-white border-b">
                             <td className="px-6 py-4">{venta.cliente}</td>
+
+                            <td className="px-6 py-4">
+                                {clientes?.find(
+                                    cliente => cliente.cedula == venta.cliente,
+                                )?.nombre +
+                                    ' ' +
+                                    clientes?.find(
+                                        cliente =>
+                                            cliente.cedula == venta.cliente,
+                                    )?.apellido}
+                            </td>
                             <td className="px-6 py-4">
                                 {formatDate(venta.created_at)}
                             </td>

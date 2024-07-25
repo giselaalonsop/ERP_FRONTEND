@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '@/context/ThemeProvider';
 import { Pie, Doughnut, Line } from 'react-chartjs-2';
-import NeuralNetworkAnalysis from '@/components/NeuralNetworkAnalysis';
 import useReportData from '@/hooks/useReporteData';
 import Input from '@/components/Input';
 import Label from '@/components/Label';
@@ -20,6 +19,7 @@ import {
 } from 'chart.js';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import Swal from 'sweetalert2';
 
 ChartJS.register(
     CategoryScale,
@@ -41,12 +41,13 @@ const Dashboard = () => {
     const shadowClass = isDark ? 'shadow-white' : 'shadow-md';
     const tableBgClass = isDark ? 'bg-gray-700' : 'bg-gray-50';
     const tableTextClass = isDark ? 'text-gray-300' : 'text-gray-600';
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
     const [startDate, setStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 7)));
     const [endDate, setEndDate] = useState(new Date());
     const [location, setLocation] = useState(user.location);
 
-    const { reportData, loading, error } = useReportData(startDate, endDate, location);
+    const { reportData, loading, error, recommendations } = useReportData(startDate, endDate, location);
 
     const handleChangeStartDate = (e) => setStartDate(new Date(e.target.value));
     const handleChangeEndDate = (e) => setEndDate(new Date(e.target.value));
@@ -73,6 +74,16 @@ const Dashboard = () => {
             heightLeft -= pageHeight;
         }
         pdf.save('report.pdf');
+    };
+
+    const handleClienteInactivoClick = (cliente) => {
+        Swal.fire({
+            title: 'Datos del Cliente Inactivo',
+            html: `<p><strong>Nombre:</strong> ${cliente.nombre}</p>
+                   <p><strong>Cédula:</strong> ${cliente.cedula}</p>
+                   <p><strong>Última Compra:</strong> ${cliente.ultima_compra}</p>`,
+            icon: 'info',
+        });
     };
 
     if (loading) return <p>Loading...</p>;
@@ -115,7 +126,7 @@ const Dashboard = () => {
         if (isNaN(value)) return '0.00';
         return parseFloat(value).toFixed(2);
     };
-
+  
     return (
         <div className={`flex flex-col h-full w-full overflow-hidden ${bgClass} ${textClass}`}>
             <div className="flex flex-wrap justify-between items-center mb-4">
@@ -128,6 +139,11 @@ const Dashboard = () => {
                             type="date"
                             id="fecha_inicio"
                             value={startDate.toISOString().split('T')[0]}
+                            max={
+                                new Date()
+                                    .toISOString()
+                                    .split('T')[0]
+                            }
                             onChange={handleChangeStartDate}
                             className="bg-transparent border-none text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                         />
@@ -140,6 +156,11 @@ const Dashboard = () => {
                             type="date"
                             id="fecha_fin"
                             value={endDate.toISOString().split('T')[0]}
+                            max={
+                                new Date()
+                                    .toISOString()
+                                    .split('T')[0]
+                            }
                             onChange={handleChangeEndDate}
                             className="bg-transparent border-none text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                         />
@@ -161,25 +182,29 @@ const Dashboard = () => {
                     >
                         Descargar
                     </button>
+                    
                 </div>
             </div>
 
             <div id="report-content" className="mt-4 w-full">
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                     {[
-                        { label: 'Ventas diarias', value: `${reportData.ventasSemanales?.total_ventas_cantidad || 0} ventas / $${parseFloat(reportData.ventasSemanales?.total_ventas_semanales) || 0}` },
-                        { label: 'Ventas mensuales', value: `${reportData.ventasMensuales?.total_ventas_cantidad || 0} ventas / $${reportData.ventasMensuales?.total_ventas_mensuales || 0}` },
-                        { label: 'Ventas anuales', value: `${reportData.ventasAnuales?.total_ventas_cantidad || 0} ventas / $${reportData.ventasAnuales?.total_ventas_anuales || 0}` },
+                        { label: 'Ventas diarias Promedio ', value: `${reportData.ventasSemanales?.total_ventas_cantidad || 0} ventas / $${parseFloat(reportData.ventasSemanales?.total_ventas_semanales) || 0}` },
+                        { label: 'Ventas mensuales Promedio', value: `${reportData.ventasMensuales?.total_ventas_cantidad || 0} ventas / $${reportData.ventasMensuales?.total_ventas_mensuales || 0}` },
+                        { label: 'Ventas anuales Promedio', value: `${reportData.ventasAnuales?.total_ventas_cantidad || 0} ventas / $${reportData.ventasAnuales?.total_ventas_anuales || 0}` },
                         { label: 'Ventas en rango', value: `${reportData.ventasRango?.total_ventas_cantidad || 0} ventas / $${reportData.ventasRango?.total_ventas_rango || 0}` },
-                        { label: 'Producto más vendido', value: `${reportData.topProducto?.nombre || 'N/A'} (${reportData.topProducto?.total_vendido || 0})` },
-                        { label: 'Producto menos vendido', value: `${reportData.bottomProducto?.nombre || 'N/A'} (${reportData.bottomProducto?.total_vendido || 0})` },
-                        { label: 'Mejor cliente', value: `${reportData.topCliente?.nombre || 'N/A'} (${reportData.topCliente?.total_compras || 0})` },
-                        { label: 'Compras a proveedores', value: `$${reportData.montoCompras || 0}` },
-                       
+                        { label: 'Producto más vendido en rango', value: `${reportData.topProducto?.nombre || 'N/A'} (${reportData.topProducto?.total_vendido || 0})` },
+                        { label: 'Producto menos vendido en rango', value: `${reportData.bottomProducto?.nombre || 'N/A'} (${reportData.bottomProducto?.total_vendido || 0})` },
+                        { label: 'Mejor cliente en rango ', value: `${reportData.topCliente?.nombre || 'N/A'} (${reportData.topCliente?.total_compras || 0})` },
+                        { label: 'Compras a proveedores en rango', value: `$${reportData.montoCompras || 0}` },
                         { label: 'Ganancias en rango', value: `$${reportData.gananciasRango ? parseFloat(reportData.gananciasRango) : 0}` },
-                        { label: 'Capital', value: `$${reportData.capital ? parseFloat(reportData.capital) : 0}` },
+                        { label: 'Capital total', value: `$${reportData.capital ? parseFloat(reportData.capital) : 0}` },
                         { label: 'Productos agotados', value: reportData.productosAgotados?.length || 0 },
-                        { label: 'Productos cerca de vencimiento', value: reportData.productosVencimiento?.length || 0 }
+                        { label: 'Productos cerca de vencimiento', value: reportData.productosVencimiento?.length || 0 },
+                        { label: 'Ticket promedio', value: `$${reportData.ventaPromedio ? parseFloat(reportData.ventaPromedio) : 0}` },
+                        { label: 'Pagos pendientes', value: `${reportData.pagosPendientes?.cantidad || 0} pagos / $${reportData.pagosPendientes?.total || 0}` },
+                        { label: 'Cobros pendientes', value: `${reportData.cobrosPendientes?.cantidad || 0} cobros / $${reportData.cobrosPendientes?.total || 0}` },
+                        { label: 'Clientes inactivos(30 dias o mas)', value: reportData.clientesInactivos?.length || 0 }
                     ].map(stat => (
                         <div key={stat.label} className={`rounded-lg p-4 sm:p-6 xl:p-8 ${cardBgClass} ${shadowClass} ${textClass}`}>
                             <div className="flex items-center">
@@ -208,32 +233,36 @@ const Dashboard = () => {
                 <div className="flex flex-wrap mt-4 justify-around">
                     <div className={`rounded-lg p-4 sm:p-6 xl:p-8 w-full md:w-2/3 ${cardBgClass} ${shadowClass} ${textClass}`}>
                         <h3 className="text-xl font-bold">Tabla de Ventas</h3>
-                        <div className="flex flex-col mt-2">
-                            <div className="overflow-x-auto rounded-lg">
-                                <div className="align-middle inline-block min-w-full">
-                                    <div className="shadow overflow-hidden sm:rounded-lg">
-                                        <table className={`min-w-full divide-y ${borderClass}`}>
-                                            <thead className={`${tableBgClass}`}>
-                                                <tr>
-                                                    <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Cliente</th>
-                                                    <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Fecha</th>
-                                                    <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Total</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className={`${cardBgClass}`}>
-                                                {reportData.historialVentas.map((venta, index) => (
-                                                    <tr key={index}>
-                                                        <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{reportData.topCliente?.nombre}</td>
-                                                        <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{venta.fecha}</td>
-                                                        <td className={`p-4 whitespace-nowrap text-sm font-semibold ${textClass}`}>${formatValue(venta.total_ventas)}</td>
+                        {reportData.historialVentas.length > 0 ? (
+                            <div className="flex flex-col mt-2">
+                                <div className="overflow-x-auto rounded-lg">
+                                    <div className="align-middle inline-block min-w-full">
+                                        <div className="shadow overflow-hidden sm:rounded-lg">
+                                            <table className={`min-w-full divide-y ${borderClass}`}>
+                                                <thead className={`${tableBgClass}`}>
+                                                    <tr>
+                                                       
+                                                        <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Fecha</th>
+                                                        <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Total</th>
                                                     </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                                </thead>
+                                                <tbody className={`${cardBgClass}`}>
+                                                    {reportData.historialVentas.map((venta, index) => (
+                                                        <tr key={index}>
+                                                          
+                                                            <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{venta.fecha}</td>
+                                                            <td className={`p-4 whitespace-nowrap text-sm font-semibold ${textClass}`}>${formatValue(venta.total_ventas)}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        ) : (
+                            <p>No hay datos de ventas disponibles.</p>
+                        )}
                     </div>
                     <div className={`rounded-lg p-4 sm:p-6 xl:p-8 w-full md:w-1/3 ${cardBgClass} ${shadowClass} ${textClass}`}>
                         <h3 className="text-xl font-bold">Top 3 Productos</h3>
@@ -244,64 +273,125 @@ const Dashboard = () => {
 
                 <div className="flex flex-wrap mt-4 justify-around">
                     <div className={`rounded-lg p-4 sm:p-6 xl:p-8 w-full md:w-1/2 ${cardBgClass} ${shadowClass} ${textClass}`}>
-                        <h3 className="text-xl font-bold">Productos Cerca de Vencimiento</h3>
-                        <div className="flex flex-col mt-2">
-                            <div className="overflow-x-auto rounded-lg">
-                                <div className="align-middle inline-block min-w-full">
-                                    <div className="shadow overflow-hidden sm:rounded-lg">
-                                        <table className={`min-w-full divide-y ${borderClass}`}>
-                                            <thead className={`${tableBgClass}`}>
-                                                <tr>
-                                                    <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Nombre</th>
-                                                    <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Código de Barras</th>
-                                                    <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Fecha de Vencimiento</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className={`${cardBgClass}`}>
-                                                {reportData.productosVencimiento.map((producto, index) => (
-                                                    <tr key={index}>
-                                                        <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{producto.nombre}</td>
-                                                        <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{producto.codigo_barras}</td>
-                                                        <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{producto.fecha_caducidad}</td>
+                        <h3 className="text-xl font-bold">Productos Cerca de Vencimiento o Vencidos</h3>
+                        {reportData.productosVencimiento.length > 0 || reportData.productosVencidos.length > 0 ? (
+                            <div className="flex flex-col mt-2">
+                                <div className="overflow-x-auto rounded-lg">
+                                    <div className="align-middle inline-block min-w-full">
+                                        <div className="shadow overflow-hidden sm:rounded-lg">
+                                            <table className={`min-w-full divide-y ${borderClass}`}>
+                                                <thead className={`${tableBgClass}`}>
+                                                    <tr>
+                                                        <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Nombre</th>
+                                                        <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Código de Barras</th>
+                                                        <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Fecha de Vencimiento</th>
+                                                        <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Estado</th>
                                                     </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                                </thead>
+                                                <tbody className={`${cardBgClass}`}>
+                                                    {reportData.productosVencimiento.map((producto, index) => (
+                                                        <tr key={index}>
+                                                            <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{producto.nombre}</td>
+                                                            <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{producto.codigo_barras}</td>
+                                                            <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{producto.fecha_caducidad}</td>
+                                                            <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>Por Vencer</td>
+                                                        </tr>
+                                                    ))}
+                                                    {reportData.productosVencidos.map((producto, index) => (
+                                                        <tr key={index}>
+                                                            <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{producto.nombre}</td>
+                                                            <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{producto.codigo_barras}</td>
+                                                            <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{producto.fecha_caducidad}</td>
+                                                            <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>Vencido</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        ) : (
+                            <p>No hay productos cerca de vencimiento o vencidos.</p>
+                        )}
                     </div>
 
                     <div className={`rounded-lg p-4 sm:p-6 xl:p-8 w-full md:w-1/2 ${cardBgClass} ${shadowClass} ${textClass}`}>
                         <h3 className="text-xl font-bold">Productos Agotados</h3>
-                        <div className="flex flex-col mt-2">
-                            <div className="overflow-x-auto rounded-lg">
-                                <div className="align-middle inline-block min-w-full">
-                                    <div className="shadow overflow-hidden sm:rounded-lg">
-                                        <table className={`min-w-full divide-y ${borderClass}`}>
-                                            <thead className={`${tableBgClass}`}>
-                                                <tr>
-                                                    <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Nombre</th>
-                                                    <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Código de Barras</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className={`${cardBgClass}`}>
-                                                {reportData.productosAgotados.map((producto, index) => (
-                                                    <tr key={index}>
-                                                        <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{producto.nombre}</td>
-                                                        <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{producto.codigo_barras}</td>
+                        {reportData.productosAgotados.length > 0 ? (
+                            <div className="flex flex-col mt-2">
+                                <div className="overflow-x-auto rounded-lg">
+                                    <div className="align-middle inline-block min-w-full">
+                                        <div className="shadow overflow-hidden sm:rounded-lg">
+                                            <table className={`min-w-full divide-y ${borderClass}`}>
+                                                <thead className={`${tableBgClass}`}>
+                                                    <tr>
+                                                        <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Nombre</th>
+                                                        <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Código de Barras</th>
                                                     </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                                </thead>
+                                                <tbody className={`${cardBgClass}`}>
+                                                    {reportData.productosAgotados.map((producto, index) => (
+                                                        <tr key={index}>
+                                                            <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{producto.nombre}</td>
+                                                            <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{producto.codigo_barras}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        ) : (
+                            <p>No hay productos agotados.</p>
+                        )}
+                    </div>
+                </div>
+
+                <div className="flex flex-wrap mt-4 justify-around">
+                    <div className={`rounded-lg p-4 sm:p-6 xl:p-8 w-full ${cardBgClass} ${shadowClass} ${textClass}`}>
+                        <h3 className="text-xl font-bold">Clientes Inactivos</h3>
+                        {reportData.clientesInactivos.length > 0 ? (
+                            <div className="flex flex-col mt-2">
+                                <div className="overflow-x-auto rounded-lg">
+                                    <div className="align-middle inline-block min-w-full">
+                                        <div className="shadow overflow-hidden sm:rounded-lg">
+                                            <table className={`min-w-full divide-y ${borderClass}`}>
+                                                <thead className={`${tableBgClass}`}>
+                                                    <tr>
+                                                        <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Nombre</th>
+                                                        <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Cédula</th>
+                                                        <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Última Compra</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className={`${cardBgClass}`}>
+                                                    {reportData.clientesInactivos.map((cliente, index) => (
+                                                        <tr key={index} onClick={() => handleClienteInactivoClick(cliente)}>
+                                                            <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass} cursor-pointer`}>{cliente.nombre}</td>
+                                                            <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{cliente.cedula}</td>
+                                                            <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{cliente.ultima_compra}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <p>No hay clientes inactivos.</p>
+                        )}
                     </div>
                 </div>
             </div>
+            
+            {recommendations ? (
+                <p>{recommendations}</p>
+            ) : (
+                null
+            )}
+                
         </div>
     );
 };
