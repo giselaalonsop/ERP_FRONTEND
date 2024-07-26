@@ -9,12 +9,14 @@ import Pagination from '@/components/Pagination'
 import RegisterCompra from '@/components/RegisterCompra'
 import Swal from 'sweetalert2'
 import { format } from 'date-fns'
+import { useAuth } from '@/hooks/auth'
 
 const ComprasTable = ({ compras }) => {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
+    const { hasPermission, user } = useAuth({ middleware: 'auth' })
     const itemsPerPage = 10
     const formatDate = dateString => {
         const date = new Date(dateString)
@@ -176,25 +178,32 @@ const ComprasTable = ({ compras }) => {
                                         <td className="px-6 py-4">
                                             {compra.estado}
                                         </td>
-                                        <td className="px-6 py-4 flex space-x-2">
-                                            <button
-                                                onClick={() =>
-                                                    handleEdit(compra)
-                                                }
-                                                className="text-green-600 hover:text-green-900">
-                                                <FontAwesomeIcon
-                                                    className="h-4 w-4"
-                                                    icon={faPenToSquare}
-                                                />
-                                            </button>
-                                            <button
-                                                onClick={() =>
-                                                    handleDelete(compra.id)
-                                                }
-                                                className="text-red-600 hover:text-red-900">
-                                                <TrashIcon className="h-5 w-5" />
-                                            </button>
-                                        </td>
+                                        {hasPermission(
+                                            user,
+                                            'registrarCompras',
+                                        ) || user?.rol === 'admin' ? (
+                                            <td className="px-6 py-4 flex space-x-2">
+                                                <button
+                                                    onClick={() =>
+                                                        handleEdit(compra)
+                                                    }
+                                                    className="text-green-600 hover:text-green-900">
+                                                    <FontAwesomeIcon
+                                                        className="h-4 w-4"
+                                                        icon={faPenToSquare}
+                                                    />
+                                                </button>
+                                                <button
+                                                    onClick={() =>
+                                                        handleDelete(compra.id)
+                                                    }
+                                                    className="text-red-600 hover:text-red-900">
+                                                    <TrashIcon className="h-5 w-5" />
+                                                </button>
+                                            </td>
+                                        ) : (
+                                            <td></td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>

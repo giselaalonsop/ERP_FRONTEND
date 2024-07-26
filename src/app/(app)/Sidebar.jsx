@@ -18,8 +18,10 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { HiChartPie, HiUser, HiViewBoards, HiShoppingBag } from 'react-icons/hi'
 import { useTheme } from '@/context/ThemeProvider'
+import { useAuth } from '@/hooks/auth'
 
-const Sidebar = ({ user, logout }) => {
+const Sidebar = ({ logout }) => {
+    const { hasPermission, user } = useAuth({ middleware: 'auth' })
     const [sidebarOpen, setSidebarOpen] = useState(true)
     const [inventario, setInventario] = useState(true)
     const [ventas, setVentas] = useState(true)
@@ -115,21 +117,24 @@ const Sidebar = ({ user, logout }) => {
                             </span>
                         </Link>
                     </li>
-                    <li>
-                        <Link
-                            href="/Usuarios"
-                            className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
-                            <span className="inline-flex justify-center items-center ml-4">
-                                <HiUser className="w-6 h-6" />
-                            </span>
-                            <span
-                                className={`${
-                                    sidebarOpen ? 'inline' : 'hidden'
-                                } ml-2 text-base tracking-wide truncate`}>
-                                Usuarios
-                            </span>
-                        </Link>
-                    </li>
+                    {hasPermission(user, 'verUsuarios') ||
+                    user?.rol === 'admin' ? (
+                        <li>
+                            <Link
+                                href="/Usuarios"
+                                className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
+                                <span className="inline-flex justify-center items-center ml-4">
+                                    <HiUser className="w-6 h-6" />
+                                </span>
+                                <span
+                                    className={`${
+                                        sidebarOpen ? 'inline' : 'hidden'
+                                    } ml-2 text-base tracking-wide truncate`}>
+                                    Usuarios
+                                </span>
+                            </Link>
+                        </li>
+                    ) : null}
 
                     <li>
                         <Link
@@ -149,6 +154,7 @@ const Sidebar = ({ user, logout }) => {
                             </span>
                         </Link>
                     </li>
+
                     <li>
                         <Link
                             onClick={() => setInventario(!inventario)}
@@ -208,24 +214,29 @@ const Sidebar = ({ user, logout }) => {
                             </span>
                         </Link>
                         <ul className={`${ventas ? 'block' : 'hidden'} ml-4`}>
-                            <li>
-                                <Link
-                                    href="/facturacion"
-                                    className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
-                                    <span className="inline-flex justify-center items-center ml-4">
-                                        <FontAwesomeIcon
-                                            className="w-6 h-6"
-                                            icon={faNewspaper}
-                                        />
-                                    </span>
-                                    <span
-                                        className={`${
-                                            sidebarOpen ? 'inline' : 'hidden'
-                                        } ml-2 text-base tracking-wide truncate`}>
-                                        Facturacion
-                                    </span>
-                                </Link>
-                            </li>
+                            {hasPermission(user, 'facturacion') ||
+                            user?.rol === 'admin' ? (
+                                <li>
+                                    <Link
+                                        href="/facturacion"
+                                        className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
+                                        <span className="inline-flex justify-center items-center ml-4">
+                                            <FontAwesomeIcon
+                                                className="w-6 h-6"
+                                                icon={faNewspaper}
+                                            />
+                                        </span>
+                                        <span
+                                            className={`${
+                                                sidebarOpen
+                                                    ? 'inline'
+                                                    : 'hidden'
+                                            } ml-2 text-base tracking-wide truncate`}>
+                                            Facturacion
+                                        </span>
+                                    </Link>
+                                </li>
+                            ) : null}
                             <li>
                                 <Link
                                     href="/ventas"
@@ -262,24 +273,29 @@ const Sidebar = ({ user, logout }) => {
                                     </span>
                                 </Link>
                             </li>
-                            <li>
-                                <Link
-                                    href="/CierreCaja"
-                                    className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
-                                    <span className="inline-flex justify-center items-center ml-4">
-                                        <FontAwesomeIcon
-                                            icon={faCashRegister}
-                                            className="w-6 h-6"
-                                        />
-                                    </span>
-                                    <span
-                                        className={`${
-                                            sidebarOpen ? 'inline' : 'hidden'
-                                        } ml-2 text-base tracking-wide truncate`}>
-                                        Reporte Z
-                                    </span>
-                                </Link>
-                            </li>
+                            {hasPermission(user, 'cierreDeCaja') ||
+                            user?.rol === 'admin' ? (
+                                <li>
+                                    <Link
+                                        href="/CierreCaja"
+                                        className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
+                                        <span className="inline-flex justify-center items-center ml-4">
+                                            <FontAwesomeIcon
+                                                icon={faCashRegister}
+                                                className="w-6 h-6"
+                                            />
+                                        </span>
+                                        <span
+                                            className={`${
+                                                sidebarOpen
+                                                    ? 'inline'
+                                                    : 'hidden'
+                                            } ml-2 text-base tracking-wide truncate`}>
+                                            Reporte Z
+                                        </span>
+                                    </Link>
+                                </li>
+                            ) : null}
                         </ul>
                     </li>
                     <li>
@@ -339,42 +355,48 @@ const Sidebar = ({ user, logout }) => {
                             </li>
                         </ul>
                     </li>
-                    <li>
-                        <Link
-                            href="/Movimientos"
-                            className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
-                            <span className="inline-flex justify-center items-center ml-4">
-                                <FontAwesomeIcon
-                                    icon={faRepeat}
-                                    className="w-6 h-6"
-                                />
-                            </span>
-                            <span
-                                className={`${
-                                    sidebarOpen ? 'inline' : 'hidden'
-                                } ml-2 text-base tracking-wide truncate`}>
-                                Movimientos
-                            </span>
-                        </Link>
-                    </li>
-                    <li>
-                        <Link
-                            href="/configuracion"
-                            className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
-                            <span className="inline-flex justify-center items-center ml-4">
-                                <FontAwesomeIcon
-                                    icon={faGear}
-                                    className="w-6 h-6"
-                                />
-                            </span>
-                            <span
-                                className={`${
-                                    sidebarOpen ? 'inline' : 'hidden'
-                                } ml-2 text-base tracking-wide truncate`}>
-                                Configuracion
-                            </span>
-                        </Link>
-                    </li>
+                    {user?.rol === 'admin' ? (
+                        <li>
+                            <Link
+                                href="/Movimientos"
+                                className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
+                                <span className="inline-flex justify-center items-center ml-4">
+                                    <FontAwesomeIcon
+                                        icon={faRepeat}
+                                        className="w-6 h-6"
+                                    />
+                                </span>
+                                <span
+                                    className={`${
+                                        sidebarOpen ? 'inline' : 'hidden'
+                                    } ml-2 text-base tracking-wide truncate`}>
+                                    Movimientos
+                                </span>
+                            </Link>
+                        </li>
+                    ) : null}
+
+                    {hasPermission(user, 'configuraciones') ||
+                    user?.rol === 'admin' ? (
+                        <li>
+                            <Link
+                                href="/configuracion"
+                                className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
+                                <span className="inline-flex justify-center items-center ml-4">
+                                    <FontAwesomeIcon
+                                        icon={faGear}
+                                        className="w-6 h-6"
+                                    />
+                                </span>
+                                <span
+                                    className={`${
+                                        sidebarOpen ? 'inline' : 'hidden'
+                                    } ml-2 text-base tracking-wide truncate`}>
+                                    Configuracion
+                                </span>
+                            </Link>
+                        </li>
+                    ) : null}
 
                     <li onClick={logout}>
                         <Link

@@ -20,11 +20,12 @@ import ConfirmFactura from '@/components/ConfirmFactura'
 
 const Facturacion = () => {
     const { isDark } = useTheme()
+    const { hasPermission, user } = useAuth({ middleware: 'auth' })
     const [procesado, setProcesado] = useState(false)
     const [factura, setFactura] = useState(false)
     const { products: productos } = useProduct()
     const [formaVenta, setFormaVenta] = useState('')
-    const { user } = useAuth()
+
     const { addVenta } = useVentas()
     const { clientes, mutateClientes } = useClientes()
     const [filteredProducts, setFilteredProducts] = useState([])
@@ -220,9 +221,11 @@ const Facturacion = () => {
         setFilteredClientes(results)
 
         if (results.length === 0) {
-            setFilteredClientes([
-                { cedula: 'Agregar nuevo cliente', nombre: '' },
-            ])
+            if (hasPermission(user, 'clientes') || user?.rol === 'admin') {
+                setFilteredClientes([
+                    { cedula: 'Agregar nuevo cliente', nombre: '' },
+                ])
+            }
         }
     }
 

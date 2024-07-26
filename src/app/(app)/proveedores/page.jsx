@@ -10,8 +10,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons'
 import { useProveedores } from '@/hooks/useProveedores'
 import Pagination from '@/components/Pagination'
+import { useAuth } from '@/hooks/auth'
 
 const ProveedoresPage = () => {
+    const { hasPermission, user } = useAuth({ middleware: 'auth' })
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
@@ -125,20 +127,23 @@ const ProveedoresPage = () => {
                 <div className="flex items-center justify-between flex-wrap md:flex-row space-y-4 md:space-y-0 pb-4 bg-transparent">
                     <div className="flex items-center space-x-2">
                         <div className="px-4">
-                            <button
-                                onClick={() =>
-                                    openModal(
-                                        <RegisterProveedorForm
-                                            onClose={closeModal}
-                                            editMode={false}
-                                        />,
-                                        'Nuevo Proveedor',
-                                    )
-                                }
-                                className="flex items-center px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-700 text-white font-semibold shadow whitespace-nowrap">
-                                <PlusIcon className="h-5 w-5 mr-2" />
-                                Nuevo Proveedor
-                            </button>
+                            {hasPermission(user, 'agregarProveedores') ||
+                            user?.rol === 'admin' ? (
+                                <button
+                                    onClick={() =>
+                                        openModal(
+                                            <RegisterProveedorForm
+                                                onClose={closeModal}
+                                                editMode={false}
+                                            />,
+                                            'Nuevo Proveedor',
+                                        )
+                                    }
+                                    className="flex items-center px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-700 text-white font-semibold shadow whitespace-nowrap">
+                                    <PlusIcon className="h-5 w-5 mr-2" />
+                                    Nuevo Proveedor
+                                </button>
+                            ) : null}
                         </div>
                     </div>
 
@@ -280,23 +285,35 @@ const ProveedoresPage = () => {
                                                 className="text-blue-600 hover:text-blue-900">
                                                 <EyeIcon className="h-5 w-5" />
                                             </button>
-                                            <button
-                                                onClick={() =>
-                                                    handleEdit(proveedor)
-                                                }
-                                                className="text-green-600 hover:text-green-900">
-                                                <FontAwesomeIcon
-                                                    className="h-4 w-4"
-                                                    icon={faPenToSquare}
-                                                />
-                                            </button>
-                                            <button
-                                                onClick={() =>
-                                                    handleDelete(proveedor.id)
-                                                }
-                                                className="text-red-600 hover:text-red-900">
-                                                <TrashIcon className="h-5 w-5" />
-                                            </button>
+
+                                            {hasPermission(
+                                                user,
+                                                'agregarProveedores',
+                                            ) || user?.rol === 'admin' ? (
+                                                <>
+                                                    <button
+                                                        onClick={() =>
+                                                            handleEdit(
+                                                                proveedor,
+                                                            )
+                                                        }
+                                                        className="text-green-600 hover:text-green-900">
+                                                        <FontAwesomeIcon
+                                                            className="h-4 w-4"
+                                                            icon={faPenToSquare}
+                                                        />
+                                                    </button>
+                                                    <button
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                proveedor.id,
+                                                            )
+                                                        }
+                                                        className="text-red-600 hover:text-red-900">
+                                                        <TrashIcon className="h-5 w-5" />
+                                                    </button>
+                                                </>
+                                            ) : null}
                                         </td>
                                     </tr>
                                 ))}

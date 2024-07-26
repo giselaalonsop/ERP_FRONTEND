@@ -70,7 +70,7 @@ const Login = () => {
                     <div className="text-center">
                         <img
                             src={img || `https://storage.googleapis.com/devitary-image-host.appspot.com/15846435184459982716-LogoMakr_7POjrN.png`}
-                            className="w-32 mx-auto"
+                            className="w-50 h-auto mx-auto"
                                     />
                     </div>
 

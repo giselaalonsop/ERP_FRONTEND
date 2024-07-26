@@ -7,6 +7,9 @@ import useReportData from '@/hooks/useReporteData';
 import Input from '@/components/Input';
 import Label from '@/components/Label';
 import { useAuth } from '@/hooks/auth';
+import { Button, Drawer, Tooltip } from 'flowbite-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleExclamation } from '@fortawesome/free-solid-svg-icons';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -14,7 +17,7 @@ import {
     PointElement,
     LineElement,
     ArcElement,
-    Tooltip,
+    Tooltip as ChartTooltip,
     Legend
 } from 'chart.js';
 import jsPDF from 'jspdf';
@@ -27,7 +30,7 @@ ChartJS.register(
     PointElement,
     LineElement,
     ArcElement,
-    Tooltip,
+    ChartTooltip,
     Legend
 );
 
@@ -41,6 +44,10 @@ const Dashboard = () => {
     const shadowClass = isDark ? 'shadow-white' : 'shadow-md';
     const tableBgClass = isDark ? 'bg-gray-700' : 'bg-gray-50';
     const tableTextClass = isDark ? 'text-gray-300' : 'text-gray-600';
+    const buttonBgClass = isDark ? 'bg-gray-700' : 'bg-gray-200';
+    const buttonHoverClass = isDark ? 'hover:bg-gray-600' : 'hover:bg-gray-300';
+    const drawerBgClass = isDark ? 'bg-gray-800' : 'bg-white';
+    const drawerTextClass = isDark ? 'text-gray-400' : 'text-gray-500';
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
     const [startDate, setStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 7)));
@@ -86,6 +93,10 @@ const Dashboard = () => {
         });
     };
 
+    const toggleDrawer = () => {
+        setIsDrawerOpen(!isDrawerOpen);
+    };
+
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error loading data</p>;
 
@@ -126,7 +137,7 @@ const Dashboard = () => {
         if (isNaN(value)) return '0.00';
         return parseFloat(value).toFixed(2);
     };
-  
+
     return (
         <div className={`flex flex-col h-full w-full overflow-hidden ${bgClass} ${textClass}`}>
             <div className="flex flex-wrap justify-between items-center mb-4">
@@ -182,7 +193,11 @@ const Dashboard = () => {
                     >
                         Descargar
                     </button>
-                    
+                    <Tooltip content="Ver Recomendaciones" className={`${isDark? 'bg-gray-600': 'bg-gray-100'}`}>
+                        <Button onClick={toggleDrawer} className='bg-transparent'> 
+                            <FontAwesomeIcon icon={faCircleExclamation} className='text-red-600 h-6 w-6' />
+                        </Button>
+                    </Tooltip>
                 </div>
             </div>
 
@@ -219,8 +234,8 @@ const Dashboard = () => {
 
                 <div className="flex flex-wrap mt-4 justify-around">
                     <div className={`rounded-lg p-4 sm:p-6 xl:p-8 w-full md:w-1/3 ${cardBgClass} ${shadowClass} ${textClass}`}>
-                        <h3 className="text-xl font-bold">Productos vendidos</h3>
-                        <span className="text-base font-normal">Cantidad de productos vendidos</span>
+                        <h3 className="text-xl font-bold">Categorias mas vendidas</h3>
+                       
                         <Pie data={pieData} />
                     </div>
                     
@@ -385,13 +400,21 @@ const Dashboard = () => {
                     </div>
                 </div>
             </div>
-            
-            {recommendations ? (
-                <p>{recommendations}</p>
-            ) : (
-                null
-            )}
-                
+
+            <Drawer open={isDrawerOpen} onClose={toggleDrawer} position="right" className={drawerBgClass}
+           style={isDark ? { color: '#fff', backgroundColor: '#000' } : { color: '#000', backgroundColor: '#fff' }}
+           >
+                <Drawer.Header title="Recomendaciones" />
+                <Drawer.Items className={drawerTextClass}>
+                    <div className="p-4">
+                        {recommendations ? (
+                            <p className={`text-lg ${drawerTextClass}`}>{recommendations}</p>
+                        ) : (
+                            <p>No hay recomendaciones disponibles en este momento.</p>
+                        )}
+                    </div>
+                </Drawer.Items>
+            </Drawer>
         </div>
     );
 };

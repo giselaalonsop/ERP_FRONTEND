@@ -13,8 +13,8 @@ import { PlusIcon } from '@heroicons/react/solid'
 import { ChevronDownIcon, SearchIcon } from '@heroicons/react/solid'
 import { AutoComplete } from 'primereact/autocomplete'
 
-
 const Page = () => {
+    const { hasPermission, user } = useAuth({ middleware: 'auth' })
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
@@ -22,11 +22,10 @@ const Page = () => {
     const [filteredProveedores, setFilteredProveedores] = useState([])
     const [searchQuery, setSearchQuery] = useState('')
     const [searchEstado, setSearchEstado] = useState('')
-    const { user } = useAuth({ middleware: 'auth' })
+
     const router = useRouter()
     const { proveedores, proveedoresError } = useProveedores()
     const { compras, comprasError } = useCompras()
-   
 
     useEffect(() => {
         if (user && user.rol !== 'admin') {
@@ -96,17 +95,20 @@ const Page = () => {
                 {modalContent}
             </Modal>
             <div className="flex justify-between items-center mb-6">
-                <button
-                    onClick={() =>
-                        openModal(
-                            <RegisterCompra onClose={closeModal} />,
-                            'Nueva Compra',
-                        )
-                    }
-                    className="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-semibold rounded-md shadow">
-                    <PlusIcon className="h-5 w-5 mr-2" />
-                    Nueva Compra
-                </button>
+                {hasPermission(user, 'registrarCompras') ||
+                user?.rol === 'admin' ? (
+                    <button
+                        onClick={() =>
+                            openModal(
+                                <RegisterCompra onClose={closeModal} />,
+                                'Nueva Compra',
+                            )
+                        }
+                        className="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-semibold rounded-md shadow">
+                        <PlusIcon className="h-5 w-5 mr-2" />
+                        Nueva Compra
+                    </button>
+                ) : null}
                 <div className="flex items-center space-x-4">
                     <div className="relative w-64">
                         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">

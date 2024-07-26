@@ -1,26 +1,84 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useLogs } from '@/hooks/useLogs' // Asegúrate de que la ruta sea correcta
 import Pagination from '@/components/Pagination'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faUserCheck } from '@fortawesome/free-solid-svg-icons'
+import { faUserCheck, faEye } from '@fortawesome/free-solid-svg-icons'
 import { useTheme } from '@/context/ThemeProvider'
 import { format } from 'date-fns'
+import Swal from 'sweetalert2'
 
 const LogsTable = () => {
     const [currentPage, setCurrentPage] = useState(1)
+    const [searchQuery, setSearchQuery] = useState('')
+    const [actionFilter, setActionFilter] = useState('')
     const itemsPerPage = 10
-    const { logs, logsError, mutateLogs } = useLogs()
+    const { logs, logsError } = useLogs()
     const { isDark } = useTheme()
 
-    if (!logs) return <p>Cargando...</p>
-    if (logsError) return <p>Error al cargar los registros.</p>
+    const sortedLogs = useMemo(() => {
+        if (!logs) return []
+        return logs.sort(
+            (a, b) => new Date(b.created_at) - new Date(a.created_at),
+        )
+    }, [logs])
+
+    const filteredLogs = useMemo(() => {
+        return sortedLogs.filter(log => {
+            const matchesSearchQuery =
+                log.user?.name
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase()) ||
+                log.user?.email
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase())
+            const matchesActionFilter = actionFilter
+                ? log.action === actionFilter
+                : true
+            return matchesSearchQuery && matchesActionFilter
+        })
+    }, [sortedLogs, searchQuery, actionFilter])
 
     const startIndex = (currentPage - 1) * itemsPerPage
-    const paginatedLogs = logs.slice(startIndex, startIndex + itemsPerPage)
+    const paginatedLogs = filteredLogs.slice(
+        startIndex,
+        startIndex + itemsPerPage,
+    )
 
     const formatDate = dateString => {
         return format(new Date(dateString), 'dd-MM-yyyy HH:mm:ss')
+    }
+
+    const formatJsonValues = values => {
+        if (!values) return 'N/A'
+        return Object.entries(JSON.parse(values))
+            .map(([key, value]) => `<strong>${key}:</strong> ${value}`)
+            .join('<br>')
+    }
+
+    const showLogDetails = log => {
+        Swal.fire({
+            title: 'Detalles del Registro',
+            html: `
+              <div style="text-align: left;">
+                    <p><strong>Fecha y Hora:</strong> ${formatDate(
+                        log.created_at,
+                    )}</p>
+                    <p><strong>Usuario:</strong> ${
+                        log.user
+                            ? `${log.user.name} (${log.user.email})`
+                            : 'Guest'
+                    }</p>
+                    <p><strong>Acción:</strong> ${log.action}</p>
+                    <p><strong>Tabla:</strong> ${log.table_name}</p>
+                    <p><strong>Valores Antiguos:</strong></p>
+                    <div>${formatJsonValues(log.old_values)}</div>
+                    <br><p><strong>Valores Nuevos:</strong></p>
+                    <div>${formatJsonValues(log.new_values)}</div>
+                </div>
+            `,
+            confirmButtonText: 'Cerrar',
+        })
     }
 
     return (
@@ -51,8 +109,22 @@ const LogsTable = () => {
                             type="text"
                             id="table-search-users"
                             className="block p-2 pl-10 text-sm rounded-lg w-80"
-                            placeholder="Buscar movimientos"
+                            placeholder="Buscar movimientos por usuario..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
                         />
+                    </div>
+                    <div className="relative">
+                        <select
+                            id="action-filter"
+                            className="block p-2 pl-3 text-sm rounded-lg w-40"
+                            value={actionFilter}
+                            onChange={e => setActionFilter(e.target.value)}>
+                            <option value="">Todas las acciones</option>
+                            <option value="created">Creación</option>
+                            <option value="updated">Edición</option>
+                            <option value="deleted">Eliminación</option>
+                        </select>
                     </div>
                 </div>
 
@@ -65,8 +137,9 @@ const LogsTable = () => {
                         }`}>
                         <thead className="text-xs uppercase">
                             <tr>
-                                <th scope="col" className="p-4">
-                                    <div className="flex items-center"></div>
+                                <th scope="col" className="p-4"></th>
+                                <th scope="col" className="px-6 py-3">
+                                    Fecha y hora
                                 </th>
                                 <th scope="col" className="px-6 py-3">
                                     Usuario
@@ -78,13 +151,7 @@ const LogsTable = () => {
                                     Tabla
                                 </th>
                                 <th scope="col" className="px-6 py-3">
-                                    Valores Antiguos
-                                </th>
-                                <th scope="col" className="px-6 py-3">
-                                    Valores Nuevos
-                                </th>
-                                <th scope="col" className="px-6 py-3">
-                                    Fecha
+                                    Detalles
                                 </th>
                             </tr>
                         </thead>
@@ -93,8 +160,9 @@ const LogsTable = () => {
                                 <tr
                                     key={log.id}
                                     className="border-b cursor-pointer">
-                                    <td className="w-4 p-4">
-                                        <div className="flex items-center"></div>
+                                    <td className="w-4 p-4"></td>
+                                    <td className="px-6 py-4">
+                                        {formatDate(log.created_at)}
                                     </td>
                                     <th
                                         scope="row"
@@ -118,13 +186,11 @@ const LogsTable = () => {
                                         {log.table_name}
                                     </td>
                                     <td className="px-6 py-4">
-                                        <pre>{log.old_values}</pre>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <pre>{log.new_values}</pre>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {formatDate(log.created_at)}
+                                        <button
+                                            onClick={() => showLogDetails(log)}
+                                            className="text-blue-600 hover:text-blue-900">
+                                            <FontAwesomeIcon icon={faEye} />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
@@ -132,7 +198,7 @@ const LogsTable = () => {
                     </table>
                     <Pagination
                         currentPage={currentPage}
-                        totalItems={logs.length}
+                        totalItems={filteredLogs.length}
                         itemsPerPage={itemsPerPage}
                         onPageChange={setCurrentPage}
                     />

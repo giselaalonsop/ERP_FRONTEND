@@ -10,8 +10,9 @@ import Modal from '@/components/Modal'
 import RegisterProveedor from '@/components/RegisterProveedorForm'
 
 const RegisterCompra = ({ compra, onClose, editMode }) => {
+    const { hasPermission, user } = useAuth({ middleware: 'auth' })
     const { addCompra, updateCompra, proveedores } = useCompras()
-    const { user } = useAuth({ middleware: 'auth' })
+
     const [formData, setFormData] = useState({
         proveedor_id: '',
         fecha: '',
@@ -71,7 +72,12 @@ const RegisterCompra = ({ compra, onClose, editMode }) => {
         )
 
         if (filtered.length === 0) {
-            filtered.push({ id: 'new', empresa: 'Agregar nuevo proveedor' })
+            if (
+                hasPermission(user, 'agregarProveedores') ||
+                user?.rol === 'admin'
+            ) {
+                filtered.push({ id: 'new', empresa: 'Agregar nuevo proveedor' })
+            }
         }
 
         setFilteredProveedores(filtered)

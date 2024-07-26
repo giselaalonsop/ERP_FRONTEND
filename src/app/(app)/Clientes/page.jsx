@@ -15,6 +15,7 @@ import RegisterClient from '@/components/RegisterClient'
 import Pagination from '@/components/Pagination'
 
 const Page = () => {
+    const { hasPermission, user } = useAuth({ middleware: 'auth' })
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
@@ -122,20 +123,23 @@ const Page = () => {
                 <div className="flex items-center justify-between flex-wrap md:flex-row space-y-4 md:space-y-0 pb-4 bg-transparent">
                     <div className="flex items-center space-x-2">
                         <div className="px-4">
-                            <button
-                                onClick={() =>
-                                    openModal(
-                                        <RegisterClient
-                                            onClose={closeModal}
-                                            editMode={false}
-                                        />,
-                                        'Nuevo Cliente',
-                                    )
-                                }
-                                className="flex items-center px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-700 text-white font-semibold shadow whitespace-nowrap">
-                                <PlusIcon className="h-5 w-5 mr-2" />
-                                Nuevo Cliente
-                            </button>
+                            {hasPermission(user, 'clientes') ||
+                            user?.rol === 'admin' ? (
+                                <button
+                                    onClick={() =>
+                                        openModal(
+                                            <RegisterClient
+                                                onClose={closeModal}
+                                                editMode={false}
+                                            />,
+                                            'Nuevo Cliente',
+                                        )
+                                    }
+                                    className="flex items-center px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-700 text-white font-semibold shadow whitespace-nowrap">
+                                    <PlusIcon className="h-5 w-5 mr-2" />
+                                    Nuevo Cliente
+                                </button>
+                            ) : null}
                         </div>
                     </div>
 
@@ -200,8 +204,9 @@ const Page = () => {
                                         Nombre
                                     </th>
                                     <th scope="col" className="px-6 py-3">
-                                        Correo
+                                        Cédula
                                     </th>
+
                                     <th scope="col" className="px-6 py-3">
                                         Teléfono
                                     </th>
@@ -242,7 +247,7 @@ const Page = () => {
                                             </div>
                                         </th>
                                         <td className="px-6 py-4">
-                                            {client.correo_electronico}
+                                            {client.cedula}
                                         </td>
                                         <td className="px-6 py-4">
                                             {client.numero_de_telefono}
@@ -255,23 +260,32 @@ const Page = () => {
                                                 className="text-blue-600 hover:text-blue-900">
                                                 <EyeIcon className="h-5 w-5" />
                                             </button>
-                                            <button
-                                                onClick={() => {
-                                                    handleEdit(client)
-                                                }}
-                                                className="text-green-600 hover:text-green-900">
-                                                <FontAwesomeIcon
-                                                    className="h-4 w-4"
-                                                    icon={faPenToSquare}
-                                                />
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    handleDelete(client.id)
-                                                }}
-                                                className="text-red-600 hover:text-red-900">
-                                                <TrashIcon className="h-5 w-5" />
-                                            </button>
+                                            {hasPermission(
+                                                user,
+                                                'facturacion',
+                                            ) || user?.rol === 'admin' ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => {
+                                                            handleEdit(client)
+                                                        }}
+                                                        className="text-green-600 hover:text-green-900">
+                                                        <FontAwesomeIcon
+                                                            className="h-4 w-4"
+                                                            icon={faPenToSquare}
+                                                        />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            handleDelete(
+                                                                client.id,
+                                                            )
+                                                        }}
+                                                        className="text-red-600 hover:text-red-900">
+                                                        <TrashIcon className="h-5 w-5" />
+                                                    </button>
+                                                </>
+                                            ) : null}
                                         </td>
                                     </tr>
                                 ))}

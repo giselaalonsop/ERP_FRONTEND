@@ -276,14 +276,14 @@ const Register = ({ user: editUser, onClose }) => {
         { name: 'facturacion', label: 'Facturación' },
         { name: 'registrarUsuarios', label: 'Registrar Usuarios' },
         { name: 'verUsuarios', label: 'Ver Usuarios' },
-        { name: 'clientes', label: 'Clientes' },
+        { name: 'clientes', label: 'Registrar Clientes' },
         { name: 'configuraciones', label: 'Configuraciones' },
         { name: 'cargaInventario', label: 'Carga de Inventario' },
         { name: 'descargaInventario', label: 'Descarga de Inventario' },
         { name: 'agregarNuevoProducto', label: 'Agregar Nuevo Producto' },
         { name: 'agregarProveedores', label: 'Agregar Proveedores' },
-        { name: 'cuentasPorPagar', label: 'Cuentas por Pagar' },
         { name: 'cierreDeCaja', label: 'Cierre de Caja' },
+        { name: 'registrarCompras', label: 'Registrar Compras' },
     ]
 
     if (!hasPermission('registrarUsuarios') && user.rol !== 'admin') {

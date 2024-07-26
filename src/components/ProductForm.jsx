@@ -14,7 +14,7 @@ import RegisterProveedor from '@/components/RegisterProveedorForm'
 import Modal from '@/components/Modal'
 import { image } from '@tensorflow/tfjs'
 import { useDropzone } from 'react-dropzone'
-
+import { useAuth } from '@/hooks/auth'
 const getCurrentDate = () => {
     const today = new Date()
     const day = String(today.getDate()).padStart(2, '0')
@@ -28,6 +28,7 @@ const capitalizeWords = str => {
 }
 
 const AddProductPage = ({ product, onClose }) => {
+    const { hasPermission, user } = useAuth({ middleware: 'auth' })
     const configuracion = JSON.parse(localStorage.getItem('configuracion'))
     const { categories, addCategoria, isLoading, isError } = useCategories()
     const { addProduct, updateProduct } = useProduct()
@@ -311,7 +312,12 @@ const AddProductPage = ({ product, onClose }) => {
         )
 
         if (filtered.length === 0) {
-            filtered.push({ id: 'new', empresa: 'Agregar nuevo proveedor' })
+            if (
+                hasPermission(user, 'agregarProveedores') ||
+                user?.rol === 'admin'
+            ) {
+                filtered.push({ id: 'new', empresa: 'Agregar nuevo proveedor' })
+            }
         }
 
         setFilteredProveedores(filtered)
@@ -826,6 +832,7 @@ const AddProductPage = ({ product, onClose }) => {
                                         id="precio_compra"
                                         name="precio_compra"
                                         min="0"
+                                        step="0.01"
                                         value={formData.precio_compra}
                                         onChange={handleChange}
                                         onBlur={handleBlur}
@@ -855,6 +862,7 @@ const AddProductPage = ({ product, onClose }) => {
                                         id="porcentaje_ganancia"
                                         name="porcentaje_ganancia"
                                         min="0"
+                                        step="0.01"
                                         value={formData.porcentaje_ganancia}
                                         onChange={handleChange}
                                         onBlur={handleBlur}
@@ -886,6 +894,7 @@ const AddProductPage = ({ product, onClose }) => {
                                         id="porcentaje_ganancia_mayor"
                                         name="porcentaje_ganancia_mayor"
                                         min="0"
+                                        step="0.01"
                                         value={
                                             formData.porcentaje_ganancia_mayor
                                         }

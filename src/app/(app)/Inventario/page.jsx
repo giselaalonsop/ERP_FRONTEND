@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import Modal, { ProductModal } from '@/components/Modal'
-import { useAuth } from '@/hooks/auth'
+
 import { useRouter } from 'next/navigation'
 import { UsersIcon, ShoppingCartIcon, CubeIcon } from '@heroicons/react/solid'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -17,8 +17,10 @@ import AddProductPage from '@/components/ProductForm'
 import AnotherForm from '@/components/DescargaInventario'
 import ProductsTable from '@/components/Table'
 import CargaInventario from '@/components/CargaInventario'
+import { useAuth } from '@/hooks/auth'
 
 const Page = () => {
+    const { hasPermission, user } = useAuth({ middleware: 'auth' })
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
@@ -38,7 +40,6 @@ const Page = () => {
         setModalTitle('')
     }
 
-    const { user } = useAuth({ middleware: 'auth' })
     const router = useRouter()
 
     useEffect(() => {
@@ -58,45 +59,55 @@ const Page = () => {
             </Modal>
             <div className="flex justify-between items-center mb-6">
                 <div className="flex space-x-2">
-                    <button
-                        onClick={() =>
-                            openModal(
-                                <AddProductPage onClose={closeModal} />,
-                                'Nuevo Producto',
-                            )
-                        }
-                        className="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-semibold rounded-md shadow">
-                        <PlusIcon className="h-5 w-5 mr-2" />
-                        Nuevo Producto
-                    </button>
-                    <button
-                        onClick={() =>
-                            openModal(
-                                <AnotherForm onClose={closeModal} />,
-                                'Descarga',
-                            )
-                        }
-                        className="flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md shadow">
-                        <FontAwesomeIcon
-                            className="h-5 w-5 mr-2"
-                            icon={faSquareMinus}
-                        />
-                        Descarga
-                    </button>
-                    <button
-                        onClick={() =>
-                            openModal(
-                                <CargaInventario onClose={closeModal} />,
-                                'Carga',
-                            )
-                        }
-                        className="flex items-center px-4 py-2 bg-yellow-500 hover:bg-yellow-700 text-white font-semibold rounded-md shadow">
-                        <FontAwesomeIcon
-                            className="h-5 w-5 mr-2"
-                            icon={faUpload}
-                        />
-                        Carga
-                    </button>
+                    {hasPermission(user, 'agregarNuevoProducto') ||
+                    user?.rol === 'admin' ? (
+                        <button
+                            onClick={() =>
+                                openModal(
+                                    <AddProductPage onClose={closeModal} />,
+                                    'Nuevo Producto',
+                                )
+                            }
+                            className="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-semibold rounded-md shadow">
+                            <PlusIcon className="h-5 w-5 mr-2" />
+                            Nuevo Producto
+                        </button>
+                    ) : null}
+
+                    {hasPermission(user, 'descargaInventario') ||
+                    user?.rol === 'admin' ? (
+                        <button
+                            onClick={() =>
+                                openModal(
+                                    <AnotherForm onClose={closeModal} />,
+                                    'Descarga',
+                                )
+                            }
+                            className="flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md shadow">
+                            <FontAwesomeIcon
+                                className="h-5 w-5 mr-2"
+                                icon={faSquareMinus}
+                            />
+                            Descarga
+                        </button>
+                    ) : null}
+                    {hasPermission(user, 'cargaInventario') ||
+                    user?.rol === 'admin' ? (
+                        <button
+                            onClick={() =>
+                                openModal(
+                                    <CargaInventario onClose={closeModal} />,
+                                    'Carga',
+                                )
+                            }
+                            className="flex items-center px-4 py-2 bg-yellow-500 hover:bg-yellow-700 text-white font-semibold rounded-md shadow">
+                            <FontAwesomeIcon
+                                className="h-5 w-5 mr-2"
+                                icon={faUpload}
+                            />
+                            Carga
+                        </button>
+                    ) : null}
                 </div>
                 <SearchWithDropdown
                     onCategorySelect={setSelectedCategory}

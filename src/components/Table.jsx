@@ -10,8 +10,10 @@ import { faPenToSquare } from '@fortawesome/free-solid-svg-icons'
 import AddProductPage from './ProductForm'
 import ProductDetail from './ProductDetail'
 import Swal from 'sweetalert2'
+import { useAuth } from '@/hooks/auth'
 
 const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
+    const { hasPermission, user } = useAuth({ middleware: 'auth' })
     const { isDark } = useTheme()
     const { products, removeProduct } = useProduct()
     const [errors, setErrors] = useState(null)
@@ -101,7 +103,11 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
             return matchesCategory && matchesSearchText && matchesLocation
         }) || []
 
-    const selectedProducts = filteredProducts?.slice(
+    const sortedProducts = filteredProducts.sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    )
+
+    const selectedProducts = sortedProducts.slice(
         startIndex,
         startIndex + itemsPerPage,
     )
@@ -302,29 +308,37 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
                                                                     className="text-blue-600 hover:text-blue-900">
                                                                     <EyeIcon className="h-5 w-5" />
                                                                 </button>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        handleUpdateProduct(
-                                                                            product,
-                                                                        )
-                                                                    }}
-                                                                    className="text-green-600 hover:text-green-900">
-                                                                    <FontAwesomeIcon
-                                                                        className="h-4 w-4"
-                                                                        icon={
-                                                                            faPenToSquare
-                                                                        }
-                                                                    />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        handleRemoveProduct(
-                                                                            product.id,
-                                                                        )
-                                                                    }}
-                                                                    className="text-red-600 hover:text-red-900">
-                                                                    <TrashIcon className="h-5 w-5" />
-                                                                </button>
+                                                                {hasPermission(
+                                                                    'agregarNuevoProducto',
+                                                                ) ||
+                                                                user?.rol ===
+                                                                    'admin' ? (
+                                                                    <>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                handleUpdateProduct(
+                                                                                    product,
+                                                                                )
+                                                                            }}
+                                                                            className="text-green-600 hover:text-green-900">
+                                                                            <FontAwesomeIcon
+                                                                                className="h-4 w-4"
+                                                                                icon={
+                                                                                    faPenToSquare
+                                                                                }
+                                                                            />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                handleRemoveProduct(
+                                                                                    product.id,
+                                                                                )
+                                                                            }}
+                                                                            className="text-red-600 hover:text-red-900">
+                                                                            <TrashIcon className="h-5 w-5" />
+                                                                        </button>
+                                                                    </>
+                                                                ) : null}
                                                             </td>
                                                         </div>
                                                     </tr>

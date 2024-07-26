@@ -10,8 +10,10 @@ import 'primeicons/primeicons.css'
 import AddProductPage from './ProductForm'
 import Modal from '@/components/Modal'
 import Label from './Label'
+import { useAuth } from '@/hooks/auth'
 
 const DescargaInventario = ({ onClose }) => {
+    const { hasPermission, user } = useAuth({ middleware: 'auth' })
     const { products, descargarInventario } = useProduct()
     const [filteredProducts, setFilteredProducts] = useState([])
     const [selectedProduct, setSelectedProduct] = useState(null)
@@ -26,6 +28,20 @@ const DescargaInventario = ({ onClose }) => {
     const [errors, setErrors] = useState({})
     const [touched, setTouched] = useState({})
     const autoCompleteRef = useRef(null)
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, []);
 
     useEffect(() => {
         const newErrors = {}
@@ -53,7 +69,6 @@ const DescargaInventario = ({ onClose }) => {
         setModalTitle('')
     }
 
-
     const searchProduct = event => {
         const query = event.query.toLowerCase()
         setSearchQuery(query)
@@ -66,7 +81,10 @@ const DescargaInventario = ({ onClose }) => {
             )
 
         if (filtered.length === 0) {
-            filtered.push({ id: 'new', nombre: 'Agregar nuevo producto' })
+            if (hasPermission(user, 'agregarNuevoProducto') ||
+                            user?.rol === 'admin'){
+                                filtered.push({ id: 'new', nombre: 'Agregar nuevo producto' })
+                            }
         }
 
         setFilteredProducts(filtered)
@@ -114,7 +132,7 @@ const DescargaInventario = ({ onClose }) => {
     }
 
     const handleSubmit = async e => {
-        e.preventDefault()
+        e.preventDefault(); // Evitar el comportamiento predeterminado del formulario
         if (validateForm()) {
             const cantidadAEnviar = cambiarAlmacen ? cantidad : 0
             const ubicacion = cambiarAlmacen ? almacenDestino : null
@@ -135,10 +153,6 @@ const DescargaInventario = ({ onClose }) => {
             Swal.fire('Error', 'Por favor completa todos los campos', 'error')
         }
     }
-  useEffect(() => {
-        console.log(almacenDestino)
-        console.log(cambiarAlmacen)
-    }, [almacenDestino, cambiarAlmacen])
 
     return (
         <div className="w-full h-full bg-white rounded-md p-6 flex flex-col">

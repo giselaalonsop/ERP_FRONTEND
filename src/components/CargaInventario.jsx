@@ -10,8 +10,10 @@ import 'primeicons/primeicons.css'
 import AddProductPage from './ProductForm'
 import Modal from '@/components/Modal'
 import Label from './Label'
+import { useAuth } from '@/hooks/auth'
 
 const CargaInventario = () => {
+    const { hasPermission, user } = useAuth({ middleware: 'auth' })
     const { products, cargarInventario } = useProduct()
     const [filteredProducts, setFilteredProducts] = useState([])
     const [selectedProduct, setSelectedProduct] = useState(null)
@@ -37,6 +39,20 @@ const CargaInventario = () => {
         setModalTitle('')
     }
 
+    useEffect(() => {
+        const handleKeyDown = e => {
+            if (e.key === 'Enter') {
+                e.preventDefault()
+            }
+        }
+
+        document.addEventListener('keydown', handleKeyDown)
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown)
+        }
+    }, [])
+
     const searchProduct = event => {
         const query = event.query.toLowerCase()
         setSearchQuery(query)
@@ -54,7 +70,12 @@ const CargaInventario = () => {
         )
 
         if (filtered.length === 0) {
-            filtered.push({ id: 'new', nombre: 'Agregar nuevo producto' })
+            if (
+                hasPermission(user, 'agregarNuevoProducto') ||
+                user?.rol === 'admin'
+            ) {
+                filtered.push({ id: 'new', nombre: 'Agregar nuevo producto' })
+            }
         }
 
         setFilteredProducts(filtered)
