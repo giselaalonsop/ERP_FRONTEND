@@ -21,6 +21,7 @@ const Register = ({ user: editUser, onClose }) => {
     const [passwordConfirmation, setPasswordConfirmation] = useState('')
     const [rol, setRol] = useState('user')
     const [location, setLocation] = useState('')
+    const [cedula, setCedula] = useState('')
     const [permissions, setPermissions] = useState({
         facturacion: false,
         registrarUsuarios: false,
@@ -50,6 +51,7 @@ const Register = ({ user: editUser, onClose }) => {
             agregarProveedores: true,
             cuentasPorPagar: true,
             cierreDeCaja: true,
+            registrarCompras: true,
         })
     }
 
@@ -71,6 +73,7 @@ const Register = ({ user: editUser, onClose }) => {
                 agregarProveedores: false,
                 cuentasPorPagar: false,
                 cierreDeCaja: false,
+                registrarCompras: false,
             })
         }
     }
@@ -81,6 +84,7 @@ const Register = ({ user: editUser, onClose }) => {
             setEmail(editUser.email)
             setRol(editUser.rol)
             setLocation(editUser.location || '')
+            setCedula(editUser.cedula || '')
 
             if (typeof editUser.permissions === 'string') {
                 try {
@@ -104,6 +108,7 @@ const Register = ({ user: editUser, onClose }) => {
         passwordConfirmation,
         rol,
         location,
+        cedula,
         permissions,
     ])
 
@@ -114,6 +119,9 @@ const Register = ({ user: editUser, onClose }) => {
         }
         if (!/^[A-Za-z\s]+$/.test(name)) {
             newErrors.name = 'El nombre solo debe contener letras y espacios'
+        }
+        if (name.trim().split(' ').length < 2) {
+            newErrors.name = 'El nombre debe contener al menos un apellido'
         }
         if (!email.trim()) {
             newErrors.email = 'El correo no puede estar vacío'
@@ -136,6 +144,12 @@ const Register = ({ user: editUser, onClose }) => {
         if (!location.trim()) {
             newErrors.location = 'La ubicación no puede estar vacía'
         }
+        if (!cedula.trim()) {
+            newErrors.cedula = 'La cédula no puede estar vacía'
+        }
+        if (!/^\d+$/.test(cedula)) {
+            newErrors.cedula = 'La cédula solo debe contener números'
+        }
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0
     }
@@ -156,6 +170,11 @@ const Register = ({ user: editUser, onClose }) => {
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(' '),
         )
+    }
+
+    const handleCedulaChange = event => {
+        const newCedula = event.target.value
+        setCedula(newCedula.replace(/[^0-9]/g, '')) // Remueve caracteres no permitidos
     }
 
     const handleBlur = field => {
@@ -194,6 +213,7 @@ const Register = ({ user: editUser, onClose }) => {
             password: true,
             passwordConfirmation: true,
             location: true,
+            cedula: true,
         })
 
         if (!validateForm()) {
@@ -209,6 +229,7 @@ const Register = ({ user: editUser, onClose }) => {
                     email,
                     rol,
                     location,
+                    cedula,
                     permissions,
                 })
             } else {
@@ -219,6 +240,7 @@ const Register = ({ user: editUser, onClose }) => {
                     password_confirmation: passwordConfirmation,
                     rol,
                     location,
+                    cedula,
                     permissions,
                     setErrors,
                 })
@@ -257,6 +279,7 @@ const Register = ({ user: editUser, onClose }) => {
         setPasswordConfirmation('')
         setRol('user')
         setLocation('')
+        setCedula('')
         setPermissions({
             facturacion: false,
             registrarUsuarios: false,
@@ -301,19 +324,12 @@ const Register = ({ user: editUser, onClose }) => {
 
     return (
         <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-8">
-                <p>
-                    {editUser
-                        ? 'Actualiza la información del usuario'
-                        : 'Ingrese su información para registrarse'}
-                </p>
-            </div>
             <form onSubmit={submitForm}>
                 <div className="grid gap-4  sm:grid-cols-2">
                     <div>
                         <Label
                             htmlFor="name"
-                            className="block mb-2 text-sm font-medium">
+                            className="block mb-1 text-sm font-medium">
                             Nombre
                         </Label>
                         <input
@@ -330,7 +346,7 @@ const Register = ({ user: editUser, onClose }) => {
                         <div
                             style={{
                                 minHeight: '24px',
-                                marginTop: '4px',
+                                marginTop: '3px',
                                 color: 'red',
                                 fontSize: '12px',
                             }}>
@@ -340,7 +356,7 @@ const Register = ({ user: editUser, onClose }) => {
                     <div>
                         <Label
                             htmlFor="email"
-                            className="block mb-2 text-sm font-medium">
+                            className="block mb-1 text-sm font-medium">
                             Correo
                         </Label>
                         <input
@@ -356,7 +372,7 @@ const Register = ({ user: editUser, onClose }) => {
                         <div
                             style={{
                                 minHeight: '24px',
-                                marginTop: '4px',
+                                marginTop: '3px',
                                 color: 'red',
                                 fontSize: '12px',
                             }}>
@@ -368,7 +384,7 @@ const Register = ({ user: editUser, onClose }) => {
                             <div>
                                 <Label
                                     htmlFor="password"
-                                    className="block mb-2 text-sm font-medium">
+                                    className="block mb-1 text-sm font-medium">
                                     Contraseña
                                 </Label>
                                 <input
@@ -385,7 +401,7 @@ const Register = ({ user: editUser, onClose }) => {
                                 <div
                                     style={{
                                         minHeight: '24px',
-                                        marginTop: '4px',
+                                        marginTop: '3px',
                                         color: 'red',
                                         fontSize: '12px',
                                     }}>
@@ -397,7 +413,7 @@ const Register = ({ user: editUser, onClose }) => {
                             <div>
                                 <Label
                                     htmlFor="passwordConfirmation"
-                                    className="block mb-2 text-sm font-medium">
+                                    className="block mb-1 text-sm font-medium">
                                     Confirmar Contraseña
                                 </Label>
                                 <input
@@ -414,7 +430,7 @@ const Register = ({ user: editUser, onClose }) => {
                                 <div
                                     style={{
                                         minHeight: '24px',
-                                        marginTop: '4px',
+                                        marginTop: '3px',
                                         color: 'red',
                                         fontSize: '12px',
                                     }}>
@@ -428,7 +444,7 @@ const Register = ({ user: editUser, onClose }) => {
                     <div>
                         <Label
                             htmlFor="rol"
-                            className="block mb-2 text-sm font-medium">
+                            className="block mb-1 text-sm font-medium">
                             Rol
                         </Label>
                         <select
@@ -443,7 +459,7 @@ const Register = ({ user: editUser, onClose }) => {
                         <div
                             style={{
                                 minHeight: '24px',
-                                marginTop: '4px',
+                                marginTop: '3px',
                                 color: 'red',
                                 fontSize: '12px',
                             }}>
@@ -452,8 +468,35 @@ const Register = ({ user: editUser, onClose }) => {
                     </div>
                     <div>
                         <Label
+                            htmlFor="cedula"
+                            className="block mb-1 text-sm font-medium">
+                            Cédula
+                        </Label>
+                        <input
+                            type="text"
+                            id="cedula"
+                            value={cedula}
+                            className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                            onChange={handleCedulaChange}
+                            onBlur={() => handleBlur('cedula')}
+                            required
+                            placeholder="Ingrese su cédula"
+                            pattern="\d*" // Permite solo números
+                        />
+                        <div
+                            style={{
+                                minHeight: '24px',
+                                marginTop: '3px',
+                                color: 'red',
+                                fontSize: '12px',
+                            }}>
+                            {touched.cedula && errors?.cedula && errors.cedula}
+                        </div>
+                    </div>
+                    <div>
+                        <Label
                             htmlFor="location"
-                            className="block mb-2 text-sm font-medium">
+                            className="block mb-1 text-sm font-medium">
                             Ubicación
                         </Label>
                         <select
@@ -471,7 +514,7 @@ const Register = ({ user: editUser, onClose }) => {
                         <div
                             style={{
                                 minHeight: '24px',
-                                marginTop: '4px',
+                                marginTop: '3px',
                                 color: 'red',
                                 fontSize: '12px',
                             }}>
@@ -480,34 +523,37 @@ const Register = ({ user: editUser, onClose }) => {
                                 errors.location}
                         </div>
                     </div>
-
-                    <div className="sm:col-span-2">
-                        <h2 className="font-bold text-xl mb-4">Permisos</h2>
-                        <div className="grid gap-2  sm:grid-cols-3">
-                            {permissionsOptions.map(option => (
-                                <div
-                                    key={option.name}
-                                    className="flex items-center mb-2">
-                                    <input
-                                        id={option.name}
-                                        name={option.name}
-                                        type="checkbox"
-                                        checked={
-                                            permissions[option.name] || false
-                                        }
-                                        onChange={handleCheckboxChange}
-                                        className="mr-2"
-                                    />
-                                    <label
-                                        htmlFor={option.name}
-                                        className="text-sm">
-                                        {option.label}
-                                    </label>
-                                </div>
-                            ))}
+                    {(editUser?.rol !== 'admin' || rol !== 'admin') && (
+                        <div className="sm:col-span-2">
+                            <h2 className="font-bold text-sm mb-1">Permisos</h2>
+                            <div className="grid gap-2  sm:grid-cols-3">
+                                {permissionsOptions.map(option => (
+                                    <div
+                                        key={option.name}
+                                        className="flex items-center mb-1">
+                                        <input
+                                            id={option.name}
+                                            name={option.name}
+                                            type="checkbox"
+                                            checked={
+                                                permissions[option.name] ||
+                                                false
+                                            }
+                                            onChange={handleCheckboxChange}
+                                            className="mr-2"
+                                        />
+                                        <label
+                                            htmlFor={option.name}
+                                            className="text-sm">
+                                            {option.label}
+                                        </label>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
+
                 <div className="flex justify-end pl-4">
                     <Button className="bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
                         {editUser ? 'ACTUALIZAR' : 'REGISTRAR'}

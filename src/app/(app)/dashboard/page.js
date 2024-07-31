@@ -204,7 +204,8 @@ const Dashboard = () => {
             <div id="report-content" className="mt-4 w-full">
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                     {[
-                        { label: 'Ventas diarias Promedio ', value: `${reportData.ventasSemanales?.total_ventas_cantidad || 0} ventas / $${parseFloat(reportData.ventasSemanales?.total_ventas_semanales) || 0}` },
+                        { label: 'Ventas promedio diarias', value: `$${formatValue(reportData.ventasDiariasPromedio)}` },
+                        { label: 'Ventas promedio semanales', value: `$${formatValue(reportData.ventasSemanalesPromedio)}` },
                         { label: 'Ventas mensuales Promedio', value: `${reportData.ventasMensuales?.total_ventas_cantidad || 0} ventas / $${reportData.ventasMensuales?.total_ventas_mensuales || 0}` },
                         { label: 'Ventas anuales Promedio', value: `${reportData.ventasAnuales?.total_ventas_cantidad || 0} ventas / $${reportData.ventasAnuales?.total_ventas_anuales || 0}` },
                         { label: 'Ventas en rango', value: `${reportData.ventasRango?.total_ventas_cantidad || 0} ventas / $${reportData.ventasRango?.total_ventas_rango || 0}` },
@@ -212,11 +213,11 @@ const Dashboard = () => {
                         { label: 'Producto menos vendido en rango', value: `${reportData.bottomProducto?.nombre || 'N/A'} (${reportData.bottomProducto?.total_vendido || 0})` },
                         { label: 'Mejor cliente en rango ', value: `${reportData.topCliente?.nombre || 'N/A'} (${reportData.topCliente?.total_compras || 0})` },
                         { label: 'Compras a proveedores en rango', value: `$${reportData.montoCompras || 0}` },
-                        { label: 'Ganancias en rango', value: `$${reportData.gananciasRango ? parseFloat(reportData.gananciasRango) : 0}` },
-                        { label: 'Capital total', value: `$${reportData.capital ? parseFloat(reportData.capital) : 0}` },
+                        { label: 'Ganancias en rango', value: `$${reportData.gananciasRango ? parseFloat(reportData.gananciasRango).toFixed(2): 0}` },
+                        { label: 'Capital total', value: `$${reportData.capital ? parseFloat(reportData.capital).toFixed(2) : 0}` },
                         { label: 'Productos agotados', value: reportData.productosAgotados?.length || 0 },
-                        { label: 'Productos cerca de vencimiento', value: reportData.productosVencimiento?.length || 0 },
-                        { label: 'Ticket promedio', value: `$${reportData.ventaPromedio ? parseFloat(reportData.ventaPromedio) : 0}` },
+                        { label: 'Productos cerca de vencimiento o vencidos', value: reportData.productosVencimiento?.length+reportData.productosVencidos?.length || 0 },
+                        { label: 'Ticket promedio', value: `$${reportData.ventaPromedio ? parseFloat(reportData.ventaPromedio).toFixed(2) : 0}` },
                         { label: 'Pagos pendientes', value: `${reportData.pagosPendientes?.cantidad || 0} pagos / $${reportData.pagosPendientes?.total || 0}` },
                         { label: 'Cobros pendientes', value: `${reportData.cobrosPendientes?.cantidad || 0} cobros / $${reportData.cobrosPendientes?.total || 0}` },
                         { label: 'Clientes inactivos(30 dias o mas)', value: reportData.clientesInactivos?.length || 0 }

@@ -269,7 +269,10 @@ const ConfirmFactura = ({
                 </div>
                 <div className="mb-8">
                     <h2 className="text-lg font-bold mb-4">Comprador:</h2>
-                    <div className="text-gray-700 mb-2">{cliente.nombre}</div>
+                    <div className="text-gray-700 mb-2">
+                        {' '}
+                        {cliente.nombre + ' ' + cliente.apellido}
+                    </div>
                     <div className="text-gray-700 mb-2">
                         Descuento: {cliente.descuento + '%' || 'N/A'}
                     </div>

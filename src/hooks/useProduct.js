@@ -23,9 +23,8 @@ export const useProduct = () => {
     const addProduct = async (data) => {
         setErrors([]);
 
-    
         await csrf();
-    
+
         try {
             const response = await axios.post('/api/productos', data, {
                 headers: {
@@ -34,29 +33,24 @@ export const useProduct = () => {
             });
             if (response.status === 200 || response.status === 201) {
                 Swal.fire("Producto agregado", "", "success");
-                mutate(); // Actualiza los productos después de agregar uno
+                mutate();
+                return response;
             } else {
-                console.error("Error al agregar el producto");
                 Swal.fire("Error al agregar el producto", "", "error");
             }
-            
         } catch (err) {
             setErrors(err.response.data.errors);
-            if (err.response.status !== 422) throw err;
-            Swal.fire("Error al agregar el producto", err, "error");
-           
+            if (err.response.status === 422) {
+                Swal.fire("Error al agregar el producto", "Código de barras ya existe", "error");
+            } else {
+                Swal.fire("Error al agregar el producto", "", "error");
+            }
         }
     };
-    
 
     const updateProduct = async (id, dataToSend) => {
-
         await csrf();
 
-        for (var pair of dataToSend.entries()) {
-            console.log(pair[0] + ': ' + pair[1])
-            
-        }
         try {
             const response = await axios.post(`/api/productos/${id}`, dataToSend, {
                 headers: {
@@ -66,16 +60,18 @@ export const useProduct = () => {
             });
             if (response.status === 200 || response.status === 201) {
                 Swal.fire("Producto actualizado", "", "success");
-                mutate(); 
+                mutate();
                 return response;
             } else {
-                console.error("Error al actualizar los datos");
                 Swal.fire("Error al actualizar los datos", "", "error");
             }
         } catch (error) {
-            if (error.response.status !== 422) throw error;
             setErrors(error.response.data.errors);
-            Swal.fire("Error al actualizar los datos", "", "error");
+            if (error.response.status === 422) {
+                Swal.fire("Error al actualizar los datos", "Código de barras ya existe", "error");
+            } else {
+                Swal.fire("Error al actualizar los datos", "", "error");
+            }
         }
     };
 

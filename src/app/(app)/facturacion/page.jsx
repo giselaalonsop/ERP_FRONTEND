@@ -431,8 +431,8 @@ const Facturacion = () => {
                             <td className="px-6 py-4">{product.nombre}</td>
                             <td className="px-6 py-4">
                                 <img
-                                    className="w-10 h-10 rounded-full"
-                                    src={product.imagen}
+                                    className="w-14 h-14 rounded-full"
+                                    src={`http://localhost:8000/${product.imagen}`}
                                     alt={`${product.nombre} image`}
                                 />
                             </td>

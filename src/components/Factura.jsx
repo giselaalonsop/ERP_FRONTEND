@@ -28,7 +28,7 @@ const Factura = forwardRef(({ venta }, ref) => {
                 RIF: {configuracion.rif}
             </div>
             <div className="flex justify-between mb-6">
-                <h1 className="text-lg font-bold">Invoice</h1>
+                <h1 className="text-lg font-bold">Factura</h1>
                 <div className="text-gray-700">
                     <div>Fecha: {formatDate(venta.created_at)}</div>
                     <div>Factura #: {venta.numero_de_venta}</div>
@@ -36,7 +36,9 @@ const Factura = forwardRef(({ venta }, ref) => {
             </div>
             <div className="mb-8">
                 <h2 className="text-lg font-bold mb-4">Comprador:</h2>
-                <div className="text-gray-700 mb-2">{cliente.nombre}</div>
+                <div className="text-gray-700 mb-2">
+                    {cliente.nombre + ' ' + cliente.apellido}
+                </div>
                 <div className="text-gray-700 mb-2">
                     Descuento: {cliente.descuento + '%' || 'N/A'}
                 </div>
@@ -52,7 +54,7 @@ const Factura = forwardRef(({ venta }, ref) => {
                     <tr>
                         <th className="text-left font-bold text-gray-700">#</th>
                         <th className="text-left font-bold text-gray-700">
-                            Description
+                            Descripción
                         </th>
                         <th className="text-right font-bold text-gray-700">
                             Cantidad

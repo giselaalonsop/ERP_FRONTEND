@@ -104,7 +104,7 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
         }) || []
 
     const sortedProducts = filteredProducts.sort(
-        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+        (a, b) => new Date(b.created_at) - new Date(a.created_at),
     )
 
     const selectedProducts = sortedProducts.slice(
@@ -140,8 +140,8 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
                             <div
                                 className={`overflow-hidden border ${
                                     isDark
-                                        ? 'border-gray-700 dark:bg-gray-900'
-                                        : 'border-gray-200 bg-white'
+                                        ? 'border-gray-700 dark:bg-gray-900 text-gray-300'
+                                        : 'border-gray-200 bg-white '
                                 } md:rounded-lg`}>
                                 <table
                                     className={`min-w-full divide-y ${
@@ -153,37 +153,37 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
                                         className={`${
                                             isDark
                                                 ? 'bg-gray-800'
-                                                : 'bg-gray-200'
+                                                : 'bg-gray-200 '
                                         }`}>
                                         <tr>
-                                            <th className="py-3.5 px-4 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
+                                            <th className="py-3.5 px-4 text-sm font-normal text-left rtl:text-right ">
                                                 Código de Barras
                                             </th>
-                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right ">
                                                 Nombre
                                             </th>
-                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right ">
                                                 Categoría
                                             </th>
-                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right ">
                                                 Estado
                                             </th>
-                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right ">
                                                 Precio de Compra
                                             </th>
-                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right ">
                                                 Precio de Venta
                                             </th>
-                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right ">
                                                 Cantidad en Stock
                                             </th>
-                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right ">
                                                 Ubicación
                                             </th>
-                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right ">
                                                 Imagen
                                             </th>
-                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-800 dark:text-gray-400">
+                                            <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right ">
                                                 Acción
                                             </th>
                                         </tr>
@@ -200,7 +200,7 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
                                             <tr>
                                                 <td
                                                     colSpan="10"
-                                                    className="px-4 py-4 text-sm text-center text-gray-500 dark:text-gray-300">
+                                                    className="px-4 py-4 text-sm text-center">
                                                     Cargando productos...
                                                 </td>
                                             </tr>
@@ -208,7 +208,7 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
                                             <tr>
                                                 <td
                                                     colSpan="10"
-                                                    className="px-4 py-4 text-sm text-center text-gray-500 dark:text-gray-300">
+                                                    className="px-4 py-4 text-sm text-center ">
                                                     No se encontraron registros
                                                     en esta categoría.
                                                 </td>
@@ -219,15 +219,15 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
                                                     <tr
                                                         key={index}
                                                         className="cursor-pointer">
-                                                        <td className="px-4 py-4 text-sm font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">
+                                                        <td className="px-4 py-4 text-sm font-medium  whitespace-nowrap">
                                                             {
                                                                 product.codigo_barras
                                                             }
                                                         </td>
-                                                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-300 whitespace-nowrap">
+                                                        <td className="px-4 py-4 text-sm  whitespace-nowrap">
                                                             {product.nombre}
                                                         </td>
-                                                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-300 whitespace-nowrap">
+                                                        <td className="px-4 py-4 text-sm  whitespace-nowrap">
                                                             {product.categoria}
                                                         </td>
                                                         <td className="px-4 py-4 text-sm font-medium text-gray-800 whitespace-nowrap">
@@ -269,26 +269,26 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
                                                                 </h2>
                                                             </div>
                                                         </td>
-                                                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-300 whitespace-nowrap">
+                                                        <td className="px-4 py-4 text-sm  whitespace-nowrap">
                                                             {
                                                                 product.precio_compra
                                                             }
                                                         </td>
-                                                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-300 whitespace-nowrap">
+                                                        <td className="px-4 py-4 text-sm  whitespace-nowrap">
                                                             {calculatePrecioVenta(
                                                                 product.precio_compra,
                                                                 product.porcentaje_ganancia,
                                                             ).toFixed(2)}
                                                         </td>
-                                                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-300 whitespace-nowrap">
+                                                        <td className="px-4 py-4 text-sm  whitespace-nowrap">
                                                             {
                                                                 product.cantidad_en_stock
                                                             }
                                                         </td>
-                                                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-300 whitespace-nowrap">
+                                                        <td className="px-4 py-4 text-sm  whitespace-nowrap">
                                                             {product.ubicacion}
                                                         </td>
-                                                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-300 whitespace-nowrap">
+                                                        <td className="px-4 py-4 text-sm  whitespace-nowrap">
                                                             <img
                                                                 className="w-16 h-16 object-cover rounded"
                                                                 src={`http://localhost:8000/${product.imagen}`}

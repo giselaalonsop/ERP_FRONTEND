@@ -9,7 +9,15 @@ module.exports = {
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontSize: {
+        'base': '18px',
+        'sm': '16px',
+        'lg': '20px',
+        'xl': '24px',
+        '2xl': '30px',
+    },
+    },
   },
   plugins: [],
 };

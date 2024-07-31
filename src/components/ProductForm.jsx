@@ -260,17 +260,13 @@ const AddProductPage = ({ product, onClose }) => {
             dataToSend.append('imagen', logoFile)
         }
 
-        // Log para verificar los datos que se envían
-        for (let pair of dataToSend.entries()) {
-            console.log(pair[0] + ', ' + pair[1])
-        }
-
         try {
             const response = product
                 ? await updateProduct(product.id, dataToSend)
                 : await addProduct(dataToSend)
-            setResponseMessage('Producto guardado con éxito')
-            onClose()
+            if (response.status == 200 || response.status == 201) {
+                onClose()
+            }
         } catch (error) {
             console.error('Error al guardar el producto', error)
         }
@@ -997,7 +993,7 @@ const AddProductPage = ({ product, onClose }) => {
                                                     ? e.value.id
                                                     : '',
                                             })
-                                            handleBlur(e) // Aquí se llama a handleBlur
+                                            handleBlur(e)
                                         }}
                                         onSelect={handleProveedorSelect}
                                         inputClassName={`bg-gray-50 border text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}

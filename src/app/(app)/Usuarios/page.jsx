@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/auth'
 import Modal from '@/components/Modal'
 import { PlusIcon } from '@heroicons/react/solid'
@@ -18,6 +18,7 @@ const Page = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const [selectedUser, setSelectedUser] = useState(null)
     const [currentPage, setCurrentPage] = useState(1)
+    const [searchTerm, setSearchTerm] = useState('')
     const itemsPerPage = 10
     const {
         user,
@@ -26,6 +27,7 @@ const Page = () => {
         mutateUsers,
         editUser,
         deleteUser,
+        hasPermission,
     } = useAuth({ middleware: 'auth' })
     const { isDark } = useTheme()
 
@@ -85,6 +87,28 @@ const Page = () => {
         })
     }
 
+    const handleSearchChange = event => {
+        setSearchTerm(event.target.value)
+    }
+
+    const filteredUsers = users
+        ? users.filter(
+              currentUser =>
+                  currentUser.name
+                      ?.toLowerCase()
+                      .includes(searchTerm.toLowerCase()) ||
+                  currentUser.cedula
+                      ?.toLowerCase()
+                      .includes(searchTerm.toLowerCase()),
+          )
+        : []
+
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const paginatedUsers = filteredUsers.slice(
+        startIndex,
+        startIndex + itemsPerPage,
+    )
+
     if (!user) {
         return <p>Loading...</p>
     }
@@ -122,11 +146,6 @@ const Page = () => {
         })
     }
 
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const paginatedUsers = users
-        ? users.slice(startIndex, startIndex + itemsPerPage)
-        : []
-
     return (
         <div>
             <Modal isOpen={isModalOpen} onClose={closeModal} title={modalTitle}>
@@ -155,7 +174,7 @@ const Page = () => {
                     </div>
 
                     <label htmlFor="table-search" className="sr-only">
-                        Search
+                        Buscar
                     </label>
                     <div className="relative">
                         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -177,8 +196,10 @@ const Page = () => {
                         <input
                             type="text"
                             id="table-search-users"
+                            value={searchTerm}
+                            onChange={handleSearchChange}
                             className="block p-2 pl-10 text-sm rounded-lg w-80"
-                            placeholder="Search for users"
+                            placeholder="Buscar por nombre o cédula"
                         />
                     </div>
                 </div>
@@ -204,6 +225,9 @@ const Page = () => {
                                         Nombre
                                     </th>
                                     <th scope="col" className="px-6 py-3">
+                                        Cédula
+                                    </th>
+                                    <th scope="col" className="px-6 py-3">
                                         Rol
                                     </th>
                                     <th scope="col" className="px-6 py-3">
@@ -218,9 +242,9 @@ const Page = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {paginatedUsers.map(user => (
+                                {paginatedUsers.map(currentUser => (
                                     <tr
-                                        key={user.id}
+                                        key={currentUser.id}
                                         className="border-b cursor-pointer">
                                         <td className="w-4 p-4">
                                             <div className="flex items-center"></div>
@@ -233,53 +257,75 @@ const Page = () => {
                                             />
                                             <div className="pl-3">
                                                 <div className="text-base font-semibold">
-                                                    {user.name}
+                                                    {currentUser.name}
                                                 </div>
                                                 <div className="font-normal text-gray-500">
-                                                    {user.email}
+                                                    {currentUser.email}
                                                 </div>
                                             </div>
                                         </th>
                                         <td className="px-6 py-4">
-                                            {user.rol}
+                                            {currentUser.cedula}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {currentUser.rol}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center">
                                                 <div className="h-2.5 w-2.5 rounded-full bg-green-500 mr-2"></div>
-                                                {user.email}
+                                                {currentUser.email}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            {user.location}
+                                            {currentUser.location}
                                         </td>
+
                                         <div className="relative">
                                             <td className="px-6 py-4 flex space-x-2">
                                                 <button
                                                     onClick={() =>
-                                                        showUserInfo(user)
+                                                        showUserInfo(
+                                                            currentUser,
+                                                        )
                                                     }
                                                     className="text-blue-600 hover:text-blue-900">
                                                     <EyeIcon className="h-5 w-5" />
                                                 </button>
-                                                <button
-                                                    onClick={() => {
-                                                        closeDropdown()
-                                                        handleEdit(user)
-                                                    }}
-                                                    className="text-green-600 hover:text-green-900">
-                                                    <FontAwesomeIcon
-                                                        className="h-4 w-4"
-                                                        icon={faPenToSquare}
-                                                    />
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        closeDropdown()
-                                                        handleDelete(user.id)
-                                                    }}
-                                                    className="text-red-600 hover:text-red-900">
-                                                    <TrashIcon className="h-5 w-5" />
-                                                </button>
+                                                {hasPermission(
+                                                    user,
+                                                    'registrarUsuarios',
+                                                ) || user.rol == 'admin' ? (
+                                                    <>
+                                                        <button
+                                                            onClick={() => {
+                                                                closeDropdown()
+                                                                handleEdit(
+                                                                    currentUser,
+                                                                )
+                                                            }}
+                                                            className="text-green-600 hover:text-green-900">
+                                                            <FontAwesomeIcon
+                                                                className="h-4 w-4"
+                                                                icon={
+                                                                    faPenToSquare
+                                                                }
+                                                            />
+                                                        </button>
+                                                        {currentUser.id !==
+                                                            user.id && (
+                                                            <button
+                                                                onClick={() => {
+                                                                    closeDropdown()
+                                                                    handleDelete(
+                                                                        currentUser.id,
+                                                                    )
+                                                                }}
+                                                                className="text-red-600 hover:text-red-900">
+                                                                <TrashIcon className="h-5 w-5" />
+                                                            </button>
+                                                        )}
+                                                    </>
+                                                ) : null}
                                             </td>
                                         </div>
                                     </tr>
@@ -288,7 +334,7 @@ const Page = () => {
                         </table>
                         <Pagination
                             currentPage={currentPage}
-                            totalItems={users.length}
+                            totalItems={filteredUsers.length}
                             itemsPerPage={itemsPerPage}
                             onPageChange={setCurrentPage}
                         />

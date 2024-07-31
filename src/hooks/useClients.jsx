@@ -85,6 +85,17 @@ export const useClientes = () => {
             throw error
         }
     }
+    const getUltimaCompra = async cedula => {
+        try {
+            const response = await axios.get(
+                `/api/clientes/${cedula}/ultimaCompra`,
+            )
+            const historial = response.data.fecha
+            return historial
+        } catch (error) {
+            return 'N/A'
+        }
+    }
 
     return {
         clientes,
@@ -94,5 +105,6 @@ export const useClientes = () => {
         deleteClient,
         mutateClientes,
         getHistorialCompras,
+        getUltimaCompra,
     }
 }

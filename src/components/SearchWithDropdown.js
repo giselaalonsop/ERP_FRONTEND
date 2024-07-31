@@ -6,7 +6,7 @@ import { useCategories } from '@/hooks/useCategories';
 const SearchWithDropdown = ({ onCategorySelect, onLocationSelect, onSearchTextChange }) => {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isLocationOpen, setIsLocationOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('All categories');
+  const [selectedCategory, setSelectedCategory] = useState('Todas las categorias');
   const [selectedLocation, setSelectedLocation] = useState('General');
   const { isDark } = useTheme();
   const { categories, isLoading, isError } = useCategories();
@@ -22,7 +22,7 @@ const SearchWithDropdown = ({ onCategorySelect, onLocationSelect, onSearchTextCh
   const selectCategory = (category) => {
     setSelectedCategory(category.nombre);
     setIsCategoryOpen(false);
-    onCategorySelect(category.nombre === 'All categories' ? '' : category.nombre);
+    onCategorySelect(category.nombre === 'Todas las categorias' ? '' : category.nombre);
   };
 
   const selectLocation = (location) => {
@@ -52,9 +52,9 @@ const SearchWithDropdown = ({ onCategorySelect, onLocationSelect, onSearchTextCh
             <ul className="py-1">
               <li
                 className={`${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'} block px-4 py-2 cursor-pointer`}
-                onClick={() => selectCategory({ nombre: 'All categories' })}
+                onClick={() => selectCategory({ nombre: 'Todas las categorias' })}
               >
-                All categories
+                Todas las categorias
               </li>
               {categories.map((category) => (
                 <li

@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/auth'
 import Modal from '@/components/Modal'
 import { PlusIcon } from '@heroicons/react/solid'
@@ -20,11 +20,16 @@ const Page = () => {
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
+    const [ultimaCompraPorCliente, setUltimaCompraPorCliente] = useState({})
+    const [searchTerm, setSearchTerm] = useState('')
+    const [isLoading, setIsLoading] = useState(true)
+
     const itemsPerPage = 10
     const {
         clientes,
         clientesError,
         getHistorialCompras,
+        getUltimaCompra,
         deleteClient,
     } = useClientes()
     const { isDark } = useTheme()
@@ -41,15 +46,36 @@ const Page = () => {
         setModalTitle('')
     }
 
-    const showClientInfo = client => {
+    useEffect(() => {
+        const cargarUltimasCompras = async () => {
+            if (clientes && clientes.length > 0) {
+                const ultimasCompras = {}
+                for (const client of clientes) {
+                    const ultimaCompra = await getUltimaCompra(client.cedula)
+                    ultimasCompras[client.id] = ultimaCompra || 'N/A'
+                }
+                setUltimaCompraPorCliente(ultimasCompras)
+                setIsLoading(false)
+            }
+        }
+        cargarUltimasCompras()
+    }, [clientes, getUltimaCompra])
+
+    const showClientInfo = async client => {
         if (!client) return
+
         Swal.fire({
             title: 'Información del Cliente',
             html: `
                 <div>
-                    <p><strong>Nombre:</strong> ${client.nombre}</p>
+                    <p><strong>Nombre:</strong> ${
+                        client.nombre + ' ' + client.apellido
+                    } </p>
                     <p><strong>Correo:</strong> ${client.correo_electronico}</p>
-                    <p><strong>Teléfono:</strong> ${client.numero_de_telefono}</p>
+                    <p><strong>Teléfono:</strong> ${
+                        client.numero_de_telefono
+                    }</p>
+                    <p><strong>Cédula:</strong> ${client.cedula}</p>
                 </div>
             `,
             showCancelButton: true,
@@ -108,10 +134,30 @@ const Page = () => {
         })
     }
 
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const paginatedClientes = clientes
-        ? clientes.slice(startIndex, startIndex + itemsPerPage)
+    const handleSearchChange = event => {
+        setSearchTerm(event.target.value)
+    }
+
+    const filteredClientes = clientes
+        ? clientes.filter(
+              client =>
+                  client.nombre
+                      .toLowerCase()
+                      .includes(searchTerm.toLowerCase()) ||
+                  client.apellido
+                      .toLowerCase()
+                      .includes(searchTerm.toLowerCase()) ||
+                  client.cedula
+                      .toLowerCase()
+                      .includes(searchTerm.toLowerCase()),
+          )
         : []
+
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const paginatedClientes = filteredClientes.slice(
+        startIndex,
+        startIndex + itemsPerPage,
+    )
 
     return (
         <div>
@@ -166,6 +212,8 @@ const Page = () => {
                         <input
                             type="text"
                             id="table-search-users"
+                            value={searchTerm}
+                            onChange={handleSearchChange}
                             className="block p-2 pl-10 text-sm rounded-lg w-80"
                             placeholder="Buscar clientes"
                         />
@@ -174,8 +222,8 @@ const Page = () => {
 
                 {clientesError ? (
                     <div>Error al cargar los clientes.</div>
-                ) : !clientes ? (
-                    <div>Cargando...</div>
+                ) : isLoading ? (
+                    <div className="text-center">Cargando...</div>
                 ) : (
                     <div>
                         <table
@@ -186,20 +234,6 @@ const Page = () => {
                             }`}>
                             <thead className="text-xs uppercase">
                                 <tr>
-                                    <th scope="col" className="p-4">
-                                        <div className="flex items-center">
-                                            <input
-                                                id="checkbox-all-search"
-                                                type="checkbox"
-                                                className="w-4 h-4"
-                                            />
-                                            <label
-                                                htmlFor="checkbox-all-search"
-                                                className="sr-only">
-                                                checkbox
-                                            </label>
-                                        </div>
-                                    </th>
                                     <th scope="col" className="px-6 py-3">
                                         Nombre
                                     </th>
@@ -211,6 +245,12 @@ const Page = () => {
                                         Teléfono
                                     </th>
                                     <th scope="col" className="px-6 py-3">
+                                        Numero de compras
+                                    </th>
+                                    <th scope="col" className="px-6 py-3">
+                                        Última compra
+                                    </th>
+                                    <th scope="col" className="px-6 py-3">
                                         Acción
                                     </th>
                                 </tr>
@@ -220,26 +260,14 @@ const Page = () => {
                                     <tr
                                         key={client.id}
                                         className="border-b cursor-pointer">
-                                        <td className="w-4 p-4">
-                                            <div className="flex items-center">
-                                                <input
-                                                    id={`checkbox-table-search-${client.id}`}
-                                                    type="checkbox"
-                                                    className="w-4 h-4 rounded"
-                                                />
-                                                <label
-                                                    htmlFor={`checkbox-table-search-${client.id}`}
-                                                    className="sr-only">
-                                                    checkbox
-                                                </label>
-                                            </div>
-                                        </td>
                                         <th
                                             scope="row"
                                             className="flex items-center px-6 py-4 whitespace-nowrap">
                                             <div className="pl-3">
                                                 <div className="text-base font-semibold">
-                                                    {client.nombre}
+                                                    {client.nombre +
+                                                        ' ' +
+                                                        client.apellido}
                                                 </div>
                                                 <div className="font-normal text-gray-500">
                                                     {client.correo_electronico}
@@ -251,6 +279,12 @@ const Page = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             {client.numero_de_telefono}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {client.numero_de_compras}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {ultimaCompraPorCliente[client.id]}
                                         </td>
                                         <td className="px-6 py-4 flex space-x-2">
                                             <button
@@ -266,9 +300,9 @@ const Page = () => {
                                             ) || user?.rol === 'admin' ? (
                                                 <>
                                                     <button
-                                                        onClick={() => {
+                                                        onClick={() =>
                                                             handleEdit(client)
-                                                        }}
+                                                        }
                                                         className="text-green-600 hover:text-green-900">
                                                         <FontAwesomeIcon
                                                             className="h-4 w-4"
@@ -276,11 +310,11 @@ const Page = () => {
                                                         />
                                                     </button>
                                                     <button
-                                                        onClick={() => {
+                                                        onClick={() =>
                                                             handleDelete(
                                                                 client.id,
                                                             )
-                                                        }}
+                                                        }
                                                         className="text-red-600 hover:text-red-900">
                                                         <TrashIcon className="h-5 w-5" />
                                                     </button>
@@ -293,7 +327,7 @@ const Page = () => {
                         </table>
                         <Pagination
                             currentPage={currentPage}
-                            totalItems={clientes.length}
+                            totalItems={filteredClientes.length}
                             itemsPerPage={itemsPerPage}
                             onPageChange={setCurrentPage}
                         />
