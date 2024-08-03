@@ -186,6 +186,7 @@ const DescargaInventario = ({ onClose }) => {
                             inputClassName={`bg-gray-50 border text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 ${
                                 errors.product ? 'border-red-500' : 'border-gray-300'
                             }`}
+                            placeholder="Ingrese nombre o codigo del producto..."
                             dropdown
                             forceSelection={false}
                             completeOnFocus
@@ -198,7 +199,7 @@ const DescargaInventario = ({ onClose }) => {
                             <div className="text-red-500 text-sm mt-1">{errors.product}</div>
                         )}
                     </div>
-                    <div className="mb-4 w-full">
+                    <div className="mb-8 w-full">
                         <label
                             htmlFor="cantidad"
                             className="block mb-2 text-sm font-medium">
@@ -213,13 +214,14 @@ const DescargaInventario = ({ onClose }) => {
                             className={`w-full p-2.5 bg-gray-50 border text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 ${
                                 errors.cantidad ? 'border-red-500' : 'border-gray-300'
                             }`}
+                            placeholder="Ingrese la cantidad a descargar"
                             onBlur={() => handleBlur('cantidad')}
                         />
                         {errors.cantidad && (
                             <div className="text-red-500 text-sm mt-1">{errors.cantidad}</div>
                         )}
                     </div>
-                    <div className="mb-4 w-full">
+                    <div className="mb-8 w-full">
                         <label
                             htmlFor="motivo"
                             className="block mb-2 text-sm font-medium">
@@ -233,29 +235,32 @@ const DescargaInventario = ({ onClose }) => {
                             className={`w-full p-2.5 bg-gray-50 border text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 ${
                                 errors.motivo ? 'border-red-500' : 'border-gray-300'
                             }`}
+                            placeholder="Ingrese el motivo de la descarga"
                             onBlur={() => handleBlur('motivo')}
                         />
                         {errors.motivo && (
                             <div className="text-red-500 text-sm mt-1">{errors.motivo}</div>
                         )}
                     </div>
-                    <div className="mb-4 w-full flex items-center">
-                        <label className="inline-flex items-center cursor-pointer mr-2">
-                            <input
+                    <div className="mb-4 w-full m-7 ">
+                        <div className='flex items-center'>
+                            <label className="block mb-2 text-sm font-medium cursor-pointer mr-2">
+                                <input
                                 type="checkbox"
                                 checked={cambiarAlmacen}
                                 onChange={e => setCambiarAlmacen(e.target.checked)}
                                 className="sr-only peer"
                                 disabled={!selectedProduct} // Deshabilitar si no se ha seleccionado un producto
-                            />
+                                />
                             <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                         </label>
                         <span className="text-sm font-medium text-gray-900">
                             Cambiar de Almacén
                         </span>
+                        </div>
                     </div>
                     {cambiarAlmacen && selectedProduct && (
-                        <div className="mb-4 w-full">
+                        <div className="mb-8 w-full">
                             <label
                                 htmlFor="almacenDestino"
                                 className="block mb-2 text-sm font-medium">

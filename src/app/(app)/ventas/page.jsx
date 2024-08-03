@@ -1,20 +1,22 @@
 'use client'
 import React, { useState, useRef, useMemo } from 'react'
 import { useVentas } from '@/hooks/useVentas'
-import { EyeIcon, TrashIcon, DocumentIcon } from '@heroicons/react/outline'
+import { EyeIcon } from '@heroicons/react/outline'
 import Swal from 'sweetalert2'
 import Pagination from '@/components/Pagination'
 import Factura from '@/components/Factura'
 import Modal from '@/components/Modal'
-import { faDownload } from '@fortawesome/free-solid-svg-icons'
+import { faDownload, faRotateRight } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import { useClientes } from '@/hooks/useClients'
 import ReactDOM from 'react-dom'
 import { format } from 'date-fns'
+import { useAuth } from '@/hooks/auth'
 
 const SalesTable = () => {
+    const { hasPermission, user } = useAuth({ middleware: 'auth' })
     const { ventas, ventasError, deleteVenta } = useVentas()
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 10
@@ -23,6 +25,7 @@ const SalesTable = () => {
     const configuracion = JSON.parse(localStorage.getItem('configuracion'))
     const { clientes } = useClientes()
     const [searchQuery, setSearchQuery] = useState('')
+    const [selectedStatus, setSelectedStatus] = useState('') // Estado seleccionado para el filtro
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
@@ -37,7 +40,7 @@ const SalesTable = () => {
 
     const handleDelete = id => {
         Swal.fire({
-            title: '¿Estás seguro?',
+            title: '¿Estás seguro de anular esta venta?',
             text: 'Esta acción no se puede deshacer',
             icon: 'warning',
             showCancelButton: true,
@@ -92,24 +95,27 @@ const SalesTable = () => {
     if (ventasError) return <div>Error al cargar las ventas.</div>
     if (!ventas) return <div>Cargando...</div>
 
-    // Ordenar y filtrar las ventas antes del render
     const sortedVentas = ventas.sort(
         (a, b) => new Date(b.created_at) - new Date(a.created_at),
     )
 
-    const filteredVentas = !searchQuery
-        ? sortedVentas
-        : sortedVentas.filter(venta => {
-              const cliente = clientes?.find(
-                  cliente => cliente.cedula === venta.cliente,
-              )
-              const clienteNombre = cliente ? cliente.nombre.toLowerCase() : ''
-              const clienteCedula = cliente ? cliente.cedula.toLowerCase() : ''
-              return (
-                  clienteNombre.includes(searchQuery.toLowerCase()) ||
-                  clienteCedula.includes(searchQuery.toLowerCase())
-              )
-          })
+    const filteredVentas = sortedVentas.filter(venta => {
+        const cliente = clientes?.find(
+            cliente => cliente.cedula === venta.cliente,
+        )
+        const clienteNombre = cliente ? cliente.nombre.toLowerCase() : ''
+        const clienteApellido = cliente ? cliente.apellido.toLowerCase() : ''
+        const clienteCedula = cliente ? cliente.cedula.toLowerCase() : ''
+        const matchesSearchQuery =
+            clienteNombre.includes(searchQuery.toLowerCase()) ||
+            clienteApellido.includes(searchQuery.toLowerCase()) ||
+            clienteCedula.includes(searchQuery.toLowerCase())
+
+        const matchesStatus =
+            selectedStatus === '' || venta.estado === selectedStatus
+
+        return matchesSearchQuery && matchesStatus
+    })
 
     const startIndex = (currentPage - 1) * itemsPerPage
     const paginatedVentas = filteredVentas.slice(
@@ -120,34 +126,45 @@ const SalesTable = () => {
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
             <div className="flex items-center justify-between flex-wrap md:flex-row space-y-4 md:space-y-0 pb-4 bg-transparent">
-                <label htmlFor="table-search" className="sr-only">
-                    Buscar
-                </label>
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <svg
-                            className="w-4 h-4 text-gray-500 dark:text-gray-400"
-                            aria-hidden="true"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 20 20">
-                            <path
-                                stroke="currentColor"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
-                            />
-                        </svg>
+                <div className="flex items-center">
+                    <label htmlFor="table-search" className="sr-only">
+                        Buscar
+                    </label>
+                    <div className="relative mr-4">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <svg
+                                className="w-4 h-4 text-gray-500"
+                                aria-hidden="true"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 20 20">
+                                <path
+                                    stroke="currentColor"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                                />
+                            </svg>
+                        </div>
+                        <input
+                            type="text"
+                            id="table-search-users"
+                            className="block p-2 pl-10 text-sm rounded-lg w-80"
+                            placeholder="Buscar por nombre o cédula"
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                        />
                     </div>
-                    <input
-                        type="text"
-                        id="table-search-users"
-                        className="block p-2 pl-10 text-sm rounded-lg w-80"
-                        placeholder="Buscar por nombre o cédula"
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                    />
+                    <select
+                        className="p-2 text-sm rounded-lg border bg-white"
+                        value={selectedStatus}
+                        onChange={e => setSelectedStatus(e.target.value)}>
+                        <option value="">Todos los Estados</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Aceptado">Aceptado</option>
+                        <option value="Anulada">Anulada</option>
+                    </select>
                 </div>
             </div>
             <Modal isOpen={isModalOpen} onClose={closeModal} title={modalTitle}>
@@ -160,13 +177,20 @@ const SalesTable = () => {
                             Cliente
                         </th>
                         <th scope="col" className="px-6 py-3">
+                            Cédula
+                        </th>
+                        <th scope="col" className="px-6 py-3">
                             Usuario
                         </th>
                         <th scope="col" className="px-6 py-3">
                             Número de Venta
                         </th>
+
                         <th scope="col" className="px-6 py-3">
                             Total
+                        </th>
+                        <th scope="col" className="px-6 py-3">
+                            Estado
                         </th>
                         <th scope="col" className="px-6 py-3">
                             Fecha
@@ -177,41 +201,63 @@ const SalesTable = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {paginatedVentas.map(venta => (
-                        <tr key={venta.id} className="bg-white border-b">
-                            <td className="px-6 py-4">{venta.cliente}</td>
-                            <td className="px-6 py-4">{venta.usuario}</td>
-                            <td className="px-6 py-4">
-                                {venta.numero_de_venta}
-                            </td>
-                            <td className="px-6 py-4">
-                                {venta.total_venta_dol}
-                            </td>
-                            <td className="px-6 py-4">
-                                {formatDate(venta.created_at)}
-                            </td>
-                            <td className="px-6 py-4 flex space-x-2">
-                                <button
-                                    onClick={() => viewDetails(venta)}
-                                    className="text-blue-600 hover:text-blue-900">
-                                    <EyeIcon className="h-5 w-5" />
-                                </button>
-                                <button
-                                    onClick={() => generateInvoice(venta)}
-                                    className="text-green-600 hover:text-green-900">
-                                    <FontAwesomeIcon
-                                        icon={faDownload}
-                                        className="h-5 w-5"
-                                    />
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(venta.id)}
-                                    className="text-red-600 hover:text-red-900">
-                                    <TrashIcon className="h-5 w-5" />
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
+                    {paginatedVentas.map(venta => {
+                        const cliente = clientes?.find(
+                            cliente => cliente.cedula === venta.cliente,
+                        )
+                        return (
+                            <tr key={venta.id} className="bg-white border-b">
+                                <td className="px-6 py-4">
+                                    {cliente
+                                        ? `${cliente.nombre} ${cliente.apellido}`
+                                        : 'No disponible'}
+                                </td>
+                                <td className="px-6 py-4">
+                                    {cliente ? cliente.cedula : 'No disponible'}
+                                </td>
+                                <td className="px-6 py-4">{venta.usuario}</td>
+                                <td className="px-6 py-4">
+                                    {venta.numero_de_venta}
+                                </td>
+                                <td className="px-6 py-4">
+                                    {venta.total_venta_dol}
+                                </td>
+                                <td className="px-6 py-4">{venta.estado}</td>
+                                <td className="px-6 py-4">
+                                    {formatDate(venta.created_at)}
+                                </td>
+                                <td className="px-6 py-4 flex space-x-2">
+                                    <button
+                                        onClick={() => viewDetails(venta)}
+                                        className="text-blue-600 hover:text-blue-900">
+                                        <EyeIcon className="h-5 w-5" />
+                                    </button>
+                                    <button
+                                        onClick={() => generateInvoice(venta)}
+                                        className="text-green-600 hover:text-green-900">
+                                        <FontAwesomeIcon
+                                            icon={faDownload}
+                                            className="h-5 w-5"
+                                        />
+                                    </button>
+                                    {hasPermission(user, 'facturacion') ||
+                                    user?.rol === 'admin' ? (
+                                        <button
+                                            onClick={() =>
+                                                handleDelete(venta.id)
+                                            }
+                                            className="text-red-600 hover:text-red-900"
+                                            title="Devolución">
+                                            <FontAwesomeIcon
+                                                icon={faRotateRight}
+                                                className="h-5 w-5"
+                                            />
+                                        </button>
+                                    ) : null}
+                                </td>
+                            </tr>
+                        )
+                    })}
                 </tbody>
             </table>
             <Pagination

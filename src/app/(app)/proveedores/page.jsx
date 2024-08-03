@@ -83,7 +83,8 @@ const ProveedoresPage = () => {
     const handleDelete = async proveedorId => {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: 'No podrás revertir esto!',
+            text:
+                'Podras recuperar este producto mas adelante en la seccion Papelera!',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Sí, eliminarlo!',

@@ -56,8 +56,9 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
 
     const handleRemoveProduct = id => {
         Swal.fire({
-            title: '¿Está seguro?',
-            text: 'No podrás revertir esto!',
+            title: '¿Está seguro de eliminar?',
+            text:
+                'Podras recuperar este producto mas adelante en la seccion Papelera!',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',

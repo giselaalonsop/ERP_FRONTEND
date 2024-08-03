@@ -30,14 +30,21 @@ const ConfirmFactura = ({
     const [isPending, setIsPending] = useState(false)
     const [ventaData, setVentaData] = useState({})
     const [exchangeRate, setExchangeRate] = useState(0)
+    const [img, setImg] = useState('')
+    const configuracion = JSON.parse(localStorage.getItem('configuracion'))
+
+    useEffect(() => {
+        if (configuracion) {
+            const logoPath = `http://localhost:8000/${configuracion.logo}`
+            setImg(logoPath)
+        }
+    }, [configuracion])
 
     useEffect(() => {
         fetch('https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=bcv')
             .then(res => res.json())
             .then(data => setExchangeRate(data.monitors.usd.price))
     }, [])
-
-    const configuracion = JSON.parse(localStorage.getItem('configuracion'))
 
     useEffect(() => {
         factura
@@ -253,11 +260,15 @@ const ConfirmFactura = ({
             <div
                 ref={htmlContentRef}
                 className="bg-white border rounded-lg shadow-lg px-6 py-8 max-w-md mx-auto mt-8">
-                <h1 className="font-bold text-2xl my-4 text-center text-blue-600">
-                    {configuracion.nombre_empresa}
-                </h1>
+                <img
+                    src={img}
+                    alt="logo"
+                    className="w-20 h-auto mx-auto mb-4"
+                />
                 <hr className="mb-2" />
                 <div className="text-center text-gray-700 mb-4">
+                    {configuracion.nombre_empresa}
+                    <br></br>
                     RIF: {configuracion.rif}
                 </div>
                 <div className="flex justify-between mb-6">
@@ -352,7 +363,7 @@ const ConfirmFactura = ({
     ) : (
         <div>
             <form onSubmit={handleSubmit}>
-                <div className="flex items-center mb-4">
+                <div className="flex items-center mb-4 text-lg">
                     <label
                         htmlFor="pending-switch"
                         className={`mr-2 text-sm font-medium ${
@@ -464,54 +475,51 @@ const ConfirmFactura = ({
                         </div>
                     ))}
                 </div>
-                <div className="mb-4">
-                    <p
-                        className={`text-sm font-medium ${
-                            isDark ? 'text-gray-300' : 'text-gray-900'
-                        }`}>
-                        Total: $
-                        {typeof TotalGeneral === 'number'
-                            ? TotalGeneral.toFixed(2)
-                            : parseFloat(TotalGeneral).toFixed(2)}
-                    </p>
-                    <p
-                        className={`text-sm font-medium ${
-                            remainingAmount >= 0
-                                ? 'text-green-500'
-                                : 'text-red-500'
-                        }`}>
-                        Restante: $
-                        {typeof remainingAmount === 'number'
-                            ? remainingAmount.toFixed(2)
-                            : '0.00'}
-                    </p>
-                    <p
-                        className={`text-sm font-medium ${
-                            isDark ? 'text-gray-300' : 'text-gray-900'
-                        }`}>
-                        Restante en Bs:{' '}
-                        {typeof remainingAmountInBs === 'number'
-                            ? remainingAmountInBs.toFixed(2)
-                            : '0.00'}{' '}
-                        Bs
-                    </p>
+                <div
+                    className="flex justify-between items-center mb-4"
+                    style={{ marginTop: '50px' }}>
+                    <div className="mb-4">
+                        <p
+                            className={`text-xl font-medium ${
+                                isDark ? 'text-gray-300' : 'text-gray-900'
+                            }`}>
+                            Total: $
+                            {typeof TotalGeneral === 'number'
+                                ? TotalGeneral.toFixed(2)
+                                : parseFloat(TotalGeneral).toFixed(2)}
+                        </p>
+                        <p
+                            className={`text-xl font-medium ${
+                                remainingAmount >= 0
+                                    ? 'text-green-500'
+                                    : 'text-red-500'
+                            }`}>
+                            Restante: $
+                            {typeof remainingAmount === 'number'
+                                ? remainingAmount.toFixed(2)
+                                : '0.00'}
+                        </p>
+                        <p
+                            className={`text-xl font-medium  ${
+                                isDark ? 'text-gray-300' : 'text-gray-900'
+                            }`}>
+                            Restante en Bs:{' '}
+                            {typeof remainingAmountInBs === 'number'
+                                ? remainingAmountInBs.toFixed(2)
+                                : '0.00'}{' '}
+                            Bs
+                        </p>
+                    </div>
+                    <div className="mb-4">
+                        <button
+                            type="submit"
+                            onClick={handleSubmit}
+                            style={{ width: '200px', height: '50px' }}
+                            className="  font-bold mt-4 bg-green-500 hover:bg-green-700 text-white py-2 px-4 rounded-lg self-end">
+                            Procesar
+                        </button>
+                    </div>
                 </div>
-                <button
-                    type="submit"
-                    onClick={handleSubmit}
-                    className="inline-flex items-center bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
-                    <svg
-                        className="mr-1 -ml-1 w-6 h-6"
-                        viewBox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path
-                            fillRule="evenodd"
-                            d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a 1 1 0 011-1z"
-                            clipRule="evenodd"
-                        />
-                    </svg>
-                    Procesar
-                </button>
             </form>
         </div>
     )

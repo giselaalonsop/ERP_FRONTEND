@@ -9,6 +9,25 @@ import { useDropzone } from 'react-dropzone'
 import useConfiguracion from '@/hooks/useConfiguracion'
 import 'tailwindcss/tailwind.css'
 import { useTheme } from '@/context/ThemeProvider'
+import { useCategories } from '@/hooks/useCategories'
+import { useParametros } from '@/hooks/useParametros'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+    faPenToSquare,
+    faTrashAlt,
+    faPlus,
+    faEdit,
+    faCircleCheck,
+    faChevronDown,
+} from '@fortawesome/free-solid-svg-icons'
+
+// Function to capitalize only if the first character is a letter
+const capitalizeFirstLetter = string => {
+    if (!string) return string
+    return /^[a-zA-Z]/.test(string)
+        ? string.charAt(0).toUpperCase() + string.slice(1)
+        : string
+}
 
 const ConfigurationForm = () => {
     const { hasPermission, user } = useAuth({ middleware: 'auth' })
@@ -35,6 +54,46 @@ const ConfigurationForm = () => {
     const [logoPreview, setLogoPreview] = useState('')
     const [errors, setErrors] = useState({})
     const [touchedFields, setTouchedFields] = useState({})
+
+    const {
+        categories,
+        addCategoria,
+        updateCategoria,
+        deleteCategoria,
+        isLoading: isLoadingCategories,
+        isError: isErrorCategories,
+    } = useCategories()
+
+    const {
+        unidadesMedida,
+        formasVenta,
+        addUnidadMedida,
+        updateUnidadMedida,
+        deleteUnidadMedida,
+        addFormaVenta,
+        updateFormaVenta,
+        deleteFormaVenta,
+        isLoading: isLoadingParametros,
+        isError: isErrorParametros,
+    } = useParametros()
+
+    const [newCategory, setNewCategory] = useState('')
+    const [editingCategoryId, setEditingCategoryId] = useState(null)
+    const [editingCategoryName, setEditingCategoryName] = useState('')
+    const [dropdownOpenCategory, setDropdownOpenCategory] = useState(false)
+    const [categoryError, setCategoryError] = useState('')
+
+    const [newUnit, setNewUnit] = useState('')
+    const [editingUnitId, setEditingUnitId] = useState(null)
+    const [editingUnitName, setEditingUnitName] = useState('')
+    const [dropdownOpenUnit, setDropdownOpenUnit] = useState(false)
+    const [unitError, setUnitError] = useState('')
+
+    const [newSaleForm, setNewSaleForm] = useState('')
+    const [editingSaleFormId, setEditingSaleFormId] = useState(null)
+    const [editingSaleFormName, setEditingSaleFormName] = useState('')
+    const [dropdownOpenSaleForm, setDropdownOpenSaleForm] = useState(false)
+    const [saleFormError, setSaleFormError] = useState('')
 
     // Carga inicial desde localStorage
     useEffect(() => {
@@ -155,6 +214,14 @@ const ConfigurationForm = () => {
         }))
     }
 
+    const handleBlurSelect = event => {
+        // Chequea si el nuevo elemento enfocado está fuera del dropdown
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+            setDropdownOpenUnit(false)
+            setDropdownOpenSaleForm(false)
+        }
+    }
+
     const handleChange = e => {
         const { name, value } = e.target
         let newValue = value
@@ -175,6 +242,237 @@ const ConfigurationForm = () => {
                 break
             default:
                 break
+        }
+    }
+
+    // Handle changes for new unit and new sale form inputs
+    const handleChangeNewUnit = e => {
+        const { value } = e.target
+        setNewUnit(capitalizeFirstLetter(value))
+    }
+
+    const handleChangeNewSaleForm = e => {
+        const { value } = e.target
+        setNewSaleForm(capitalizeFirstLetter(value))
+    }
+
+    // Categorías Handlers
+    const handleAddCategory = async () => {
+        if (!newCategory) {
+            setCategoryError('La categoría es requerida')
+            return
+        }
+
+        try {
+            await addCategoria({ nombre: newCategory })
+            setNewCategory('')
+            setCategoryError('')
+            Swal.fire('Categoría creada', '', 'success')
+        } catch (error) {
+            console.error('Error al agregar la categoría:', error)
+            setCategoryError('Error al crear la categoría')
+        }
+    }
+
+    const handleEditCategory = async (id, name) => {
+        setEditingCategoryId(id)
+        setEditingCategoryName(name)
+    }
+
+    const handleUpdateCategory = async () => {
+        if (editingCategoryId && editingCategoryName) {
+            try {
+                await updateCategoria(editingCategoryId, {
+                    nombre: editingCategoryName,
+                })
+                setEditingCategoryId(null)
+                setEditingCategoryName('')
+                Swal.fire('Categoría actualizada', '', 'success')
+            } catch (error) {
+                console.error('Error al actualizar la categoría:', error)
+                Swal.fire(
+                    'Error',
+                    'No se pudo actualizar la categoría',
+                    'error',
+                )
+            }
+        }
+    }
+
+    const handleDeleteCategory = async id => {
+        Swal.fire({
+            title: '¿Está seguro de eliminar?',
+            text: '¡Podrá recuperar el registro en la Papelera!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminarla!',
+        }).then(async result => {
+            if (result.isConfirmed) {
+                try {
+                    await deleteCategoria(id)
+                    Swal.fire('Categoría eliminada', '', 'success')
+                } catch (error) {
+                    console.error('Error al eliminar la categoría:', error)
+                    Swal.fire(
+                        'Error',
+                        'No se pudo eliminar la categoría',
+                        'error',
+                    )
+                }
+            }
+        })
+    }
+
+    // Unidades de Medida Handlers
+    const handleAddUnit = async () => {
+        if (!newUnit) {
+            setUnitError('La unidad de medida es requerida')
+            return
+        }
+
+        try {
+            await addUnidadMedida({ nombre: newUnit })
+            setNewUnit('')
+            setUnitError('')
+            Swal.fire('Unidad de medida creada', '', 'success')
+        } catch (error) {
+            console.error('Error al agregar la unidad de medida:', error)
+            setUnitError('Error al crear la unidad de medida')
+        }
+    }
+
+    const handleEditUnit = async (id, name) => {
+        setEditingUnitId(id)
+        setEditingUnitName(name)
+    }
+
+    const handleUpdateUnit = async () => {
+        if (editingUnitId && editingUnitName) {
+            try {
+                await updateUnidadMedida(editingUnitId, {
+                    nombre: editingUnitName,
+                })
+                setEditingUnitId(null)
+                setEditingUnitName('')
+                Swal.fire('Unidad de medida actualizada', '', 'success')
+            } catch (error) {
+                console.error('Error al actualizar la unidad de medida:', error)
+                Swal.fire(
+                    'Error',
+                    'No se pudo actualizar la unidad de medida',
+                    'error',
+                )
+            }
+        }
+    }
+
+    const handleDeleteUnit = async id => {
+        Swal.fire({
+            title: '¿Está seguro de eliminar?',
+            text: 'Podra registrarlo nuavemente luego',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminarla!',
+        }).then(async result => {
+            if (result.isConfirmed) {
+                try {
+                    await deleteUnidadMedida(id)
+                    Swal.fire('Unidad de medida eliminada', '', 'success')
+                } catch (error) {
+                    console.error(
+                        'Error al eliminar la unidad de medida:',
+                        error,
+                    )
+                    Swal.fire(
+                        'Error',
+                        'No se pudo eliminar la unidad de medida',
+                        'error',
+                    )
+                }
+            }
+        })
+    }
+
+    // Formas de Venta Handlers
+    const handleAddSaleForm = async () => {
+        if (!newSaleForm) {
+            setSaleFormError('La forma de venta es requerida')
+            return
+        }
+
+        try {
+            await addFormaVenta({ nombre: newSaleForm })
+            setNewSaleForm('')
+            setSaleFormError('')
+            Swal.fire('Forma de venta creada', '', 'success')
+        } catch (error) {
+            console.error('Error al agregar la forma de venta:', error)
+            setSaleFormError('Error al crear la forma de venta')
+        }
+    }
+
+    const handleEditSaleForm = async (id, name) => {
+        setEditingSaleFormId(id)
+        setEditingSaleFormName(name)
+    }
+
+    const handleUpdateSaleForm = async () => {
+        if (editingSaleFormId && editingSaleFormName) {
+            try {
+                await updateFormaVenta(editingSaleFormId, {
+                    nombre: editingSaleFormName,
+                })
+                setEditingSaleFormId(null)
+                setEditingSaleFormName('')
+                Swal.fire('Forma de venta actualizada', '', 'success')
+            } catch (error) {
+                console.error('Error al actualizar la forma de venta:', error)
+                Swal.fire(
+                    'Error',
+                    'No se pudo actualizar la forma de venta',
+                    'error',
+                )
+            }
+        }
+    }
+
+    const handleDeleteSaleForm = async id => {
+        Swal.fire({
+            title: '¿Está seguro de eliminar?',
+            text: '¡Podrá recuperar el registro en la Papelera!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminarla!',
+        }).then(async result => {
+            if (result.isConfirmed) {
+                try {
+                    await deleteFormaVenta(id)
+                    Swal.fire('Forma de venta eliminada', '', 'success')
+                } catch (error) {
+                    console.error('Error al eliminar la forma de venta:', error)
+                    Swal.fire(
+                        'Error',
+                        'No se pudo eliminar la forma de venta',
+                        'error',
+                    )
+                }
+            }
+        })
+    }
+
+    const toggleDropdown = type => {
+        if (type === 'category') {
+            setDropdownOpenCategory(!dropdownOpenCategory)
+        } else if (type === 'unit') {
+            setDropdownOpenUnit(!dropdownOpenUnit)
+        } else if (type === 'saleForm') {
+            setDropdownOpenSaleForm(!dropdownOpenSaleForm)
         }
     }
 
@@ -226,7 +524,15 @@ const ConfigurationForm = () => {
         )
     }
 
-    if (!isLoaded || loading) {
+    if (
+        !isLoaded ||
+        loading ||
+        isLoadingCategories ||
+        isLoadingParametros ||
+        !categories ||
+        !unidadesMedida ||
+        !formasVenta
+    ) {
         return <div>Loading...</div>
     }
 
@@ -239,9 +545,9 @@ const ConfigurationForm = () => {
                 <h1 className="text-2xl font-semibold">Configuración</h1>
                 <p>Actualiza la configuración de la empresa</p>
             </div>
-            <form onSubmit={submitForm} className={`m-4 p-6 `}>
+            <form onSubmit={submitForm} className={`m-4 p-6 overflow-hidden`}>
                 <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="sm:col-span-1 sm:row-span-2">
+                    <div className="sm:col-span-1 sm:row-span-2 mb-4">
                         <Label
                             htmlFor="logo"
                             className="block mb-2 text-sm font-medium">
@@ -274,7 +580,7 @@ const ConfigurationForm = () => {
                         </div>
                         <InputError messages={errors?.logo} className="mt-2" />
                     </div>
-                    <div className="sm:col-span-1">
+                    <div className="sm:col-span-1 mb-4">
                         <Label
                             htmlFor="nombre_empresa"
                             className="block mb-2 text-sm font-medium">
@@ -297,7 +603,7 @@ const ConfigurationForm = () => {
                             className="mt-2"
                         />
                     </div>
-                    <div className="sm:col-span-1">
+                    <div className="sm:col-span-1 mb-4">
                         <Label
                             htmlFor="rif"
                             className="block mb-2 text-sm font-medium">
@@ -317,7 +623,7 @@ const ConfigurationForm = () => {
                         />
                         <InputError messages={errors?.rif} className="mt-2" />
                     </div>
-                    <div className="sm:col-span-1">
+                    <div className="sm:col-span-1 mb-4">
                         <Label
                             htmlFor="iva"
                             className="block mb-2 text-sm font-medium">
@@ -337,7 +643,7 @@ const ConfigurationForm = () => {
                         />
                         <InputError messages={errors?.iva} className="mt-2" />
                     </div>
-                    <div className="sm:col-span-1">
+                    <div className="sm:col-span-1 mb-4">
                         <Label
                             htmlFor="porcentaje_ganancia"
                             className="block mb-2 text-sm font-medium">
@@ -360,7 +666,7 @@ const ConfigurationForm = () => {
                             className="mt-2"
                         />
                     </div>
-                    <div className="sm:col-span-1">
+                    <div className="sm:col-span-1 mb-4">
                         <Label
                             htmlFor="telefono"
                             className="block mb-2 text-sm font-medium">
@@ -383,7 +689,7 @@ const ConfigurationForm = () => {
                             className="mt-2"
                         />
                     </div>
-                    <div className="sm:col-span-1">
+                    <div className="sm:col-span-1 mb-4">
                         <Label
                             htmlFor="correo"
                             className="block mb-2 text-sm font-medium">
@@ -406,9 +712,507 @@ const ConfigurationForm = () => {
                             className="mt-2"
                         />
                     </div>
+
+                    {/* Categorías */}
+                    <div className="sm:col-span-1 mb-4">
+                        <div className="relative inline-block text-left">
+                            <Label
+                                htmlFor="category_action"
+                                className="block mb-2 text-sm font-medium">
+                                Acción en Categorías
+                            </Label>
+                            <button
+                                style={{ width: '340px', height: '40px' }}
+                                type="button"
+                                onClick={() => toggleDropdown('category')}
+                                className={`${
+                                    isDark ? 'bg-gray-800' : 'bg-gray-50'
+                                } flex justify-between items-center border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 w-full p-2.5`}>
+                                <p className="text-left">
+                                    Seleccione una categoría
+                                </p>
+                                <FontAwesomeIcon
+                                    icon={faChevronDown}
+                                    className="w-5 h-5"
+                                />
+                            </button>
+
+                            {dropdownOpenCategory && (
+                                <div
+                                    style={{ zIndex: 1000 }}
+                                    className="mb-4 origin-top-right absolute right-0 mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 max-h-20 overflow-y-auto"
+                                    onBlur={() =>
+                                        setDropdownOpenCategory(false)
+                                    }
+                                    tabIndex={-1}>
+                                    <div
+                                        className="py-2 p-2"
+                                        role="menu"
+                                        aria-orientation="vertical"
+                                        aria-labelledby="dropdown-button">
+                                        {categories &&
+                                            categories.map(category => (
+                                                <div
+                                                    key={category.id}
+                                                    className="flex items-center justify-between px-4 py-2 mb-1 text-sm text-gray-700 bg-white rounded-md hover:bg-gray-100">
+                                                    <span>
+                                                        {editingCategoryId ===
+                                                        category.id ? (
+                                                            <input
+                                                                type="text"
+                                                                value={
+                                                                    editingCategoryName
+                                                                }
+                                                                onChange={e =>
+                                                                    setEditingCategoryName(
+                                                                        e.target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                                className="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5"
+                                                            />
+                                                        ) : (
+                                                            category.nombre
+                                                        )}
+                                                    </span>
+                                                    <div className="flex items-center">
+                                                        {editingCategoryId ===
+                                                        category.id ? (
+                                                            <>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={
+                                                                        handleUpdateCategory
+                                                                    }
+                                                                    className="text-lg text-green-500 hover:text-green-700 mr-2">
+                                                                    <FontAwesomeIcon
+                                                                        icon={
+                                                                            faCircleCheck
+                                                                        }
+                                                                    />
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        setEditingCategoryId(
+                                                                            null,
+                                                                        )
+                                                                    }
+                                                                    className="text-lg text-gray-500 hover:text-gray-700">
+                                                                    Cancelar
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        handleEditCategory(
+                                                                            category.id,
+                                                                            category.nombre,
+                                                                        )
+                                                                    }
+                                                                    className="text-lg text-blue-500 hover:text-blue-700 mr-2">
+                                                                    <FontAwesomeIcon
+                                                                        icon={
+                                                                            faEdit
+                                                                        }
+                                                                    />
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        handleDeleteCategory(
+                                                                            category.id,
+                                                                        )
+                                                                    }
+                                                                    className="text-lg text-red-500 hover:text-red-700">
+                                                                    <FontAwesomeIcon
+                                                                        icon={
+                                                                            faTrashAlt
+                                                                        }
+                                                                    />
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className="sm:col-span-1 mb-4">
+                        <div>
+                            <label
+                                htmlFor="new_category"
+                                className="block mb-2 text-sm font-medium">
+                                Nueva Categoría{' '}
+                            </label>
+                            <div className="flex">
+                                <input
+                                    type="text"
+                                    id="new_category"
+                                    name="new_category"
+                                    value={newCategory}
+                                    onChange={e =>
+                                        setNewCategory(e.target.value)
+                                    }
+                                    onBlur={handleBlur}
+                                    className={`bg-gray-50 border ${
+                                        errors.categoria &&
+                                        touchedFields.categoria
+                                            ? 'border-red-500'
+                                            : 'border-gray-300'
+                                    } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                    placeholder="Ingrese nueva categoría"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleAddCategory}
+                                    className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">
+                                    <FontAwesomeIcon icon={faPlus} />
+                                </button>
+                            </div>
+                            <InputError
+                                messages={categoryError}
+                                className="mt-2"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Unidades de Medida */}
+                    <div className="sm:col-span-1 mb-4">
+                        <div className="relative inline-block text-left">
+                            <Label
+                                htmlFor="unit_action"
+                                className="block mb-2 text-sm font-medium">
+                                Acción en Unidades de Medida
+                            </Label>
+                            <button
+                                style={{ width: '340px', height: '40px' }}
+                                type="button"
+                                onClick={() => toggleDropdown('unit')}
+                                className={`${
+                                    isDark ? 'bg-gray-800' : 'bg-gray-50'
+                                } flex justify-between items-center border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 w-full p-2.5`}>
+                                <p className="text-left">
+                                    Seleccione una unidad de medida
+                                </p>
+                                <FontAwesomeIcon
+                                    icon={faChevronDown}
+                                    className="w-5 h-5"
+                                />
+                            </button>
+
+                            {dropdownOpenUnit && (
+                                <div
+                                    onBlur={handleBlurSelect}
+                                    style={{ zIndex: 1000 }}
+                                    className="mb-4 origin-top-right absolute right-0 mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 max-h-20 overflow-y-auto"
+                                    tabIndex={-1}>
+                                    <div
+                                        className="py-2 p-2"
+                                        role="menu"
+                                        aria-orientation="vertical"
+                                        aria-labelledby="dropdown-button">
+                                        {unidadesMedida &&
+                                            unidadesMedida.map(unit => (
+                                                <div
+                                                    key={unit.id}
+                                                    className="flex items-center justify-between px-4 py-2 mb-1 text-sm text-gray-700 bg-white rounded-md hover:bg-gray-100">
+                                                    <span>
+                                                        {editingUnitId ===
+                                                        unit.id ? (
+                                                            <input
+                                                                type="text"
+                                                                value={
+                                                                    editingUnitName
+                                                                }
+                                                                onChange={e =>
+                                                                    setEditingUnitName(
+                                                                        e.target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                                className="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5"
+                                                            />
+                                                        ) : (
+                                                            unit.nombre
+                                                        )}
+                                                    </span>
+                                                    <div className="flex items-center">
+                                                        {editingUnitId ===
+                                                        unit.id ? (
+                                                            <>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={
+                                                                        handleUpdateUnit
+                                                                    }
+                                                                    className="text-lg text-green-500 hover:text-green-700 mr-2">
+                                                                    <FontAwesomeIcon
+                                                                        icon={
+                                                                            faCircleCheck
+                                                                        }
+                                                                    />
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        setEditingUnitId(
+                                                                            null,
+                                                                        )
+                                                                    }
+                                                                    className="text-lg text-gray-500 hover:text-gray-700">
+                                                                    Cancelar
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        handleEditUnit(
+                                                                            unit.id,
+                                                                            unit.nombre,
+                                                                        )
+                                                                    }
+                                                                    className="text-lg text-blue-500 hover:text-blue-700 mr-2">
+                                                                    <FontAwesomeIcon
+                                                                        icon={
+                                                                            faEdit
+                                                                        }
+                                                                    />
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        handleDeleteUnit(
+                                                                            unit.id,
+                                                                        )
+                                                                    }
+                                                                    className="text-lg text-red-500 hover:text-red-700">
+                                                                    <FontAwesomeIcon
+                                                                        icon={
+                                                                            faTrashAlt
+                                                                        }
+                                                                    />
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className="sm:col-span-1 mb-4">
+                        <div>
+                            <label
+                                htmlFor="new_unit"
+                                className="block mb-2 text-sm font-medium">
+                                Nueva Unidad de Medida{' '}
+                            </label>
+                            <div className="flex">
+                                <input
+                                    type="text"
+                                    id="new_unit"
+                                    name="new_unit"
+                                    value={newUnit}
+                                    onChange={handleChangeNewUnit}
+                                    onBlur={handleBlur}
+                                    className={`bg-gray-50 border ${
+                                        errors.unit && touchedFields.unit
+                                            ? 'border-red-500'
+                                            : 'border-gray-300'
+                                    } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                    placeholder="Ingrese nueva unidad de medida"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleAddUnit}
+                                    className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">
+                                    <FontAwesomeIcon icon={faPlus} />
+                                </button>
+                            </div>
+                            <InputError messages={unitError} className="mt-2" />
+                        </div>
+                    </div>
+
+                    {/* Formas de Venta */}
+                    <div className="sm:col-span-1 mb-4">
+                        <div className="relative inline-block text-left">
+                            <Label
+                                htmlFor="sale_form_action"
+                                className="block mb-2 text-sm font-medium">
+                                Acción en Formas de Venta
+                            </Label>
+                            <button
+                                style={{ width: '340px', height: '40px' }}
+                                type="button"
+                                onClick={() => toggleDropdown('saleForm')}
+                                className={`${
+                                    isDark ? 'bg-gray-800' : 'bg-gray-50'
+                                } flex justify-between items-center border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 w-full p-2.5`}>
+                                <p className="text-left">
+                                    Seleccione una forma de venta
+                                </p>
+                                <FontAwesomeIcon
+                                    icon={faChevronDown}
+                                    className="w-5 h-5"
+                                />
+                            </button>
+
+                            {dropdownOpenSaleForm && (
+                                <div
+                                    onBlur={handleBlurSelect}
+                                    style={{ zIndex: 1000 }}
+                                    className="mb-4 origin-top-right absolute right-0 mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 max-h-20 overflow-y-auto"
+                                    tabIndex={-1}>
+                                    <div
+                                        className="py-2 p-2"
+                                        role="menu"
+                                        aria-orientation="vertical"
+                                        aria-labelledby="dropdown-button">
+                                        {formasVenta &&
+                                            formasVenta.map(saleForm => (
+                                                <div
+                                                    key={saleForm.id}
+                                                    className="flex items-center justify-between px-4 py-2 mb-1 text-sm text-gray-700 bg-white rounded-md hover:bg-gray-100">
+                                                    <span>
+                                                        {editingSaleFormId ===
+                                                        saleForm.id ? (
+                                                            <input
+                                                                type="text"
+                                                                value={
+                                                                    editingSaleFormName
+                                                                }
+                                                                onChange={e =>
+                                                                    setEditingSaleFormName(
+                                                                        e.target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                                className="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5"
+                                                            />
+                                                        ) : (
+                                                            saleForm.nombre
+                                                        )}
+                                                    </span>
+                                                    <div className="flex items-center">
+                                                        {editingSaleFormId ===
+                                                        saleForm.id ? (
+                                                            <>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={
+                                                                        handleUpdateSaleForm
+                                                                    }
+                                                                    className="text-lg text-green-500 hover:text-green-700 mr-2">
+                                                                    <FontAwesomeIcon
+                                                                        icon={
+                                                                            faCircleCheck
+                                                                        }
+                                                                    />
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        setEditingSaleFormId(
+                                                                            null,
+                                                                        )
+                                                                    }
+                                                                    className="text-lg text-gray-500 hover:text-gray-700">
+                                                                    Cancelar
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        handleEditSaleForm(
+                                                                            saleForm.id,
+                                                                            saleForm.nombre,
+                                                                        )
+                                                                    }
+                                                                    className="text-lg text-blue-500 hover:text-blue-700 mr-2">
+                                                                    <FontAwesomeIcon
+                                                                        icon={
+                                                                            faEdit
+                                                                        }
+                                                                    />
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        handleDeleteSaleForm(
+                                                                            saleForm.id,
+                                                                        )
+                                                                    }
+                                                                    className="text-lg text-red-500 hover:text-red-700">
+                                                                    <FontAwesomeIcon
+                                                                        icon={
+                                                                            faTrashAlt
+                                                                        }
+                                                                    />
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className="sm:col-span-1 mb-4">
+                        <div>
+                            <label
+                                htmlFor="new_sale_form"
+                                className="block mb-2 text-sm font-medium">
+                                Nueva Forma de Venta{' '}
+                            </label>
+                            <div className="flex">
+                                <input
+                                    type="text"
+                                    id="new_sale_form"
+                                    name="new_sale_form"
+                                    value={newSaleForm}
+                                    onChange={handleChangeNewSaleForm}
+                                    onBlur={handleBlur}
+                                    className={`bg-gray-50 border ${
+                                        errors.saleForm &&
+                                        touchedFields.saleForm
+                                            ? 'border-red-500'
+                                            : 'border-gray-300'
+                                    } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                    placeholder="Ingrese nueva forma de venta"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleAddSaleForm}
+                                    className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">
+                                    <FontAwesomeIcon icon={faPlus} />
+                                </button>
+                            </div>
+                            <InputError
+                                messages={saleFormError}
+                                className="mt-2"
+                            />
+                        </div>
+                    </div>
                 </div>
+
                 <div className="flex justify-end mt-4 mb-8">
-                    <Button className="bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                    <Button
+                        type="submit"
+                        className="bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
                         GUARDAR
                     </Button>
                 </div>

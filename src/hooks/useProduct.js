@@ -17,6 +17,17 @@ export const useProduct = () => {
                 throw error
             }),
     );
+    const {data: productsInhabilitados, error: errorInhabilitado, mutate: mutateInhabilitado} = useSWR('/api/productos/inhabilitados', () =>
+        axios
+            .get('/api/productos/inhabilitados')
+            .then(res => res.data)
+            .catch(error => {
+                if (error.response.status === 401) {
+                    router.push('/login')
+                }
+                throw error
+            }),
+    );
 
     const csrf = () => axios.get('/sanctum/csrf-cookie');
 
@@ -163,6 +174,23 @@ export const useProduct = () => {
             Swal.fire("Error al descargar el inventario", "", "error");
         }
     };
+    const habilitarProducto = async (id) => {
+        await csrf();
+
+        try {
+            const response = await axios.post(`/api/productos/${id}/habilitar`);
+            if (response.status === 200 || response.status === 201) {
+                mutateInhabilitado();
+                return true; // Indica éxito
+            } else {
+                console.error("Error al habilitar el producto");
+                return false; // Indica fallo
+            }
+        } catch (error) {
+            console.error("Error al habilitar el producto", error);
+            return false; // Indica fallo
+        }
+    };
 
     return {
         products,
@@ -172,5 +200,10 @@ export const useProduct = () => {
         cargarInventario,
         descargarInventario,
         error,
+        productsInhabilitados,
+        mutateInhabilitado,
+        errors,
+        habilitarProducto
+
     };
 };

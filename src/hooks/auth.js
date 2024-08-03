@@ -3,7 +3,7 @@ import axios from '@/lib/axios'
 import { useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Swal from 'sweetalert2'
-
+const fetcher = url => axios.get(url).then(res => res.data);
 export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
   const router = useRouter()
   const params = useParams()
@@ -38,7 +38,7 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
     setErrors([])
     try {
       const response = await axios.post('/register', props)
-      mutate()
+      mutateUsers()
       if (response.status === 200 || response.status === 201) {
         Swal.fire("Usuario Registrado", "", "success")
         return response
@@ -72,9 +72,31 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
       }
     }
   }
+    const {
+      data: usuariosInhabilitados,
+      error: errorInhabilitado,
+  
+  } = useSWR('/api/usuarios/inhabilitados', fetcher)
+    
 
   
+  const habilitarUser = async id => {
+    await csrf()
 
+    try {
+        const response = await axios.put(`/api/usuarios/habilitar/${id}`)
+        if (response.status === 200 || response.status === 201) {
+          mutateUsers()
+            return true // Indica éxito
+        } else {
+            console.error('Error al habilitar el usuario')
+            return false // Indica fallo
+        }
+    } catch (error) {
+        console.error('Error al habilitar el usuario', error)
+        return false // Indica fallo
+    }
+}
   
   const login = async ({ setErrors, setStatus, ...props }) => {
     await csrf()
@@ -154,7 +176,7 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
   const deleteUser = async (userId) => {
     await csrf()
     try {
-      await axios.delete(`/api/users/${userId}`)
+      await axios.put(`/api/users/borrar/${userId}`)
       mutateUsers()
       Swal.fire("Usuario Eliminado", "", "success")
     } catch (error) {
@@ -196,5 +218,9 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
     editUser,
     deleteUser,
     hasPermission,
+    habilitarUser,
+    usuariosInhabilitados,
+    errorInhabilitado,
+
   }
 }

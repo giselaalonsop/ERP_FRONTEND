@@ -32,7 +32,7 @@ export const useReportData = (startDate, endDate, location) => {
             const model = genAI.getGenerativeModel({
                 model: "gemini-1.5-flash-latest",
                 systemInstruction: `
-                    Esto es el resumen de movimientos y ventas de la semana ${JSON.stringify(data)}.
+                    Se te proporciona un resumen de movimientos y ventas en un rango de fechas y ubicación.
                     Eres un experto en modelo de negocios que ayuda a la empresa a mejorar sus ventas a través de recomendaciones.
                     Debes proporcionar respuestas precisas y concisas basadas en la informacion proporcionada.
                     Responde solo con la información relevante y necesaria.
@@ -47,10 +47,10 @@ export const useReportData = (startDate, endDate, location) => {
             try {
                 const chat = model.startChat({});
                 const result = await chat.sendMessage(`
-                    Esto es el resumen de movimientos y ventas de la semana ${JSON.stringify(data)}.
-                    Eres un experto en modelo de negocios que ayuda a la empresa a mejorar sus ventas a través de recomendaciones.
-                    Debes proporcionar respuestas precisas y concisas basadas en los datos  proporcionadas.
-                    Responde solo con la información relevante y necesaria. Envia un formato bonito y legible. una lineas de espacio entre cada punto y usa viñetas para enumerar los puntos.
+                    Esto es el resumen de movimientos y ventas en el rango ${startDate} y ${endDate} ${JSON.stringify(data)} y con lagunos datos generales.
+                    Tomando en cuenta los del rango y los generales y toda la informacion que has recibido
+                    , genera un parrafo con recomendaciones para mejorar las ventas .
+                    
 
                 `);
 

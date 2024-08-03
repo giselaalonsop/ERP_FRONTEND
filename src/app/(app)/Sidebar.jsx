@@ -15,6 +15,7 @@ import {
     faUserGroup,
     faCashRegister,
     faRepeat,
+    faBoxArchive,
 } from '@fortawesome/free-solid-svg-icons'
 import { HiChartPie, HiUser, HiViewBoards, HiShoppingBag } from 'react-icons/hi'
 import { useTheme } from '@/context/ThemeProvider'
@@ -375,7 +376,26 @@ const Sidebar = ({ logout }) => {
                             </Link>
                         </li>
                     ) : null}
-
+                    {user?.rol === 'admin' ? (
+                        <li>
+                            <Link
+                                href="/Papelera"
+                                className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
+                                <span className="inline-flex justify-center items-center ml-4">
+                                    <FontAwesomeIcon
+                                        icon={faBoxArchive}
+                                        className="w-6 h-6"
+                                    />
+                                </span>
+                                <span
+                                    className={`${
+                                        sidebarOpen ? 'inline' : 'hidden'
+                                    } ml-2 text-base tracking-wide truncate`}>
+                                    Papelera
+                                </span>
+                            </Link>
+                        </li>
+                    ) : null}
                     {hasPermission(user, 'configuraciones') ||
                     user?.rol === 'admin' ? (
                         <li>

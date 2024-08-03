@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import Modal, { ProductModal } from '@/components/Modal'
+import Modal from '@/components/Modal'
+import AdaptableModal from '@/components/AdaptableModal'
 
 import { useRouter } from 'next/navigation'
 import { UsersIcon, ShoppingCartIcon, CubeIcon } from '@heroicons/react/solid'
@@ -22,6 +23,7 @@ import { useAuth } from '@/hooks/auth'
 const Page = () => {
     const { hasPermission, user } = useAuth({ middleware: 'auth' })
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [isAdaptableModalOpen, setIsAdaptableModalOpen] = useState(false)
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
     const [selectedCategory, setSelectedCategory] = useState('')
@@ -36,6 +38,18 @@ const Page = () => {
 
     const closeModal = () => {
         setIsModalOpen(false)
+        setModalContent(null)
+        setModalTitle('')
+    }
+
+    const openAdaptableModal = (content, title) => {
+        setModalContent(content)
+        setModalTitle(title)
+        setIsAdaptableModalOpen(true)
+    }
+
+    const closeAdaptableModal = () => {
+        setIsAdaptableModalOpen(false)
         setModalContent(null)
         setModalTitle('')
     }
@@ -57,6 +71,12 @@ const Page = () => {
             <Modal isOpen={isModalOpen} onClose={closeModal} title={modalTitle}>
                 {modalContent}
             </Modal>
+            <AdaptableModal
+                isOpen={isAdaptableModalOpen}
+                onClose={closeAdaptableModal}
+                title={modalTitle}>
+                {modalContent}
+            </AdaptableModal>
             <div className="flex justify-between items-center mb-6">
                 <div className="flex space-x-2">
                     {hasPermission(user, 'agregarNuevoProducto') ||
@@ -78,8 +98,10 @@ const Page = () => {
                     user?.rol === 'admin' ? (
                         <button
                             onClick={() =>
-                                openModal(
-                                    <AnotherForm onClose={closeModal} />,
+                                openAdaptableModal(
+                                    <AnotherForm
+                                        onClose={closeAdaptableModal}
+                                    />,
                                     'Descarga',
                                 )
                             }
@@ -95,8 +117,10 @@ const Page = () => {
                     user?.rol === 'admin' ? (
                         <button
                             onClick={() =>
-                                openModal(
-                                    <CargaInventario onClose={closeModal} />,
+                                openAdaptableModal(
+                                    <CargaInventario
+                                        onClose={closeAdaptableModal}
+                                    />,
                                     'Carga',
                                 )
                             }
@@ -121,65 +145,6 @@ const Page = () => {
                 selectedLocation={selectedLocation}
                 searchText={searchText}
             />
-
-            {/* <div className="mt-6">
-                <div className="flex flex-wrap -mx-6">
-                    <div className="w-full px-6 sm:w-1/2 xl:w-1/3">
-                        <div className="flex items-center px-5 py-6 shadow-sm rounded-md bg-slate-100">
-                            <div className="p-3 rounded-full bg-indigo-600 bg-opacity-75">
-                                <FontAwesomeIcon
-                                    icon={faClockRotateLeft}
-                                    className="h-8 w-8 text-white"
-                                />
-                            </div>
-                            <div className="mx-5">
-                                <h4 className="text-2xl font-semibold text-gray-700">
-                                    4644
-                                </h4>
-                                <div className="text-gray-500">Rotacion</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="w-full mt-6 px-6 sm:w-1/2 xl:w-1/3 sm:mt-0">
-                        <div className="flex items-center px-5 py-6 shadow-sm rounded-md bg-slate-100">
-                            <div className="p-0 rounded-full bg-orange-600 bg-opacity-75">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    strokeWidth={1.5}
-                                    stroke="currentColor"
-                                    className="size-14 text-white">
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                                    />
-                                </svg>
-                            </div>
-                            <div className="mx-5">
-                                <h4 className="text-2xl font-semibold text-gray-700">
-                                    3453
-                                </h4>
-                                <div className="text-gray-500">Agotados</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="w-full mt-6 px-6 sm:w-1/2 xl:w-1/3 xl:mt-0">
-                        <div className="flex items-center px-5 py-6 shadow-sm rounded-md bg-slate-100">
-                            <div className="p-3 rounded-full bg-pink-600 bg-opacity-75">
-                                <CubeIcon className="h-8 w-8 text-white" />
-                            </div>
-                            <div className="mx-5">
-                                <h4 className="text-2xl font-semibold text-gray-700">
-                                    678
-                                </h4>
-                                <div className="text-gray-500">Disponibles</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div> */}
         </div>
     )
 }

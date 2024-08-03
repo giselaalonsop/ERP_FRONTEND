@@ -12,9 +12,10 @@ import { AutoComplete } from 'primereact/autocomplete'
 import { useProveedores } from '@/hooks/useProveedores'
 import RegisterProveedor from '@/components/RegisterProveedorForm'
 import Modal from '@/components/Modal'
-import { image } from '@tensorflow/tfjs'
 import { useDropzone } from 'react-dropzone'
 import { useAuth } from '@/hooks/auth'
+import { useParametros } from '@/hooks/useParametros'
+
 const getCurrentDate = () => {
     const today = new Date()
     const day = String(today.getDate()).padStart(2, '0')
@@ -32,9 +33,23 @@ const AddProductPage = ({ product, onClose }) => {
     const configuracion = JSON.parse(localStorage.getItem('configuracion'))
     const { categories, addCategoria, isLoading, isError } = useCategories()
     const { addProduct, updateProduct } = useProduct()
+    const {
+        unidadesMedida,
+        formasVenta,
+        addUnidadMedida,
+        addFormaVenta,
+    } = useParametros()
     const [step, setStep] = useState(1)
     const [newCategory, setNewCategory] = useState('')
+    const [newUnidadMedida, setNewUnidadMedida] = useState('')
+    const [newFormaVenta, setNewFormaVenta] = useState('')
+    const [newFormaVentaMayor, setNewFormaVentaMayor] = useState('')
     const [isAddingCategory, setIsAddingCategory] = useState(false)
+    const [isAddingUnidad, setIsAddingUnidad] = useState(false)
+    const [isAddingFormaVenta, setIsAddingFormaVenta] = useState(false)
+    const [isAddingFormaVentaMayor, setIsAddingFormaVentaMayor] = useState(
+        false,
+    )
     const [errors, setErrors] = useState({})
     const [responseMessage, setResponseMessage] = useState(null)
     const [touchedFields, setTouchedFields] = useState({})
@@ -145,9 +160,11 @@ const AddProductPage = ({ product, onClose }) => {
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0
     }
+
     useEffect(() => {
         validateStep(step)
     }, [step, formData])
+
     const handleNextStep = () => {
         if (validateStep(step)) {
             setStep(prevStep => Math.min(prevStep + 1, 3))
@@ -155,6 +172,7 @@ const AddProductPage = ({ product, onClose }) => {
             markFieldsAsTouched(step)
         }
     }
+
     const openModal = (content, title) => {
         setModalContent(content)
         setModalTitle(title)
@@ -264,7 +282,7 @@ const AddProductPage = ({ product, onClose }) => {
             const response = product
                 ? await updateProduct(product.id, dataToSend)
                 : await addProduct(dataToSend)
-            if (response.status == 200 || response.status == 201) {
+            if (response.status === 200 || response.status === 201) {
                 onClose()
             }
         } catch (error) {
@@ -301,6 +319,93 @@ const AddProductPage = ({ product, onClose }) => {
         }
     }
 
+    const handleUnidadMedidaChange = e => {
+        const value = e.target.value
+        if (value === 'add_new') {
+            setIsAddingUnidad(true)
+            setNewUnidadMedida('')
+            setFormData(prevData => ({
+                ...prevData,
+                unidad_de_medida: '',
+            }))
+        } else {
+            setIsAddingUnidad(false)
+            setFormData(prevData => ({
+                ...prevData,
+                unidad_de_medida: value,
+            }))
+        }
+    }
+
+    const handleAddUnidadMedida = async () => {
+        if (newUnidadMedida.trim()) {
+            await addUnidadMedida({ nombre: newUnidadMedida })
+            setFormData(prevData => ({
+                ...prevData,
+                unidad_de_medida: newUnidadMedida,
+            }))
+            setIsAddingUnidad(false)
+        }
+    }
+
+    const handleFormaVentaChange = e => {
+        const value = e.target.value
+        if (value === 'add_new') {
+            setIsAddingFormaVenta(true)
+            setNewFormaVenta('')
+            setFormData(prevData => ({
+                ...prevData,
+                forma_de_venta: '',
+            }))
+        } else {
+            setIsAddingFormaVenta(false)
+            setFormData(prevData => ({
+                ...prevData,
+                forma_de_venta: value,
+            }))
+        }
+    }
+
+    const handleAddFormaVenta = async () => {
+        if (newFormaVenta.trim()) {
+            await addFormaVenta({ nombre: newFormaVenta })
+            setFormData(prevData => ({
+                ...prevData,
+                forma_de_venta: newFormaVenta,
+            }))
+            setIsAddingFormaVenta(false)
+        }
+    }
+
+    const handleFormaVentaMayorChange = e => {
+        const value = e.target.value
+        if (value === 'add_new') {
+            setIsAddingFormaVentaMayor(true)
+            setNewFormaVentaMayor('')
+            setFormData(prevData => ({
+                ...prevData,
+                forma_de_venta_mayor: '',
+            }))
+        } else {
+            setIsAddingFormaVentaMayor(false)
+            setFormData(prevData => ({
+                ...prevData,
+                forma_de_venta_mayor: value,
+            }))
+        }
+    }
+
+    const handleAddFormaVentaMayor = async () => {
+        if (newFormaVentaMayor.trim()) {
+            await addFormaVenta({ nombre: newFormaVentaMayor })
+            setFormData(prevData => ({
+                ...prevData,
+                forma_de_venta_mayor: newFormaVentaMayor,
+            }))
+            setIsAddingFormaVentaMayor(false)
+        }
+    }
+
     const searchProveedor = event => {
         const query = event.query.toLowerCase()
         const filtered = proveedores.filter(proveedor =>
@@ -318,6 +423,7 @@ const AddProductPage = ({ product, onClose }) => {
 
         setFilteredProveedores(filtered)
     }
+
     const handleProveedorSelect = e => {
         const selected = e.value
 
@@ -700,22 +806,62 @@ const AddProductPage = ({ product, onClose }) => {
                                     <Label htmlFor="unidad_de_medida">
                                         Unidad de Medida
                                     </Label>
-                                    <Input
-                                        type="text"
-                                        id="unidad_de_medida"
-                                        name="unidad_de_medida"
-                                        value={formData.unidad_de_medida}
-                                        onChange={handleChange}
-                                        onBlur={handleBlur}
-                                        className={`bg-gray-50 border ${
-                                            touchedFields.unidad_de_medida
-                                                ? errors.unidad_de_medida
+                                    {isAddingUnidad ? (
+                                        <div className="flex">
+                                            <input
+                                                type="text"
+                                                id="new_unidad_medida"
+                                                name="new_unidad_medida"
+                                                value={newUnidadMedida}
+                                                onChange={e =>
+                                                    setNewUnidadMedida(
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                onBlur={handleBlur}
+                                                className={`bg-gray-50 border ${
+                                                    errors.unidad_de_medida &&
+                                                    touchedFields.unidad_de_medida
+                                                        ? 'border-red-500'
+                                                        : 'border-gray-300'
+                                                } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                                placeholder="Ingrese nueva unidad de medida"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleAddUnidadMedida}
+                                                className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">
+                                                Agregar
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <select
+                                            id="unidad_de_medida"
+                                            name="unidad_de_medida"
+                                            value={formData.unidad_de_medida}
+                                            onChange={handleUnidadMedidaChange}
+                                            onBlur={handleBlur}
+                                            className={`bg-gray-50 border ${
+                                                errors.unidad_de_medida &&
+                                                touchedFields.unidad_de_medida
                                                     ? 'border-red-500'
                                                     : 'border-gray-300'
-                                                : 'border-gray-300'
-                                        } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
-                                        placeholder="Ingrese la unidad de medida"
-                                    />
+                                            } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}>
+                                            <option value="">
+                                                Seleccione una unidad de medida
+                                            </option>
+                                            {unidadesMedida?.map(unidad => (
+                                                <option
+                                                    key={unidad.id}
+                                                    value={unidad.nombre}>
+                                                    {unidad.nombre}
+                                                </option>
+                                            ))}
+                                            <option value="add_new">
+                                                Agregar nueva unidad de medida
+                                            </option>
+                                        </select>
+                                    )}
                                     <div style={{ minHeight: '24px' }}>
                                         {touchedFields.unidad_de_medida && (
                                             <InputError
@@ -919,21 +1065,62 @@ const AddProductPage = ({ product, onClose }) => {
                                     <Label htmlFor="forma_de_venta">
                                         Forma de Venta
                                     </Label>
-                                    <Input
-                                        type="text"
-                                        id="forma_de_venta"
-                                        name="forma_de_venta"
-                                        value={formData.forma_de_venta}
-                                        onChange={handleChange}
-                                        onBlur={handleBlur}
-                                        className={`bg-gray-50 border ${
-                                            errors.forma_de_venta &&
-                                            touchedFields.forma_de_venta
-                                                ? 'border-red-500'
-                                                : 'border-gray-300'
-                                        } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
-                                        placeholder="Ingrese la forma de venta"
-                                    />
+                                    {isAddingFormaVenta ? (
+                                        <div className="flex">
+                                            <input
+                                                type="text"
+                                                id="new_forma_venta"
+                                                name="new_forma_venta"
+                                                value={newFormaVenta}
+                                                onChange={e =>
+                                                    setNewFormaVenta(
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                onBlur={handleBlur}
+                                                className={`bg-gray-50 border ${
+                                                    errors.forma_de_venta &&
+                                                    touchedFields.forma_de_venta
+                                                        ? 'border-red-500'
+                                                        : 'border-gray-300'
+                                                } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                                placeholder="Ingrese nueva forma de venta"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleAddFormaVenta}
+                                                className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">
+                                                Agregar
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <select
+                                            id="forma_de_venta"
+                                            name="forma_de_venta"
+                                            value={formData.forma_de_venta}
+                                            onChange={handleFormaVentaChange}
+                                            onBlur={handleBlur}
+                                            className={`bg-gray-50 border ${
+                                                errors.forma_de_venta &&
+                                                touchedFields.forma_de_venta
+                                                    ? 'border-red-500'
+                                                    : 'border-gray-300'
+                                            } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}>
+                                            <option value="">
+                                                Seleccione una forma de venta
+                                            </option>
+                                            {formasVenta?.map(forma => (
+                                                <option
+                                                    key={forma.id}
+                                                    value={forma.nombre}>
+                                                    {forma.nombre}
+                                                </option>
+                                            ))}
+                                            <option value="add_new">
+                                                Agregar nueva forma de venta
+                                            </option>
+                                        </select>
+                                    )}
                                     <div style={{ minHeight: '24px' }}>
                                         {touchedFields.forma_de_venta && (
                                             <InputError
@@ -947,21 +1134,70 @@ const AddProductPage = ({ product, onClose }) => {
                                     <Label htmlFor="forma_de_venta_mayor">
                                         Forma de Venta (Mayor)
                                     </Label>
-                                    <Input
-                                        type="text"
-                                        id="forma_de_venta_mayor"
-                                        name="forma_de_venta_mayor"
-                                        value={formData.forma_de_venta_mayor}
-                                        onChange={handleChange}
-                                        onBlur={handleBlur}
-                                        className={`bg-gray-50 border ${
-                                            errors.forma_de_venta_mayor &&
-                                            touchedFields.forma_de_venta_mayor
-                                                ? 'border-red-500'
-                                                : 'border-gray-300'
-                                        } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
-                                        placeholder="Ingrese la forma de venta (Mayor)"
-                                    />
+                                    {isAddingFormaVentaMayor ? (
+                                        <div className="flex">
+                                            <input
+                                                type="text"
+                                                id="new_forma_venta_mayor"
+                                                name="new_forma_venta_mayor"
+                                                value={newFormaVentaMayor}
+                                                onChange={e =>
+                                                    setNewFormaVentaMayor(
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                onBlur={handleBlur}
+                                                className={`bg-gray-50 border ${
+                                                    errors.forma_de_venta_mayor &&
+                                                    touchedFields.forma_de_venta_mayor
+                                                        ? 'border-red-500'
+                                                        : 'border-gray-300'
+                                                } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
+                                                placeholder="Ingrese nueva forma de venta (Mayor)"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={
+                                                    handleAddFormaVentaMayor
+                                                }
+                                                className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">
+                                                Agregar
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <select
+                                            id="forma_de_venta_mayor"
+                                            name="forma_de_venta_mayor"
+                                            value={
+                                                formData.forma_de_venta_mayor
+                                            }
+                                            onChange={
+                                                handleFormaVentaMayorChange
+                                            }
+                                            onBlur={handleBlur}
+                                            className={`bg-gray-50 border ${
+                                                errors.forma_de_venta_mayor &&
+                                                touchedFields.forma_de_venta_mayor
+                                                    ? 'border-red-500'
+                                                    : 'border-gray-300'
+                                            } text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}>
+                                            <option value="">
+                                                Seleccione una forma de venta
+                                                (Mayor)
+                                            </option>
+                                            {formasVenta?.map(forma => (
+                                                <option
+                                                    key={forma.id}
+                                                    value={forma.nombre}>
+                                                    {forma.nombre}
+                                                </option>
+                                            ))}
+                                            <option value="add_new">
+                                                Agregar nueva forma de venta
+                                                (Mayor)
+                                            </option>
+                                        </select>
+                                    )}
                                     <div style={{ minHeight: '24px' }}>
                                         {touchedFields.forma_de_venta_mayor && (
                                             <InputError

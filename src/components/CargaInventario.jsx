@@ -114,7 +114,7 @@ const CargaInventario = () => {
                 onSubmit={handleSubmit}
                 className="flex-grow flex flex-col justify-between">
                 <div className="grid grid-cols-2 gap-4 flex-grow">
-                    <div className="mb-4 w-full">
+                    <div className="mb-8 w-full">
                         <label
                             htmlFor="product"
                             className="block mb-2 text-sm font-medium">
@@ -124,6 +124,7 @@ const CargaInventario = () => {
                             ref={autoCompleteRef}
                             value={selectedProduct}
                             suggestions={filteredProducts}
+                            placeholder="Ingrese el nombre o codigo del producto"
                             completeMethod={searchProduct}
                             field="nombre"
                             itemTemplate={item => (
@@ -140,7 +141,7 @@ const CargaInventario = () => {
                             style={{ width: '100%' }}
                         />
                     </div>
-                    <div className="mb-4 w-full">
+                    <div className="mb-8 w-full">
                         <label
                             htmlFor="cantidad"
                             className="block mb-2 text-sm font-medium">
@@ -150,12 +151,13 @@ const CargaInventario = () => {
                             type="number"
                             id="cantidad"
                             min="1"
+                            placeholder="Ingrese la cantidad a cargar"
                             value={cantidad}
                             onChange={e => setCantidad(e.target.value)}
                             className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-primary-600 focus:border-primary-600"
                         />
                     </div>
-                    <div className="mb-4 w-full">
+                    <div className="mb-8 w-full">
                         <label
                             htmlFor="almacen"
                             className="block mb-2 text-sm font-medium">
@@ -174,13 +176,14 @@ const CargaInventario = () => {
                             <option value="general">General</option>
                         </select>
                     </div>
-                    <div className="mb-4 w-full">
+                    <div className="mb-8 w-full">
                         <label
                             htmlFor="motivo"
                             className="block mb-2 text-sm font-medium">
                             Motivo
                         </label>
                         <input
+                            placeholder="Ingrese el motivo de la carga"
                             type="text"
                             id="motivo"
                             className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-primary-600 focus:border-primary-600"

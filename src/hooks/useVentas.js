@@ -93,10 +93,10 @@ export const useVentas = () => {
             const response = await axios.delete(`/api/ventas/${id}`)
             mutateVentas()
             if (response.status === 204) {
-                Swal.fire('Venta Eliminada', '', 'success')
+                Swal.fire('Venta Anulada', '', 'success')
             }
         } catch (error) {
-            Swal.fire('Error al eliminar venta', '', 'error')
+            Swal.fire('Error al anular la venta', '', 'error')
             throw error
         }
     }

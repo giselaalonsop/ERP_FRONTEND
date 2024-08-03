@@ -220,7 +220,8 @@ const Dashboard = () => {
                         { label: 'Ticket promedio', value: `$${reportData.ventaPromedio ? parseFloat(reportData.ventaPromedio).toFixed(2) : 0}` },
                         { label: 'Pagos pendientes', value: `${reportData.pagosPendientes?.cantidad || 0} pagos / $${reportData.pagosPendientes?.total || 0}` },
                         { label: 'Cobros pendientes', value: `${reportData.cobrosPendientes?.cantidad || 0} cobros / $${reportData.cobrosPendientes?.total || 0}` },
-                        { label: 'Clientes inactivos(30 dias o mas)', value: reportData.clientesInactivos?.length || 0 }
+                        { label: 'Clientes inactivos(30 dias o mas)', value: reportData.clientesInactivos?.length || 0 },
+                        {label: 'Devoluciones en rango', value: `${reportData.devoluciones?.total_devoluciones || 0} Total: / $${reportData.devoluciones?.total_devoluciones_monto || 0}` }
                     ].map(stat => (
                         <div key={stat.label} className={`rounded-lg p-4 sm:p-6 xl:p-8 ${cardBgClass} ${shadowClass} ${textClass}`}>
                             <div className="flex items-center">

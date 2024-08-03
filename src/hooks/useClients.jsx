@@ -20,6 +20,35 @@ export const useClientes = () => {
     )
 
     const csrf = () => axios.get('/sanctum/csrf-cookie')
+    const habilitarCliente = async id => {
+        await csrf()
+
+        try {
+            const response = await axios.post(`/api/clientes/${id}/habilitar`)
+            if (response.status === 200 || response.status === 201) {
+                mutateInhabilitado()
+                return true // Indica éxito
+            } else {
+                console.error('Error al habilitar el cliente')
+                return false // Indica fallo
+            }
+        } catch (error) {
+            console.error('Error al habilitar el cliente', error)
+            return false // Indica fallo
+        }
+    }
+    const {
+        data: clientesInhabilitados,
+        error: errorInhabilitado,
+        mutate: mutateInhabilitado,
+    } = useSWR('/api/clientes/inhabilitados', () =>
+        axios
+            .get('/api/clientes/inhabilitados')
+            .then(res => res.data)
+            .catch(error => {
+                throw error
+            }),
+    )
 
     const addCliente = async data => {
         await csrf()
@@ -106,5 +135,9 @@ export const useClientes = () => {
         mutateClientes,
         getHistorialCompras,
         getUltimaCompra,
+        habilitarCliente,
+        clientesInhabilitados,
+        errorInhabilitado,
+        mutateInhabilitado,
     }
 }

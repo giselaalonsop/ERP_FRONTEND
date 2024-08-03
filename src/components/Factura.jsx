@@ -1,6 +1,7 @@
 import React, { useRef, forwardRef } from 'react'
 import { useClientes } from '@/hooks/useClients'
 import { format } from 'date-fns'
+import { useEffect, useState } from 'react'
 
 const Factura = forwardRef(({ venta }, ref) => {
     const configuracion = JSON.parse(localStorage.getItem('configuracion'))
@@ -14,17 +15,30 @@ const Factura = forwardRef(({ venta }, ref) => {
         }
         return format(date, 'dd-MM-yyyy HH:mm:ss')
     }
+    const [img, setImg] = useState('')
 
-    if (!cliente) return <div>Cargando...</div>
+    useEffect(() => {
+        if (configuracion) {
+            const logoPath = `http://localhost:8000/${configuracion.logo}`
+            setImg(logoPath)
+        }
+    }, [configuracion])
+
+    if (!cliente || !configuracion) return <div>Cargando...</div>
     return (
         <div
             ref={ref}
             className="bg-white border rounded-lg shadow-lg px-6 py-8 max-w-md mx-auto mt-8">
-            <h1 className="font-bold text-2xl my-4 text-center text-blue-600">
-                {configuracion.nombre_empresa}
-            </h1>
+            <img
+                src={img}
+                alt="logo"
+                className=" mx-auto mb-4"
+                style={{ width: '200px', height: 'auto' }}
+            />
             <hr className="mb-2" />
             <div className="text-center text-gray-700 mb-4">
+                {configuracion.nombre_empresa}
+                <br></br>
                 RIF: {configuracion.rif}
             </div>
             <div className="flex justify-between mb-6">

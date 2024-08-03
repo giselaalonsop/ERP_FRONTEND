@@ -1,7 +1,7 @@
 import useSWR from 'swr'
 import axios from '@/lib/axios'
 import Swal from 'sweetalert2'
-
+const fetcher = url => axios.get(url).then(res => res.data);
 export const useProveedores = () => {
     const {
         data: proveedores,
@@ -12,15 +12,29 @@ export const useProveedores = () => {
             .get('/api/proveedores')
             .then(res => res.data)
             .catch(error => {
-                if (error.response.status === 401) {
-                    router.push('/login')
-                }
+                
                 throw error
             }),
     )
-
+    const {data: proveedoresInhabilitados, error: proveedoresInhabilitadosError} = useSWR('/api/proveedores/inhabilitados', fetcher)
     const csrf = () => axios.get('/sanctum/csrf-cookie')
-
+    const habilitarProveedor = async id => {
+        await csrf()
+    
+        try {
+            const response = await axios.put(`/api/proveedor/habilitar/${id}`)
+            if (response.status === 200 || response.status === 201) {
+                mutateProveedores()
+                return true // Indica éxito
+            } else {
+                console.error('Error al habilitar el proveedor')
+                return false // Indica fallo
+            }
+        } catch (error) {
+            console.error('Error al habilitar el proveedor', error)
+            return false // Indica fallo
+        }
+    }
     const addProveedor = async data => {
         await csrf()
         try {
@@ -75,5 +89,9 @@ export const useProveedores = () => {
         updateProveedor,
         deleteProveedor,
         mutateProveedores,
+        proveedoresInhabilitados,
+        proveedoresInhabilitadosError, 
+        habilitarProveedor
+
     }
 }
