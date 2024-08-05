@@ -533,7 +533,7 @@ const ConfigurationForm = () => {
         !unidadesMedida ||
         !formasVenta
     ) {
-        return <div>Loading...</div>
+        return <div className="text-center">Cargando...</div>
     }
 
     return (

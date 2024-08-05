@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useRef, useMemo } from 'react'
+import React, { useState, useRef } from 'react'
 import { useVentas } from '@/hooks/useVentas'
 import { EyeIcon } from '@heroicons/react/outline'
 import Swal from 'sweetalert2'
@@ -26,6 +26,7 @@ const SalesTable = () => {
     const { clientes } = useClientes()
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedStatus, setSelectedStatus] = useState('') // Estado seleccionado para el filtro
+    const [selectedLocation, setSelectedLocation] = useState('') // Nueva variable de estado para la ubicación
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
@@ -114,7 +115,10 @@ const SalesTable = () => {
         const matchesStatus =
             selectedStatus === '' || venta.estado === selectedStatus
 
-        return matchesSearchQuery && matchesStatus
+        const matchesLocation =
+            selectedLocation === '' || venta.location === selectedLocation
+
+        return matchesSearchQuery && matchesStatus && matchesLocation
     })
 
     const startIndex = (currentPage - 1) * itemsPerPage
@@ -157,13 +161,21 @@ const SalesTable = () => {
                         />
                     </div>
                     <select
-                        className="p-2 text-sm rounded-lg border bg-white"
+                        className="p-2 text-sm rounded-lg border bg-white mr-4"
                         value={selectedStatus}
                         onChange={e => setSelectedStatus(e.target.value)}>
                         <option value="">Todos los Estados</option>
                         <option value="Pendiente">Pendiente</option>
                         <option value="Aceptado">Aceptado</option>
                         <option value="Anulada">Anulada</option>
+                    </select>
+                    <select
+                        className="p-2 text-sm rounded-lg border bg-white"
+                        value={selectedLocation}
+                        onChange={e => setSelectedLocation(e.target.value)}>
+                        <option value="">Todas las Ubicaciones</option>
+                        <option value="Bejuma">Bejuma</option>
+                        <option value="Montalban">Montalbán</option>
                     </select>
                 </div>
             </div>
@@ -196,6 +208,9 @@ const SalesTable = () => {
                             Fecha
                         </th>
                         <th scope="col" className="px-6 py-3">
+                            Ubicacion
+                        </th>
+                        <th scope="col" className="px-6 py-3">
                             Acciones
                         </th>
                     </tr>
@@ -226,6 +241,7 @@ const SalesTable = () => {
                                 <td className="px-6 py-4">
                                     {formatDate(venta.created_at)}
                                 </td>
+                                <td className="px-6 py-4">{venta.location}</td>
                                 <td className="px-6 py-4 flex space-x-2">
                                     <button
                                         onClick={() => viewDetails(venta)}

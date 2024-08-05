@@ -30,17 +30,37 @@ const CierreDeCaja = () => {
     }, [user.location])
 
     const handleCerrarCaja = async () => {
-        try {
-            await cerrarCaja(user.location)
-            Swal.fire(
-                'Caja Cerrada',
-                'La caja ha sido cerrada exitosamente',
-                'success',
-            )
-            setCierreDeCaja(prev => ({ ...prev, estado: 'cerrado' }))
-        } catch (error) {
-            Swal.fire('Error', 'Hubo un problema al cerrar la caja', 'error')
-        }
+        // Solicitar confirmación al usuario
+        Swal.fire({
+            title: '¿Estás seguro de querer cerrar la caja?',
+            text: 'Esta acción no se puede deshacer',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, cerrar caja!',
+            cancelButtonText: 'Cancelar',
+        }).then(async result => {
+            if (result.isConfirmed) {
+                // El usuario confirma que quiere cerrar la caja
+                try {
+                    await cerrarCaja(user.location) // Intenta cerrar la caja
+                    Swal.fire(
+                        'Caja Cerrada',
+                        'La caja ha sido cerrada exitosamente.',
+                        'success',
+                    )
+                    setCierreDeCaja(prev => ({ ...prev, estado: 'cerrado' }))
+                } catch (error) {
+                    // Manejo de errores si el cierre de caja falla
+                    Swal.fire(
+                        'Error',
+                        'Hubo un problema al cerrar la caja.',
+                        'error',
+                    )
+                }
+            }
+        })
     }
 
     if (cajaCerrada) {
@@ -90,7 +110,7 @@ const CierreDeCaja = () => {
                     <p className="font-semibold">
                         Monto Total:{' '}
                         <span className="font-normal">
-                            {cierreDeCaja.monto_total} Bs.
+                            {cierreDeCaja.monto_total} $
                         </span>
                     </p>
                     <p className="font-semibold">

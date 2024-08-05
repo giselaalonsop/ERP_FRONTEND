@@ -98,7 +98,7 @@ const ComprasTable = ({ compras }) => {
                         <table className="w-full text-sm text-left rtl:text-right bg-white text-black">
                             <thead className="text-xs uppercase">
                                 <tr>
-                                    <th scope="col" className="p-4">
+                                    {/* <th scope="col" className="p-4">
                                         <div className="flex items-center">
                                             <input
                                                 id="checkbox-all-search"
@@ -111,12 +111,15 @@ const ComprasTable = ({ compras }) => {
                                                 checkbox
                                             </label>
                                         </div>
-                                    </th>
+                                    </th> */}
                                     <th scope="col" className="px-6 py-3">
                                         Proveedor
                                     </th>
                                     <th scope="col" className="px-6 py-3">
                                         Fecha
+                                    </th>
+                                    <th scope="col" className="px-6 py-3">
+                                        Descripcion
                                     </th>
                                     <th scope="col" className="px-6 py-3">
                                         Monto Total
@@ -140,7 +143,7 @@ const ComprasTable = ({ compras }) => {
                                     <tr
                                         key={compra.id}
                                         className="border-b cursor-pointer">
-                                        <td className="w-4 p-4">
+                                        {/* <td className="w-4 p-4">
                                             <div className="flex items-center">
                                                 <input
                                                     id={`checkbox-table-search-${compra.id}`}
@@ -153,7 +156,7 @@ const ComprasTable = ({ compras }) => {
                                                     checkbox
                                                 </label>
                                             </div>
-                                        </td>
+                                        </td> */}
                                         <th
                                             scope="row"
                                             className="flex items-center px-6 py-4 whitespace-nowrap">
@@ -165,6 +168,9 @@ const ComprasTable = ({ compras }) => {
                                         </th>
                                         <td className="px-6 py-4">
                                             {formatDate(compra.created_at)}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {compra.descripcion}
                                         </td>
                                         <td className="px-6 py-4">
                                             {compra.monto_total}

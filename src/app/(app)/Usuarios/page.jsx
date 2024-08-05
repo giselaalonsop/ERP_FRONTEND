@@ -111,7 +111,7 @@ const Page = () => {
     )
 
     if (!user) {
-        return <p>Loading...</p>
+        return <p className='text-center'>Cargando...</p>
     }
 
     const showUserInfo = user => {

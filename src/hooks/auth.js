@@ -184,13 +184,25 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
       throw error
     }
   }
-  const hasPermission = (permission) => {
-    if (!user || !user.permissions) return false
+  const hasPermission = (user, permission) => {
+    if (!user || !user.permissions) return false;
 
-    const userPermissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions
+    // Intenta parsear si es string, maneja cualquier error silenciosamente
+    let userPermissions;
+    if (typeof user.permissions === 'string') {
+        try {
+            userPermissions = JSON.parse(user.permissions);
+        } catch (e) {
+            console.error("Error parsing permissions: ", e);
+            return false;
+        }
+    } else {
+        userPermissions = user.permissions;
+    }
 
-    return userPermissions[permission]
-  }
+    return !!userPermissions[permission];
+}
+
 
   useEffect(() => {
     if (middleware === 'guest' && redirectIfAuthenticated && user)

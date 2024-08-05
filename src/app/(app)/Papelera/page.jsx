@@ -24,7 +24,7 @@ const Page = () => {
 
     if (!user || user.rol !== 'admin') {
         router.push('/dashboard')
-        return <p>Loading...</p>
+        return <p>Cargando...</p>
     }
     if (
         !productsInhabilitados ||

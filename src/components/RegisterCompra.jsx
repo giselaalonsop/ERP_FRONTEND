@@ -16,6 +16,7 @@ const RegisterCompra = ({ compra, onClose, editMode }) => {
     const [formData, setFormData] = useState({
         proveedor_id: '',
         fecha: '',
+        descripcion: '',
         monto_total: 0,
         monto_abonado: 0,
         estado: 'pendiente',
@@ -107,6 +108,10 @@ const RegisterCompra = ({ compra, onClose, editMode }) => {
         if (!formData.fecha.trim()) {
             newErrors.fecha = 'La fecha no puede estar vacía'
         }
+        if (!formData.descripcion.trim()) {
+            newErrors.descripcion = 'La descripción no puede estar vacía'
+        }
+
         if (formData.monto_total <= 0) {
             newErrors.monto_total = 'El monto total debe ser mayor a 0'
         } else if (isNaN(parseFloat(formData.monto_total))) {
@@ -135,6 +140,7 @@ const RegisterCompra = ({ compra, onClose, editMode }) => {
         setTouched({
             proveedor_id: true,
             fecha: true,
+            descripcion: true,
             monto_total: true,
             monto_abonado: true,
         })
@@ -338,6 +344,32 @@ const RegisterCompra = ({ compra, onClose, editMode }) => {
                             {touched.monto_abonado &&
                                 errors.monto_abonado &&
                                 errors.monto_abonado}
+                        </div>
+                    </div>
+                    <div>
+                        <Label
+                            htmlFor="descripcion"
+                            className="block mb-2 text-sm font-medium">
+                            Descripción
+                        </Label>
+                        <textarea
+                            id="descripcion"
+                            name="descripcion"
+                            value={formData.descripcion}
+                            className="border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                            onChange={handleChange}
+                            required
+                        />
+                        <div
+                            style={{
+                                minHeight: '24px',
+                                marginTop: '4px',
+                                color: 'red',
+                                fontSize: '12px',
+                            }}>
+                            {touched.descripcion &&
+                                errors.descripcion &&
+                                errors.descripcion}
                         </div>
                     </div>
                 </div>

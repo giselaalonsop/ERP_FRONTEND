@@ -97,8 +97,8 @@ const Dashboard = () => {
         setIsDrawerOpen(!isDrawerOpen);
     };
 
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p>Error loading data</p>;
+    if (loading) return <p className='text-center'> Cargando...</p>;
+    if (error) return <p className='text-center'>Error al cargar la data</p>;
 
     const pieData = {
         labels: reportData.topCategorias.map(cat => cat.categoria),
@@ -137,6 +137,34 @@ const Dashboard = () => {
         if (isNaN(value)) return '0.00';
         return parseFloat(value).toFixed(2);
     };
+
+    // Define the stats that do not vary in range
+    const fixedRangeStats = [
+        { label: 'Ventas promedio diarias', value: `$${formatValue(reportData.ventasDiariasPromedio)}` },
+        { label: 'Ventas promedio semanales', value: `$${formatValue(reportData.ventasSemanalesPromedio)}` },
+        { label: 'Ventas mensuales Promedio', value: `${reportData.ventasMensuales?.total_ventas_cantidad || 0} ventas / $${reportData.ventasMensuales?.total_ventas_mensuales || 0}` },
+        { label: 'Ventas anuales Promedio', value: `${reportData.ventasAnuales?.total_ventas_cantidad || 0} ventas / $${reportData.ventasAnuales?.total_ventas_anuales || 0}` },
+        { label: 'Capital total', value: `$${reportData.capital ? parseFloat(reportData.capital).toFixed(2) : 0}` },
+        { label: 'Ticket promedio', value: `$${reportData.ventaPromedio ? parseFloat(reportData.ventaPromedio).toFixed(2) : 0}` },
+        { label: 'Clientes inactivos(30 días o más)', value: reportData.clientesInactivos?.length || 0 },
+        { label: 'Productos agotados', value: reportData.productosAgotados?.length || 0 },
+        { label: 'Productos cerca de vencimiento o vencidos', value: reportData.productosVencimiento?.length + reportData.productosVencidos?.length || 0 },
+        { label: 'Pagos pendientes', value: `${reportData.pagosPendientes?.cantidad || 0} pagos / $${reportData.pagosPendientes?.total || 0}` },
+        { label: 'Cobros pendientes', value: `${reportData.cobrosPendientes?.cantidad || 0} cobros / $${reportData.cobrosPendientes?.total || 0}` },
+        { label: 'Mejor cliente promedio', value: `${reportData.mejorClientePromedio?.nombre || 'N/A'} ($${reportData.mejorClientePromedio?.promedio_compra || 0})` }
+    ];
+
+    // Define the stats that vary in range
+    const variableRangeStats = [
+        { label: 'Ventas en rango', value: `${reportData.ventasRango?.total_ventas_cantidad || 0} ventas / $${reportData.ventasRango?.total_ventas_rango || 0}` },
+        { label: 'Producto más vendido en rango', value: `${reportData.topProducto?.nombre || 'N/A'} (${reportData.topProducto?.total_vendido || 0})` },
+        { label: 'Producto menos vendido en rango', value: `${reportData.bottomProducto?.nombre || 'N/A'} (${reportData.bottomProducto?.total_vendido || 0})` },
+        { label: 'Mejor cliente en rango ', value: `${reportData.topCliente?.nombre || 'N/A'} (${reportData.topCliente?.total_compras || 0})` },
+        { label: 'Compras a proveedores en rango', value: `$${reportData.montoCompras || 0}` },
+        { label: 'Ganancias en rango', value: `$${reportData.gananciasRango ? parseFloat(reportData.gananciasRango).toFixed(2) : 0}` },
+        { label: 'Categoría más vendida en rango', value: `${reportData.categoriaMasVendidaRango?.categoria || 'N/A'} (${reportData.categoriaMasVendidaRango?.total_vendido || 0})` },
+        { label: 'Devoluciones en rango', value: `${reportData.devoluciones?.total_devoluciones || 0} Total: / $${reportData.devoluciones?.total_devoluciones_monto || 0}` }
+    ];
 
     return (
         <div className={`flex flex-col h-full w-full overflow-hidden ${bgClass} ${textClass}`}>
@@ -193,8 +221,8 @@ const Dashboard = () => {
                     >
                         Descargar
                     </button>
-                    <Tooltip content="Ver Recomendaciones" className={`${isDark? 'bg-gray-600': 'bg-gray-100'}`}>
-                        <Button onClick={toggleDrawer} className='bg-transparent'> 
+                    <Tooltip content="Ver Recomendaciones" className={`${isDark ? 'bg-gray-600' : 'bg-gray-100'}`}>
+                        <Button onClick={toggleDrawer} className='bg-transparent'>
                             <FontAwesomeIcon icon={faCircleExclamation} className='text-red-600 h-6 w-6' />
                         </Button>
                     </Tooltip>
@@ -202,45 +230,41 @@ const Dashboard = () => {
             </div>
 
             <div id="report-content" className="mt-4 w-full">
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                    {[
-                        { label: 'Ventas promedio diarias', value: `$${formatValue(reportData.ventasDiariasPromedio)}` },
-                        { label: 'Ventas promedio semanales', value: `$${formatValue(reportData.ventasSemanalesPromedio)}` },
-                        { label: 'Ventas mensuales Promedio', value: `${reportData.ventasMensuales?.total_ventas_cantidad || 0} ventas / $${reportData.ventasMensuales?.total_ventas_mensuales || 0}` },
-                        { label: 'Ventas anuales Promedio', value: `${reportData.ventasAnuales?.total_ventas_cantidad || 0} ventas / $${reportData.ventasAnuales?.total_ventas_anuales || 0}` },
-                        { label: 'Ventas en rango', value: `${reportData.ventasRango?.total_ventas_cantidad || 0} ventas / $${reportData.ventasRango?.total_ventas_rango || 0}` },
-                        { label: 'Producto más vendido en rango', value: `${reportData.topProducto?.nombre || 'N/A'} (${reportData.topProducto?.total_vendido || 0})` },
-                        { label: 'Producto menos vendido en rango', value: `${reportData.bottomProducto?.nombre || 'N/A'} (${reportData.bottomProducto?.total_vendido || 0})` },
-                        { label: 'Mejor cliente en rango ', value: `${reportData.topCliente?.nombre || 'N/A'} (${reportData.topCliente?.total_compras || 0})` },
-                        { label: 'Compras a proveedores en rango', value: `$${reportData.montoCompras || 0}` },
-                        { label: 'Ganancias en rango', value: `$${reportData.gananciasRango ? parseFloat(reportData.gananciasRango).toFixed(2): 0}` },
-                        { label: 'Capital total', value: `$${reportData.capital ? parseFloat(reportData.capital).toFixed(2) : 0}` },
-                        { label: 'Productos agotados', value: reportData.productosAgotados?.length || 0 },
-                        { label: 'Productos cerca de vencimiento o vencidos', value: reportData.productosVencimiento?.length+reportData.productosVencidos?.length || 0 },
-                        { label: 'Ticket promedio', value: `$${reportData.ventaPromedio ? parseFloat(reportData.ventaPromedio).toFixed(2) : 0}` },
-                        { label: 'Pagos pendientes', value: `${reportData.pagosPendientes?.cantidad || 0} pagos / $${reportData.pagosPendientes?.total || 0}` },
-                        { label: 'Cobros pendientes', value: `${reportData.cobrosPendientes?.cantidad || 0} cobros / $${reportData.cobrosPendientes?.total || 0}` },
-                        { label: 'Clientes inactivos(30 dias o mas)', value: reportData.clientesInactivos?.length || 0 },
-                        {label: 'Devoluciones en rango', value: `${reportData.devoluciones?.total_devoluciones || 0} Total: / $${reportData.devoluciones?.total_devoluciones_monto || 0}` }
-                    ].map(stat => (
-                        <div key={stat.label} className={`rounded-lg p-4 sm:p-6 xl:p-8 ${cardBgClass} ${shadowClass} ${textClass}`}>
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0">
-                                    <span className="text-2xl sm:text-3xl leading-none font-bold">{stat.value}</span>
-                                    <h3 className="text-base font-normal">{stat.label}</h3>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+               
+               
+            <div className="shadow-lg shadow-gray-300 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    {variableRangeStats.map(stat => (
+        <div key={stat.label} className={`rounded-lg p-6 sm:p-8 xl:p-10 ${cardBgClass} ${shadowClass} ${textClass} break-words`}>
+            <div className="flex flex-col justify-center items-center">
+                <span className="text-lg sm:text-xl leading-none font-bold mx-2 text-center">{stat.value}</span>
+                <h3 className="text-base font-normal text-center">{stat.label}</h3>
+            </div>
+        </div>
+    ))}
+</div>
+<div className=" p-6 mb-4 rounded-lg bg-gray-100">
+    <h2 className="text-lg font-bold mb-4 text-center">Estadísticas Fijas</h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        {fixedRangeStats.map(stat => (
+            <div key={stat.label} className={`rounded-lg p-6 sm:p-8 xl:p-10 ${cardBgClass} ${shadowClass} ${textClass} break-words`}>
+                <div className="flex flex-col justify-center items-center">
+                    <span className="text-xl sm:text-2xl leading-none font-bold text-center">{stat.value}</span>
+                    <h3 className="text-base font-normal text-center">{stat.label}</h3>
                 </div>
+            </div>
+        ))}
+    </div>
+</div>
+
+
 
                 <div className="flex flex-wrap mt-4 justify-around">
                     <div className={`rounded-lg p-4 sm:p-6 xl:p-8 w-full md:w-1/3 ${cardBgClass} ${shadowClass} ${textClass}`}>
-                        <h3 className="text-xl font-bold">Categorias mas vendidas</h3>
-                       
+                        <h3 className="text-xl font-bold">Categorías más vendidas</h3>
+
                         <Pie data={pieData} />
                     </div>
-                    
+
                     <div className={`rounded-lg p-4 sm:p-6 xl:p-8 w-full md:w-2/3 ${cardBgClass} ${shadowClass} ${textClass}`}>
                         <h3 className="text-xl font-bold">Historial de ventas en el rango de fechas</h3>
                         <Line data={lineData} />
@@ -258,7 +282,7 @@ const Dashboard = () => {
                                             <table className={`min-w-full divide-y ${borderClass}`}>
                                                 <thead className={`${tableBgClass}`}>
                                                     <tr>
-                                                       
+
                                                         <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Fecha</th>
                                                         <th className={`p-4 text-left text-xs font-medium ${tableTextClass} uppercase tracking-wider`}>Total</th>
                                                     </tr>
@@ -266,7 +290,7 @@ const Dashboard = () => {
                                                 <tbody className={`${cardBgClass}`}>
                                                     {reportData.historialVentas.map((venta, index) => (
                                                         <tr key={index}>
-                                                          
+
                                                             <td className={`p-4 whitespace-nowrap text-sm font-normal ${textClass}`}>{venta.fecha}</td>
                                                             <td className={`p-4 whitespace-nowrap text-sm font-semibold ${textClass}`}>${formatValue(venta.total_ventas)}</td>
                                                         </tr>
@@ -404,8 +428,8 @@ const Dashboard = () => {
             </div>
 
             <Drawer open={isDrawerOpen} onClose={toggleDrawer} position="right" className={drawerBgClass}
-           style={isDark ? { color: '#fff', backgroundColor: '#000' } : { color: '#000', backgroundColor: '#fff' }}
-           >
+                style={isDark ? { color: '#fff', backgroundColor: '#000' } : { color: '#000', backgroundColor: '#fff' }}
+            >
                 <Drawer.Header title="Recomendaciones" />
                 <Drawer.Items className={drawerTextClass}>
                     <div className="p-4">

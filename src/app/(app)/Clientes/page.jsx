@@ -59,7 +59,7 @@ const Page = () => {
             }
         }
         cargarUltimasCompras()
-    }, [clientes, getUltimaCompra])
+    }, [clientes])
 
     const showClientInfo = async client => {
         if (!client) return
@@ -159,6 +159,7 @@ const Page = () => {
         startIndex,
         startIndex + itemsPerPage,
     )
+    console.log('user', user.permissions)
 
     return (
         <div>

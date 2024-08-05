@@ -146,13 +146,7 @@ const Login = () => {
                 </div>
 
 
-                                    <div className="flex items-center justify-end mt-4">
-                                        <Link
-                                            href="/forgot-password"
-                                            className="underline text-sm text-gray-600 hover:text-gray-900">
-                                            Olvido su Contraseña?
-                                        </Link>
-                                    </div>
+                                    
                                     <Button className="mt-5 tracking-wide font-semibold bg-indigo-500 text-gray-100 w-full py-4 rounded-lg hover:bg-indigo-700 transition-all duration-300 ease-in-out flex items-center justify-center focus:shadow-outline focus:outline-none">
                                         <svg
                                             className="w-6 h-6 -ml-2"

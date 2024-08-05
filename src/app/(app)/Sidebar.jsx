@@ -99,7 +99,7 @@ const Sidebar = ({ logout }) => {
                                 className={`${
                                     sidebarOpen ? 'inline' : 'hidden'
                                 } font-medium tracking-wide text-gray-400 uppercase text-lg`}>
-                                Main
+                                Principal
                             </span>
                         </div>
                     </li>
@@ -233,7 +233,7 @@ const Sidebar = ({ logout }) => {
                                                     ? 'inline'
                                                     : 'hidden'
                                             } ml-2 text-base tracking-wide truncate`}>
-                                            Facturacion
+                                            Facturación
                                         </span>
                                     </Link>
                                 </li>
@@ -270,7 +270,7 @@ const Sidebar = ({ logout }) => {
                                         className={`${
                                             sidebarOpen ? 'inline' : 'hidden'
                                         } ml-2 text-base tracking-wide truncate`}>
-                                        Cuentas por Cobrar
+                                        Cobros 
                                     </span>
                                 </Link>
                             </li>
@@ -412,7 +412,7 @@ const Sidebar = ({ logout }) => {
                                     className={`${
                                         sidebarOpen ? 'inline' : 'hidden'
                                     } ml-2 text-base tracking-wide truncate`}>
-                                    Configuracion
+                                    Configuración
                                 </span>
                             </Link>
                         </li>
@@ -432,7 +432,7 @@ const Sidebar = ({ logout }) => {
                                 className={`${
                                     sidebarOpen ? 'inline' : 'hidden'
                                 } ml-2 text-base tracking-wide truncate`}>
-                                Logout
+                                Salir
                             </span>
                         </Link>
                     </li>

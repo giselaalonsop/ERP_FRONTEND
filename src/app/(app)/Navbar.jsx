@@ -69,7 +69,7 @@ const Navbar = () => {
                                     icon={faUser}
                                     className="text-gray-900 dark:text-white"
                                 />
-                                <Link href={`/profile/${user.id}`}>
+                                <Link href={`/Perfil`}>
                                     {user.name}
                                 </Link>
                             </div>

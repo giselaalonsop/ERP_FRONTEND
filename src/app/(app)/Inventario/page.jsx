@@ -63,7 +63,7 @@ const Page = () => {
     }, [user, router])
 
     if (!user || (user && user.rol !== 'admin')) {
-        return <p>Loading...</p>
+        return <p className="text-center">Cargando...</p>
     }
 
     return (
