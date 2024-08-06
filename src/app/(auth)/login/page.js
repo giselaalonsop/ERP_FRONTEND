@@ -1,4 +1,3 @@
-
 'use client'
 
 import Button from '@/components/Button'
@@ -7,18 +6,15 @@ import InputError from '@/components/InputError'
 import Label from '@/components/Label'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/auth'
-import { use, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus'
 import useConfiguracion from '@/hooks/useConfiguracion'
+import Swal from 'sweetalert2'
 
 const Login = () => {
     const router = useRouter()
-    
-    const {
-        logo,
-        loading,
-    } = useConfiguracion()
+    const { logo, loading } = useConfiguracion()
     const { login } = useAuth({
         middleware: 'guest',
         redirectIfAuthenticated: '/dashboard',
@@ -30,39 +26,60 @@ const Login = () => {
     const [errors, setErrors] = useState([])
     const [status, setStatus] = useState(null)
     const [img, setImg] = useState('')
+
     useEffect(() => {
-        if(loading){
+        if (loading) {
             return
         }
-        if(logo){
+        if (logo) {
             const logoPath = `http://localhost:8000/${logo}`
             setImg(logoPath)
         }
-    }
-    ,[logo])
+    }, [logo, loading])
+
     useEffect(() => {
         if (router.reset?.length > 0 && errors.length === 0) {
             setStatus(atob(router.reset))
         } else {
             setStatus(null)
         }
-    })
-   
+    }, [router.reset, errors])
 
     const submitForm = async event => {
         event.preventDefault()
 
-        login({
+        // Mostrar alerta de carga
+        const loadingAlert = Swal.fire({
+            title: 'Procesando...',
+            text: 'Esto puede tardar unos segundos.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading()
+            },
+            
+        })
+
+        // Procesar el login
+        await login({
             email,
             password,
             remember: shouldRemember,
             setErrors,
             setStatus,
         })
+
+        // Cerrar la alerta de carga
+        Swal.close()
     }
+
     if (loading) {
-        return <div className="min-h-screen bg-gray-100 text-gray-900 flex items-center justify-center p-10">Loading...</div>
+        return (
+            <div className="min-h-screen bg-gray-100 text-gray-900 flex items-center justify-center p-10">
+                Loading...
+            </div>
+        )
     }
+
     return (
         <div className="min-h-screen bg-gray-100 text-gray-900 flex items-center justify-center p-10">
             <div className="max-w-screen-xl bg-white shadow sm:rounded-lg flex justify-center flex-1 h-full overflow-hidden">
@@ -71,7 +88,7 @@ const Login = () => {
                         <img
                             src={img || `https://storage.googleapis.com/devitary-image-host.appspot.com/15846435184459982716-LogoMakr_7POjrN.png`}
                             className="w-50 h-auto mx-auto"
-                                    />
+                        />
                     </div>
 
                     <div className="mt-12 flex flex-col items-center">
@@ -79,11 +96,8 @@ const Login = () => {
                             Iniciar Sesión
                         </h1>
                         <div className="w-full flex-1 mt-8">
-                            <div className="flex flex-col items-center">
-                                
-                               
-                            </div>
-                            
+                            <div className="flex flex-col items-center"></div>
+
                             <AuthSessionStatus status={status} />
                             <form onSubmit={submitForm}>
                                 <div className="mx-auto max-w-xs">
@@ -126,27 +140,26 @@ const Login = () => {
                                     </div>
 
                                     <div className="block mt-4">
-                    <label
-                        htmlFor="remember_me"
-                        className="inline-flex items-center">
-                        <input
-                            id="remember_me"
-                            type="checkbox"
-                            name="remember"
-                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                            onChange={event =>
-                                setShouldRemember(event.target.checked)
-                            }
-                        />
+                                        <label
+                                            htmlFor="remember_me"
+                                            className="inline-flex items-center"
+                                        >
+                                            <input
+                                                id="remember_me"
+                                                type="checkbox"
+                                                name="remember"
+                                                className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                                onChange={event =>
+                                                    setShouldRemember(event.target.checked)
+                                                }
+                                            />
 
-                        <span className="ml-2 text-sm text-gray-600">
-                           Recordarme
-                        </span>
-                    </label>
-                </div>
+                                            <span className="ml-2 text-sm text-gray-600">
+                                                Recordarme
+                                            </span>
+                                        </label>
+                                    </div>
 
-
-                                    
                                     <Button className="mt-5 tracking-wide font-semibold bg-indigo-500 text-gray-100 w-full py-4 rounded-lg hover:bg-indigo-700 transition-all duration-300 ease-in-out flex items-center justify-center focus:shadow-outline focus:outline-none">
                                         <svg
                                             className="w-6 h-6 -ml-2"
@@ -154,14 +167,14 @@ const Login = () => {
                                             stroke="currentColor"
                                             strokeWidth={2}
                                             strokeLinecap="round"
-                                            strokeLinejoin="round">
+                                            strokeLinejoin="round"
+                                        >
                                             <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
                                             <circle cx="8.5" cy={7} r={4} />
                                             <path d="M20 8v6M23 11h-6" />
                                         </svg>
                                         <span className="ml-3">Ingresar</span>
                                     </Button>
-                                   
                                 </div>
                             </form>
                         </div>
@@ -173,8 +186,8 @@ const Login = () => {
                         style={{
                             backgroundImage:
                                 'url("https://storage.googleapis.com/devitary-image-host.appspot.com/15848031292911696601-undraw_designer_life_w96d.svg")',
-                        }}>
-                        </div>
+                        }}
+                    ></div>
                 </div>
             </div>
         </div>

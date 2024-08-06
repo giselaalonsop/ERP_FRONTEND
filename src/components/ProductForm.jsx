@@ -85,9 +85,11 @@ const AddProductPage = ({ product, onClose }) => {
     const [modalTitle, setModalTitle] = useState('')
     const [logoFile, setLogoFile] = useState(null)
     const [logoPreview, setLogoPreview] = useState('')
+    const [edicion, setEdicion] = useState(false)
 
     useEffect(() => {
         if (product) {
+            setEdicion(true)
             setFormData(product)
             if (product.imagen) {
                 setLogoPreview(`http://localhost:8000/${product.imagen}`)
@@ -625,6 +627,7 @@ const AddProductPage = ({ product, onClose }) => {
                                         <select
                                             id="almacen"
                                             name="ubicacion"
+                                            disabled={edicion}
                                             value={formData.ubicacion}
                                             onChange={handleAlmacenChange}
                                             className="block w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600">
@@ -714,6 +717,7 @@ const AddProductPage = ({ product, onClose }) => {
                                         Cantidad en Stock (Mayor)
                                     </Label>
                                     <Input
+                                        disabled={edicion}
                                         type="number"
                                         min="0"
                                         id="cantidad_en_stock_mayor"
@@ -777,6 +781,7 @@ const AddProductPage = ({ product, onClose }) => {
                                     </Label>
                                     <Input
                                         type="number"
+                                        disabled={edicion}
                                         id="cantidad_en_stock"
                                         name="cantidad_en_stock"
                                         min="0"
@@ -886,6 +891,7 @@ const AddProductPage = ({ product, onClose }) => {
                                                 .toISOString()
                                                 .split('T')[0]
                                         }
+                                        disabled={edicion}
                                         value={formData.fecha_entrada}
                                         onChange={handleChange}
                                         onBlur={handleBlur}

@@ -97,7 +97,7 @@ const CargaInventario = () => {
     const handleSubmit = async e => {
         e.preventDefault()
         if (selectedProduct && cantidad) {
-            await cargarInventario(selectedProduct.id, cantidad, almacen)
+            await cargarInventario(selectedProduct, cantidad, almacen)
             setSelectedProduct(null)
             setCantidad('')
         } else {

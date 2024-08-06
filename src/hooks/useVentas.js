@@ -86,17 +86,19 @@ export const useVentas = () => {
         }
     }
 
-    const deleteVenta = async (id) => {
+    const handleDevolucion = async (id, devolucionData) => {
         await csrf()
 
         try {
-            const response = await axios.delete(`/api/ventas/${id}`)
+            const response = await axios.delete(`/api/ventas/${id}`, {
+                data: devolucionData,
+            })
             mutateVentas()
             if (response.status === 204) {
-                Swal.fire('Venta Anulada', '', 'success')
+                Swal.fire('Devolución procesada', '', 'success')
             }
         } catch (error) {
-            Swal.fire('Error al anular la venta', '', 'error')
+            Swal.fire('Error al procesar devolución', '', 'error')
             throw error
         }
     }
@@ -126,7 +128,7 @@ export const useVentas = () => {
         addVenta,
         addVentaDetalle,
         getVentaDetalles,
-        deleteVenta,
+        handleDevolucion,
         updateVenta,
         mutateVentasPendientes,
     }

@@ -29,7 +29,7 @@ const ConfirmFactura = ({
     const htmlContentRef = useRef(null)
     const [isPending, setIsPending] = useState(false)
     const [ventaData, setVentaData] = useState({})
-    const [exchangeRate, setExchangeRate] = useState(36.65)
+    const [exchangeRate, setExchangeRate] = useState(0)
     const [img, setImg] = useState('')
     const configuracion = JSON.parse(localStorage.getItem('configuracion'))
 
@@ -40,11 +40,11 @@ const ConfirmFactura = ({
         }
     }, [configuracion])
 
-    // useEffect(() => {
-    //     fetch('https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=bcv')
-    //         .then(res => res.json())
-    //         .then(data => setExchangeRate(data.monitors.usd.price))
-    // }, [])
+    useEffect(() => {
+        fetch('https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=bcv')
+            .then(res => res.json())
+            .then(data => setExchangeRate(data.monitors.usd.price))
+    }, [])
 
     useEffect(() => {
         factura

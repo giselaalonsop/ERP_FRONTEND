@@ -27,7 +27,7 @@ const Page = () => {
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
     const [selectedCategory, setSelectedCategory] = useState('')
-    const [selectedLocation, setSelectedLocation] = useState('General')
+    const [selectedLocation, setSelectedLocation] = useState(user.location)
     const [searchText, setSearchText] = useState('')
 
     const openModal = (content, title) => {
@@ -137,6 +137,7 @@ const Page = () => {
                     onCategorySelect={setSelectedCategory}
                     onLocationSelect={setSelectedLocation}
                     onSearchTextChange={setSearchText}
+                    initialSelectedLocation={user.location} // Pasar el valor inicial aquí
                 />
             </div>
 

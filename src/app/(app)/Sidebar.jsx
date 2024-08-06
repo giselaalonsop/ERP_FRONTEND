@@ -37,6 +37,18 @@ const Sidebar = ({ logout }) => {
             setImg(logoPath)
         }
     }, [configuracion])
+    const handleLogout = () => {
+        logout()
+        const loadingAlert = Swal.fire({
+            title: 'Procesando...',
+            text: 'Esto puede tardar unos segundos.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading()
+            },
+        })
+    }
+
     return (
         <div
             className={`${sidebarOpen ? 'w-64' : 'w-20'} ${
@@ -270,7 +282,7 @@ const Sidebar = ({ logout }) => {
                                         className={`${
                                             sidebarOpen ? 'inline' : 'hidden'
                                         } ml-2 text-base tracking-wide truncate`}>
-                                        Cobros 
+                                        Cobros
                                     </span>
                                 </Link>
                             </li>

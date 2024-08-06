@@ -33,7 +33,7 @@ const Page = () => {
         !proveedoresInhabilitados ||
         !usuariosInhabilitados // Verificar que los datos estén cargados
     ) {
-        return <p className="text-center">Loading...</p>
+        return <p className="text-center">Cargando...</p>
     }
 
     const handleTypeChange = event => {
@@ -48,7 +48,6 @@ const Page = () => {
                     { key: 'nombre', header: 'Nombre' },
                     { key: 'descripcion', header: 'Descripción' },
                     { key: 'categoria', header: 'Categoría' },
-                    { key: 'cantidad_en_stock', header: 'Cantidad en Stock' },
                     { key: 'ubicacion', header: 'Ubicación' },
                     { key: 'precio_compra', header: 'Precio de Compra' },
                     { key: 'porcentaje_ganancia', header: 'Ganancia (%)' },
@@ -148,7 +147,13 @@ const Page = () => {
     const dataToShow = () => {
         switch (selectedType) {
             case 'productos':
-                return productsInhabilitados
+                const uniqueProductsMap = new Map()
+                productsInhabilitados.forEach(product => {
+                    if (!uniqueProductsMap.has(product.codigo_barras)) {
+                        uniqueProductsMap.set(product.codigo_barras, product)
+                    }
+                })
+                return Array.from(uniqueProductsMap.values())
             case 'clientes':
                 return clientesInhabilitados
             case 'categorias':

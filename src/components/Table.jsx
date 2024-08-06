@@ -82,6 +82,11 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
         openModal(<ProductDetail product={product} />, 'Detalles del Producto')
     }
 
+    // Reset pagination when filters change
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [selectedCategory, searchText, selectedLocation])
+
     const startIndex = (currentPage - 1) * itemsPerPage
 
     const filteredProducts =
@@ -97,10 +102,10 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
                 product.codigo_barras
                     .toLowerCase()
                     .includes(searchText.toLowerCase())
-            const matchesLocation =
-                selectedLocation === 'General' ||
-                product.ubicacion.toLowerCase() ===
-                    selectedLocation.toLowerCase()
+            const matchesLocation = selectedLocation
+                ? product.ubicacion.toLowerCase() ===
+                  selectedLocation.toLowerCase()
+                : true
             return matchesCategory && matchesSearchText && matchesLocation
         }) || []
 

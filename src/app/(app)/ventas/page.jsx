@@ -12,8 +12,9 @@ import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import { useClientes } from '@/hooks/useClients'
 import ReactDOM from 'react-dom'
-import { format } from 'date-fns'
+import { format, differenceInBusinessDays } from 'date-fns'
 import { useAuth } from '@/hooks/auth'
+import Devolucion from '@/components/Devolucion' // Importar el componente Devolucion
 
 const SalesTable = () => {
     const { hasPermission, user } = useAuth({ middleware: 'auth' })
@@ -39,7 +40,20 @@ const SalesTable = () => {
         return format(date, 'dd-MM-yyyy HH:mm:ss')
     }
 
-    const handleDelete = id => {
+    const handleDelete = venta => {
+        const today = new Date()
+        const ventaDate = new Date(venta.created_at)
+        const daysDiff = differenceInBusinessDays(today, ventaDate)
+
+        if (daysDiff > 3) {
+            Swal.fire(
+                'No se puede anular una venta con más de 3 días hábiles',
+                '',
+                'error',
+            )
+            return
+        }
+
         Swal.fire({
             title: '¿Estás seguro de anular esta venta?',
             text: 'Esta acción no se puede deshacer',
@@ -47,18 +61,30 @@ const SalesTable = () => {
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, eliminar',
+            confirmButtonText: 'Sí, anular',
             cancelButtonText: 'Cancelar',
         }).then(result => {
             if (result.isConfirmed) {
-                deleteVenta(id)
+                openDevolucionModal(venta)
             }
         })
     }
 
-    const openModal = (content, title) => {
-        setModalContent(content)
-        setModalTitle(title)
+    const openDevolucionModal = venta => {
+        setSelectedVenta(venta)
+        setModalContent(
+            <Devolucion
+                TotalGeneral={venta.total_venta_dol}
+                TotalGeneralBs={venta.total_venta_bs}
+                venta={venta}
+                onSuccess={() => {
+                    setIsModalOpen(false)
+                    Swal.fire('Devolución procesada con éxito', '', 'success')
+                }}
+                onCancel={() => setIsModalOpen(false)}
+            />,
+        )
+        setModalTitle('Procesar Devolución')
         setIsModalOpen(true)
     }
 
@@ -259,9 +285,7 @@ const SalesTable = () => {
                                     {hasPermission(user, 'facturacion') ||
                                     user?.rol === 'admin' ? (
                                         <button
-                                            onClick={() =>
-                                                handleDelete(venta.id)
-                                            }
+                                            onClick={() => handleDelete(venta)}
                                             className="text-red-600 hover:text-red-900"
                                             title="Devolución">
                                             <FontAwesomeIcon

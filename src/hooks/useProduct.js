@@ -104,31 +104,32 @@ export const useProduct = () => {
         }
     };
 
-    const cargarInventario = async (productoId, cantidad_a_cargar, ubicacion_destino) => {
+    const cargarInventario = async (producto, cantidad_a_cargar, ubicacion_destino) => {
         await csrf();
 
-        const selectedProduct = products.find(product => product.id === productoId);
+       
 
         try {
-            const response = await axios.post(`/api/productos/${productoId}/cargar`, {
+            const response = await axios.post(`/api/productos/${producto.id}/cargar`, {
                 
-                codigo_barras: selectedProduct.codigo_barras,
-                nombre: selectedProduct.nombre,
-                descripcion: selectedProduct.descripcion,
-                categoria: selectedProduct.categoria,
+                codigo_barras: producto.codigo_barras,
+                nombre: producto.nombre,
+                descripcion: producto.descripcion,
+                categoria: producto.categoria,
                 cantidad_a_cargar,
-                unidad_de_medida: selectedProduct.unidad_de_medida,
+                unidad_de_medida: producto.unidad_de_medida,
                 ubicacion_destino,
-                precio_compra: selectedProduct.precio_compra,
-                porcentaje_ganancia: selectedProduct.porcentaje_ganancia,
-                porcentaje_ganancia_mayor: selectedProduct.porcentaje_ganancia_mayor,
-                forma_de_venta_mayor: selectedProduct.forma_de_venta_mayor,
-                forma_de_venta: selectedProduct.forma_de_venta,
-                proveedor: selectedProduct.proveedor,
-                fecha_entrada: selectedProduct.fecha_entrada,
-                fecha_caducidad: selectedProduct.fecha_caducidad,
-                peso: selectedProduct.peso,
-                imagen: selectedProduct.imagen
+                precio_compra: producto.precio_compra,
+                porcentaje_ganancia: producto.porcentaje_ganancia,
+                porcentaje_ganancia_mayor: producto.porcentaje_ganancia_mayor,
+                forma_de_venta_mayor: producto.forma_de_venta_mayor,
+                forma_de_venta: producto.forma_de_venta,
+                proveedor: producto.proveedor,
+                cantidad_por_caja: producto.cantidad_por_caja,
+                fecha_entrada: producto.fecha_entrada,
+                fecha_caducidad: producto.fecha_caducidad,
+                peso: producto.peso,
+                imagen: producto.imagen
             });
 
             if (response.status === 200 || response.status === 201) {
