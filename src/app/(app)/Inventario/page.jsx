@@ -56,13 +56,7 @@ const Page = () => {
 
     const router = useRouter()
 
-    useEffect(() => {
-        if (user && user.rol !== 'admin') {
-            router.push('/dashboard')
-        }
-    }, [user, router])
-
-    if (!user || (user && user.rol !== 'admin')) {
+    if (!user) {
         return <p className="text-center">Cargando...</p>
     }
 
