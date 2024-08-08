@@ -34,24 +34,30 @@ const UserCard = () => {
             </p>
             <div>
                 <strong>Permisos:</strong>
-                <ul className="list-disc ml-6">
-                    {Object.entries(permissionsList).map(([key, value]) => (
-                        <li key={key}>
-                            {key}:{' '}
-                            {value ? (
-                                <FontAwesomeIcon
-                                    icon={faCheckCircle}
-                                    className="text-green-500"
-                                />
-                            ) : (
-                                <FontAwesomeIcon
-                                    icon={faTimesCircle}
-                                    className="text-red-500"
-                                />
-                            )}
-                        </li>
-                    ))}
-                </ul>
+                {user.rol === 'admin' ? (
+                    <p className="text-sm text-gray-500">
+                        Los administradores tienen todos los permisos
+                    </p>
+                ) : (
+                    <ul className="list-disc ml-6">
+                        {Object.entries(permissionsList).map(([key, value]) => (
+                            <li key={key}>
+                                {key}:{' '}
+                                {value ? (
+                                    <FontAwesomeIcon
+                                        icon={faCheckCircle}
+                                        className="text-green-500"
+                                    />
+                                ) : (
+                                    <FontAwesomeIcon
+                                        icon={faTimesCircle}
+                                        className="text-red-500"
+                                    />
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </div>
         </div>
     )

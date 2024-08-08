@@ -25,9 +25,7 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
       .get('/api/users')
       .then(res => res.data)
       .catch(error => {
-        if (error.response.status === 401) {
-          router.push('/login')
-        }
+        
         throw error
       }),
   )
@@ -98,21 +96,40 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
     }
 }
   
-  const login = async ({ setErrors, setStatus, ...props }) => {
-    await csrf()
+const login = async ({ email, password, remember, setErrors, setStatus }) => {
+  setErrors([]); // Limpiar errores anteriores
+  setStatus(null); // Limpiar status anterior
 
-    setErrors([])
-    setStatus(null)
+  try {
+      await csrf(); // Asegura que el token CSRF está disponible
 
-    axios
-        .post('/login', props)
-        .then(() => mutate())
-        .catch(error => {
-            if (error.response.status !== 422) throw error
+      const response = await axios.post('/login', {
+          email,
+          password,
+          remember,
+      });
 
-            setErrors(error.response.data.errors)
-        })
-}
+      // Si la autenticación es exitosa, podrías manejar aquí la redirección o mutar el estado global del usuario
+      mutate(); // Supongo que esta función actualiza algún estado global relacionado con el usuario autenticado
+
+      // Opcional: manejar respuesta del servidor después de un login exitoso
+      return response;
+
+  } catch (error) {
+    console.log(error.response.status)
+    console.log(error.response.data)
+
+      if (error.response) {
+      
+          setStatus(error.response.data.message);
+        
+
+       
+          
+      }
+  }
+};
+
 
   const forgotPassword = async ({ setErrors, setStatus, email }) => {
     await csrf()

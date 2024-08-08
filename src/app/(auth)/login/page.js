@@ -60,7 +60,7 @@ const Login = () => {
         })
 
         // Procesar el login
-        await login({
+        const responde =await login({
             email,
             password,
             remember: shouldRemember,
@@ -68,7 +68,13 @@ const Login = () => {
             setStatus,
         })
 
-        // Cerrar la alerta de carga
+        if(responde){
+            //no cerrar modal de alerta
+            setTimeout(() => {
+                loadingAlert.close()
+            
+            }, 1000)
+        }
         Swal.close()
     }
 

@@ -69,6 +69,11 @@ const SalesTable = () => {
             }
         })
     }
+    const openModal = (content, title) => {
+        setModalContent(content)
+        setModalTitle(title)
+        setIsModalOpen(true)
+    }
 
     const openDevolucionModal = venta => {
         setSelectedVenta(venta)

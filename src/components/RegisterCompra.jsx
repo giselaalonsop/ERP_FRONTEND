@@ -12,7 +12,7 @@ import RegisterProveedor from '@/components/RegisterProveedorForm'
 const RegisterCompra = ({ compra, onClose, editMode }) => {
     const { hasPermission, user } = useAuth({ middleware: 'auth' })
     const { addCompra, updateCompra, proveedores } = useCompras()
-
+    
     const [formData, setFormData] = useState({
         proveedor_id: '',
         fecha: '',
@@ -293,6 +293,7 @@ const RegisterCompra = ({ compra, onClose, editMode }) => {
                             Monto Total
                         </Label>
                         <Input
+                            disabled={editMode}
                             id="monto_total"
                             name="monto_total"
                             type="number"

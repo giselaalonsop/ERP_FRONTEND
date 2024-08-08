@@ -17,17 +17,33 @@ export const useProduct = () => {
                 throw error
             }),
     );
-    const {data: productsInhabilitados, error: errorInhabilitado, mutate: mutateInhabilitado} = useSWR('/api/productos/inhabilitados', () =>
-        axios
-            .get('/api/productos/inhabilitados')
-            .then(res => res.data)
-            .catch(error => {
-                if (error.response.status === 401) {
-                    router.push('/login')
+    const fetcher = async () => {
+        try {
+            const response = await axios.get('/api/productos/inhabilitados')
+            const products = response.data
+
+            // Filter to get unique products based on codigo_barras
+            const uniqueProductsMap = new Map()
+
+            products.forEach(product => {
+                if (!uniqueProductsMap.has(product.codigo_barras)) {
+                    uniqueProductsMap.set(product.codigo_barras, product)
                 }
-                throw error
-            }),
-    );
+            })
+
+            return Array.from(uniqueProductsMap.values())
+        } catch (error) {
+            if (error.response.status === 401) {
+                router.push('/login')
+            }
+            throw error
+        }
+    }
+
+    const { data: productsInhabilitados, error: errorInhabilitado, mutate: mutateInhabilitado } = useSWR(
+        '/api/productos/inhabilitados',
+        fetcher
+    )
 
     const csrf = () => axios.get('/sanctum/csrf-cookie');
 
