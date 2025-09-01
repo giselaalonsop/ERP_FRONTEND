@@ -112,9 +112,7 @@ const ComprasTable = ({ compras }) => {
                                             </label>
                                         </div>
                                     </th> */}
-                                    <th scope="col" className="px-6 py-3">
-                                        Proveedor
-                                    </th>
+                                   
                                     <th scope="col" className="px-6 py-3">
                                         Fecha
                                     </th>
@@ -160,11 +158,7 @@ const ComprasTable = ({ compras }) => {
                                         <th
                                             scope="row"
                                             className="flex items-center px-6 py-4 whitespace-nowrap">
-                                            <div className="pl-3">
-                                                <div className="text-base font-semibold">
-                                                    {compra.proveedor.empresa}
-                                                </div>
-                                            </div>
+                                            
                                         </th>
                                         <td className="px-6 py-4">
                                             {formatDate(compra.created_at)}

@@ -36,6 +36,9 @@ const Facturacion = () => {
     const itemsPerPage = 10
     const autoCompleteRef = useRef(null)
     const [cliente, setCliente] = useState(null)
+    const productACRef = useRef(null)
+    const clientACRef = useRef(null)
+
     const [filteredClientes, setFilteredClientes] = useState([])
     const [
         isRegisterClienteModalOpen,
@@ -214,19 +217,18 @@ const Facturacion = () => {
     }
 
     const searchCliente = event => {
-        const query = event.query.toLowerCase()
-        const results = clientes.filter(cliente =>
-            cliente.cedula.toLowerCase().includes(query),
+        const query = (event?.query || '').toLowerCase()
+        const base = Array.isArray(clientes) ? clientes : []
+        const results = base.filter(c =>
+            ((c?.cedula ?? '') + '').toLowerCase().includes(query),
         )
-        setFilteredClientes(results)
-
-        if (results.length === 0) {
-            if (hasPermission(user, 'clientes') || user?.rol === 'admin') {
-                setFilteredClientes([
-                    { cedula: 'Agregar nuevo cliente', nombre: '' },
-                ])
-            }
-        }
+        setFilteredClientes(
+            results.length
+                ? results
+                : hasPermission(user, 'clientes') || user?.rol === 'admin'
+                ? [{ cedula: 'Agregar nuevo cliente', nombre: '' }]
+                : [],
+        )
     }
 
     const handleClienteSelect = e => {
@@ -307,7 +309,7 @@ const Facturacion = () => {
                         placeholder="Ingresa la cédula del cliente..."
                         dropdown
                         forceSelection={false}
-                        completeOnFocus
+                        conFocus={() => clientACRef.current?.search('')}
                         style={{ width: '100%' }}
                         itemTemplate={item => (
                             <div>
@@ -368,7 +370,7 @@ const Facturacion = () => {
                         placeholder="Ingresa el código o nombre del producto..."
                         dropdown
                         forceSelection={false}
-                        completeOnFocus
+                        onFocus={() => productACRef.current?.search('')}
                         style={{ width: '100%' }}
                     />
                 </div>
@@ -432,7 +434,11 @@ const Facturacion = () => {
                             <td className="px-6 py-4">
                                 <img
                                     className="w-14 h-14 rounded-full"
-                                    src={`http://localhost:8000/${product.imagen}`}
+                                    src={
+                                        product.imagen
+                                            ? `http://localhost:8000/${product.imagen}`
+                                            : undefined
+                                    }
                                     alt={`${product.nombre} image`}
                                 />
                             </td>

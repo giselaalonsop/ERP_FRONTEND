@@ -120,8 +120,8 @@ const SearchWithDropdown = ({
                                         ? 'bg-gray-800 text-white'
                                         : 'bg-white text-gray-800'
                                 } block px-4 py-2 cursor-pointer`}
-                                onClick={() => selectLocation('Bejuma')}>
-                                Bejuma
+                                onClick={() => selectLocation('Principal')}>
+                                Principal
                             </li>
                             <li
                                 className={`${
@@ -129,8 +129,8 @@ const SearchWithDropdown = ({
                                         ? 'bg-gray-800 text-white'
                                         : 'bg-white text-gray-800'
                                 } block px-4 py-2 cursor-pointer`}
-                                onClick={() => selectLocation('Montalban')}>
-                                Montalban
+                                onClick={() => selectLocation('Sucursal')}>
+                                Sucursal
                             </li>
                         </ul>
                     </div>

@@ -19,7 +19,7 @@ const CargaInventario = () => {
     const [selectedProduct, setSelectedProduct] = useState(null)
     const [cantidad, setCantidad] = useState('')
     const [almacen, setAlmacen] = useState(
-        localStorage.getItem('almacen') || 'montalban',
+        localStorage.getItem('almacen') || 'Sucursal',
     )
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalContent, setModalContent] = useState(null)
@@ -137,7 +137,7 @@ const CargaInventario = () => {
                             inputClassName={`bg-gray-50 border text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
                             dropdown
                             forceSelection={false}
-                            completeOnFocus
+                            completeonfocus
                             style={{ width: '100%' }}
                         />
                     </div>
@@ -171,8 +171,8 @@ const CargaInventario = () => {
                                 localStorage.setItem('almacen', e.target.value)
                             }}
                             className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-primary-600 focus:border-primary-600">
-                            <option value="montalban">Montalban</option>
-                            <option value="bejuma">Bejuma</option>
+                            <option value="Sucursal">Sucursal</option>
+                            <option value="Principal">Principal</option>
                             <option value="general">General</option>
                         </select>
                     </div>

@@ -30,7 +30,7 @@ const Factura = forwardRef(({ venta }, ref) => {
             ref={ref}
             className="bg-white border rounded-lg shadow-lg px-6 py-8 max-w-md mx-auto mt-8">
             <img
-                src={img}
+                src={img ||  undefined}
                 alt="logo"
                 className=" mx-auto mb-4"
                 style={{ width: '200px', height: 'auto' }}

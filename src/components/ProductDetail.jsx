@@ -1,14 +1,8 @@
 import React from 'react'
 import { useTheme } from '@/context/ThemeProvider'
-import { useProveedores } from '@/hooks/useProveedores'
 
 const ProductDetail = ({ product }) => {
     const { isDark } = useTheme()
-    const { proveedores } = useProveedores()
-
-    const proveedor = proveedores?.find(
-        proveedor => proveedor.id === parseInt(product.proveedor),
-    )
 
     return (
         <section
@@ -20,7 +14,7 @@ const ProductDetail = ({ product }) => {
                     <div className="shrink-0 max-w-md lg:max-w-lg mx-auto">
                         <img
                             className="w-full"
-                            src={`http://localhost:8000/${product.imagen}`}
+                            src={product.imagen ? `http://localhost:8000/${product.imagen}` : undefined}
                             alt={product.nombre}
                         />
                     </div>
@@ -103,10 +97,7 @@ const ProductDetail = ({ product }) => {
                                     <strong>Forma de Venta (Mayor):</strong>{' '}
                                     {product.forma_de_venta_mayor}
                                 </p>
-                                <p>
-                                    <strong>Proveedor:</strong>{' '}
-                                    {proveedor?.empresa}
-                                </p>
+
                                 <p>
                                     <strong>Fecha de Entrada:</strong>{' '}
                                     {product.fecha_entrada}

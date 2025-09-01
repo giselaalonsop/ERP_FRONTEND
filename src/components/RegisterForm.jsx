@@ -31,7 +31,6 @@ const Register = ({ user: editUser, onClose }) => {
         cargaInventario: false,
         descargaInventario: false,
         agregarNuevoProducto: false,
-        agregarProveedores: false,
         cuentasPorPagar: false,
         cierreDeCaja: false,
     })
@@ -48,7 +47,6 @@ const Register = ({ user: editUser, onClose }) => {
             cargaInventario: true,
             descargaInventario: true,
             agregarNuevoProducto: true,
-            agregarProveedores: true,
             cuentasPorPagar: true,
             cierreDeCaja: true,
             registrarCompras: true,
@@ -70,7 +68,6 @@ const Register = ({ user: editUser, onClose }) => {
                 cargaInventario: false,
                 descargaInventario: false,
                 agregarNuevoProducto: false,
-                agregarProveedores: false,
                 cuentasPorPagar: false,
                 cierreDeCaja: false,
                 registrarCompras: false,
@@ -289,7 +286,6 @@ const Register = ({ user: editUser, onClose }) => {
             cargaInventario: false,
             descargaInventario: false,
             agregarNuevoProducto: false,
-            agregarProveedores: false,
             cuentasPorPagar: false,
             cierreDeCaja: false,
         })
@@ -304,7 +300,6 @@ const Register = ({ user: editUser, onClose }) => {
         { name: 'cargaInventario', label: 'Carga de Inventario' },
         { name: 'descargaInventario', label: 'Descarga de Inventario' },
         { name: 'agregarNuevoProducto', label: 'Agregar Nuevo Producto' },
-        { name: 'agregarProveedores', label: 'Agregar Proveedores' },
         { name: 'cierreDeCaja', label: 'Cierre de Caja' },
         { name: 'registrarCompras', label: 'Registrar Compras' },
     ]
@@ -508,8 +503,8 @@ const Register = ({ user: editUser, onClose }) => {
                             <option value="" disabled>
                                 Selecciona una ubicación
                             </option>
-                            <option value="Bejuma">Bejuma</option>
-                            <option value="Montalban">Montalbán</option>
+                            <option value="Principal">Principal</option>
+                            <option value="Sucursal">Sucursal</option>
                         </select>
                         <div
                             style={{

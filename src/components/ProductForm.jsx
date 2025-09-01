@@ -1,3 +1,4 @@
+'use client'
 import React, { useState, useEffect } from 'react'
 import DropzoneComponent from './Dropzone'
 import { useProduct } from '@/hooks/useProduct'
@@ -8,9 +9,7 @@ import Input from '@/components/Input'
 import Label from '@/components/Label'
 import InputError from '@/components/InputError'
 import Button from '@/components/Button'
-import { AutoComplete } from 'primereact/autocomplete'
-import { useProveedores } from '@/hooks/useProveedores'
-import RegisterProveedor from '@/components/RegisterProveedorForm'
+
 import Modal from '@/components/Modal'
 import { useDropzone } from 'react-dropzone'
 import { useAuth } from '@/hooks/auth'
@@ -30,8 +29,16 @@ const capitalizeWords = str => {
 
 const AddProductPage = ({ product, onClose }) => {
     const { hasPermission, user } = useAuth({ middleware: 'auth' })
-    const configuracion = JSON.parse(localStorage.getItem('configuracion'))
-    const { categories, addCategoria, isLoading, isError } = useCategories()
+    const [configuracion, setConfiguracion] = useState(null)
+    const {
+        categories = [],
+        addCategoria,
+        isLoading,
+        isError,
+        refetch,
+        mutate,
+    } = useCategories()
+    console.log(categories)
     const { addProduct, updateProduct } = useProduct()
     const {
         unidadesMedida,
@@ -73,19 +80,30 @@ const AddProductPage = ({ product, onClose }) => {
         porcentaje_ganancia_mayor: '',
         forma_de_venta: '',
         forma_de_venta_mayor: '',
-        proveedor: '',
         cantidad_por_caja: '',
         ubicacion: localStorage.getItem('almacen') || 'General',
     })
-    const { proveedores } = useProveedores()
-    const [filteredProveedores, setFilteredProveedores] = useState([])
-    const [selectedProveedor, setSelectedProveedor] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
     const [logoFile, setLogoFile] = useState(null)
     const [logoPreview, setLogoPreview] = useState('')
     const [edicion, setEdicion] = useState(false)
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem('configuracion')
+            const cfg = raw ? JSON.parse(raw) : null
+            setConfiguracion(cfg)
+            if (cfg?.porcentaje_ganancia) {
+                setFormData(prev => ({
+                    ...prev,
+                    porcentaje_ganancia: cfg.porcentaje_ganancia,
+                }))
+            }
+        } catch (e) {
+            console.warn('configuracion inválida en localStorage', e)
+        }
+    }, [])
 
     useEffect(() => {
         if (product) {
@@ -94,15 +112,8 @@ const AddProductPage = ({ product, onClose }) => {
             if (product.imagen) {
                 setLogoPreview(`http://localhost:8000/${product.imagen}`)
             }
-            const proveedor = proveedores?.find(
-                proveedor =>
-                    parseInt(proveedor.id) === parseInt(product.proveedor),
-            )
-            if (proveedor) {
-                setSelectedProveedor(proveedor)
-            }
         }
-    }, [product, proveedores])
+    }, [product])
 
     useEffect(() => {
         if (responseMessage) {
@@ -156,8 +167,6 @@ const AddProductPage = ({ product, onClose }) => {
             if (!formData.forma_de_venta_mayor)
                 newErrors.forma_de_venta_mayor =
                     'Forma de Venta al Mayor es requerida'
-            if (!formData.proveedor)
-                newErrors.proveedor = 'Proveedor es requerido'
         }
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0
@@ -214,7 +223,6 @@ const AddProductPage = ({ product, onClose }) => {
                 porcentaje_ganancia_mayor: true,
                 forma_de_venta: true,
                 forma_de_venta_mayor: true,
-                proveedor: true,
             }
         }
         setTouchedFields(prevTouchedFields => ({
@@ -225,19 +233,23 @@ const AddProductPage = ({ product, onClose }) => {
 
     const handleChange = e => {
         const { name, value } = e.target
-        setFormData(prevData => ({
-            ...prevData,
-            [name]:
-                name === 'nombre' ||
-                name === 'categoria' ||
-                name === 'unidad_de_medida' ||
-                name === 'forma_de_venta' ||
-                name === 'forma_de_venta_mayor' ||
-                name === 'proveedor'
-                    ? capitalizeWords(value)
-                    : value,
-            [name]: name === 'codigo_barras' ? value.replace(/\D/g, '') : value,
-        }))
+        let v = value
+
+        if (name === 'codigo_barras') {
+            v = value.replace(/\D/g, '')
+        } else if (
+            [
+                'nombre',
+                'categoria',
+                'unidad_de_medida',
+                'forma_de_venta',
+                'forma_de_venta_mayor',
+            ].includes(name)
+        ) {
+            v = capitalizeWords(value)
+        }
+
+        setFormData(prev => ({ ...prev, [name]: v }))
     }
 
     const handleBlur = e => {
@@ -311,14 +323,18 @@ const AddProductPage = ({ product, onClose }) => {
     }
 
     const handleAddCategory = async () => {
-        if (newCategory.trim()) {
-            await addCategoria({ nombre: newCategory })
-            setFormData(prevData => ({
-                ...prevData,
-                categoria: newCategory,
-            }))
-            setIsAddingCategory(false)
-        }
+        if (!newCategory.trim()) return
+        const created = await addCategoria({ nombre: newCategory })
+
+        // Refresca la lista desde el backend
+        if (refetch) await refetch()
+        else if (mutate) await mutate() // SWR
+
+        setFormData(prev => ({
+            ...prev,
+            categoria: created?.nombre ?? newCategory,
+        }))
+        setIsAddingCategory(false)
     }
 
     const handleUnidadMedidaChange = e => {
@@ -405,40 +421,6 @@ const AddProductPage = ({ product, onClose }) => {
                 forma_de_venta_mayor: newFormaVentaMayor,
             }))
             setIsAddingFormaVentaMayor(false)
-        }
-    }
-
-    const searchProveedor = event => {
-        const query = event.query.toLowerCase()
-        const filtered = proveedores.filter(proveedor =>
-            proveedor.empresa.toLowerCase().includes(query),
-        )
-
-        if (filtered.length === 0) {
-            if (
-                hasPermission(user, 'agregarProveedores') ||
-                user?.rol === 'admin'
-            ) {
-                filtered.push({ id: 'new', empresa: 'Agregar nuevo proveedor' })
-            }
-        }
-
-        setFilteredProveedores(filtered)
-    }
-
-    const handleProveedorSelect = e => {
-        const selected = e.value
-
-        if (selected.id === 'new') {
-            openModal(
-                <RegisterProveedor onClose={closeModal} />,
-                'Agregar Nuevo Proveedor',
-            )
-            setSelectedProveedor(null) // Limpiar el AutoComplete
-            setFormData({ ...formData, proveedor: '' }) // Limpiar el formData
-        } else {
-            setSelectedProveedor(selected)
-            setFormData({ ...formData, proveedor: selected.id })
         }
     }
 
@@ -601,13 +583,18 @@ const AddProductPage = ({ product, onClose }) => {
                                                 <option value="">
                                                     Seleccione una categoría
                                                 </option>
-                                                {categories?.map(category => (
-                                                    <option
-                                                        key={category.id}
-                                                        value={category.nombre}>
-                                                        {category.nombre}
-                                                    </option>
-                                                ))}
+                                                {(categories || []).map(
+                                                    category => (
+                                                        <option
+                                                            key={category.id}
+                                                            value={
+                                                                category.nombre
+                                                            }>
+                                                            {category.nombre}
+                                                        </option>
+                                                    ),
+                                                )}
+
                                                 <option value="add_new">
                                                     Agregar nueva categoría
                                                 </option>
@@ -634,11 +621,11 @@ const AddProductPage = ({ product, onClose }) => {
                                             <option value="General">
                                                 General
                                             </option>
-                                            <option value="montalban">
-                                                Montalban
+                                            <option value="Sucursal">
+                                                Sucursal
                                             </option>
-                                            <option value="bejuma">
-                                                Bejuma
+                                            <option value="Principal">
+                                                Principal
                                             </option>
                                         </select>
                                     </div>
@@ -686,7 +673,7 @@ const AddProductPage = ({ product, onClose }) => {
                                             <input {...getInputProps()} />
                                             {logoPreview ? (
                                                 <img
-                                                    src={logoPreview}
+                                                    src={logoPreview ||  undefined}
                                                     alt="Logo preview"
                                                     className="rounded-lg mx-auto object-cover"
                                                     style={{
@@ -1215,45 +1202,7 @@ const AddProductPage = ({ product, onClose }) => {
                                         )}
                                     </div>
                                 </div>
-                                <div>
-                                    <Label htmlFor="proveedor">Proveedor</Label>
-                                    <AutoComplete
-                                        value={selectedProveedor}
-                                        suggestions={filteredProveedores}
-                                        completeMethod={searchProveedor}
-                                        field="empresa"
-                                        itemTemplate={item => (
-                                            <div className="bg-white text-gray-900">
-                                                {item.empresa}
-                                            </div>
-                                        )}
-                                        onChange={e => {
-                                            setSelectedProveedor(e.value)
-                                            setFormData({
-                                                ...formData,
-                                                proveedor: e.value
-                                                    ? e.value.id
-                                                    : '',
-                                            })
-                                            handleBlur(e)
-                                        }}
-                                        onSelect={handleProveedorSelect}
-                                        inputClassName={`bg-gray-50 border text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5`}
-                                        dropdown
-                                        forceSelection={false}
-                                        completeOnFocus
-                                        style={{ width: '100%' }}
-                                        panelStyle={{ background: 'white' }}
-                                        placeholder="Seleccione un proveedor"
-                                    />
 
-                                    {touchedFields.proveedor && (
-                                        <InputError
-                                            messages={errors.proveedor}
-                                            className="mt-2"
-                                        />
-                                    )}
-                                </div>
                                 <div>
                                     <input
                                         type="checkbox"

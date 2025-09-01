@@ -7,7 +7,6 @@ import InhabilitadosTable from '@/components/InhabilitadosTable'
 import { useProduct } from '@/hooks/useProduct'
 import { useClientes } from '@/hooks/useClients'
 import { useCategories } from '@/hooks/useCategories'
-import { useProveedores } from '@/hooks/useProveedores' // Importar el hook de proveedores
 import { format } from 'date-fns'
 
 const Page = () => {
@@ -18,7 +17,6 @@ const Page = () => {
     const { productsInhabilitados, habilitarProducto } = useProduct()
     const { clientesInhabilitados, habilitarCliente } = useClientes()
     const { categoriasInhabilitada, habilitarCategoria } = useCategories()
-    const { proveedoresInhabilitados, habilitarProveedor } = useProveedores()
     const [selectedType, setSelectedType] = useState('productos')
     const [enabledItems, setEnabledItems] = useState([])
 
@@ -30,7 +28,6 @@ const Page = () => {
         !productsInhabilitados ||
         !clientesInhabilitados ||
         !categoriasInhabilitada ||
-        !proveedoresInhabilitados ||
         !usuariosInhabilitados // Verificar que los datos estén cargados
     ) {
         return <p className="text-center">Loading...</p>
@@ -48,7 +45,6 @@ const Page = () => {
                     { key: 'nombre', header: 'Nombre' },
                     { key: 'descripcion', header: 'Descripción' },
                     { key: 'categoria', header: 'Categoría' },
-                    { key: 'proveedor', header: 'Proveedor' },
                     {
                         key: 'precio_venta',
                         header: 'Precio de Venta',
@@ -61,7 +57,7 @@ const Page = () => {
                         header: 'Imagen',
                         format: item => (
                             <img
-                                src={`http://localhost:8000/${item.imagen}`}
+                                src={item.imagen ? `http://localhost:8000/${item.imagen}` : undefined}
                                 alt={item.nombre}
                                 className="w-10 h-10 rounded-full"
                             />
@@ -111,14 +107,7 @@ const Page = () => {
                             ),
                     },
                 ]
-            case 'proveedores':
-                return [
-                    { key: 'nombre', header: 'Nombre' },
-                    { key: 'empresa', header: 'Empresa' },
-                    { key: 'telefono', header: 'Teléfono' },
-                    { key: 'correo', header: 'Correo' },
-                    { key: 'direccion', header: 'Dirección' },
-                ]
+           
             case 'usuarios':
                 return [
                     { key: 'name', header: 'Nombre' },
@@ -149,8 +138,6 @@ const Page = () => {
                 return clientesInhabilitados
             case 'categorias':
                 return categoriasInhabilitada
-            case 'proveedores':
-                return proveedoresInhabilitados
             case 'usuarios':
                 return usuariosInhabilitados
             default:
@@ -183,8 +170,6 @@ const Page = () => {
                     await habilitarCliente(id)
                 } else if (selectedType === 'categorias') {
                     await habilitarCategoria(id)
-                } else if (selectedType === 'proveedores') {
-                    await habilitarProveedor(id)
                 } else if (selectedType === 'usuarios') {
                     await habilitarUser(id)
                 }
@@ -223,7 +208,6 @@ const Page = () => {
                     <option value="productos">Productos</option>
                     <option value="clientes">Clientes</option>
                     <option value="categorias">Categorías</option>
-                    <option value="proveedores">Proveedores</option>
                     <option value="usuarios">Usuarios</option>
                 </select>
             </div>

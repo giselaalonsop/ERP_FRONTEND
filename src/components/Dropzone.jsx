@@ -28,7 +28,7 @@ const DropzoneComponent = ({ onDrop }) => {
             <input {...getInputProps()} />
             {file ? (
                 <img
-                    src={URL.createObjectURL(file)}
+                    src={URL.createObjectURL(file) ||  undefined}
                     alt="Preview"
                     className="w-full h-full object-cover rounded-lg"
                 />

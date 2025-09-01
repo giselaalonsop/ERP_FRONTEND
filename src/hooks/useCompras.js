@@ -19,9 +19,7 @@ export const useCompras = () => {
             }),
     )
 
-    const { data: proveedores } = useSWR('/api/proveedores', () =>
-        axios.get('/api/proveedores').then(res => res.data),
-    )
+   
 
     const csrf = () => axios.get('/sanctum/csrf-cookie')
 
@@ -96,6 +94,6 @@ export const useCompras = () => {
         deleteCompra,
         abonarCompra,
         mutateCompras,
-        proveedores,
+
     }
 }

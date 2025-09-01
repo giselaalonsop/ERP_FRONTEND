@@ -160,7 +160,6 @@ const Dashboard = () => {
         { label: 'Producto más vendido en rango', value: `${reportData.topProducto?.nombre || 'N/A'} (${reportData.topProducto?.total_vendido || 0})` },
         { label: 'Producto menos vendido en rango', value: `${reportData.bottomProducto?.nombre || 'N/A'} (${reportData.bottomProducto?.total_vendido || 0})` },
         { label: 'Mejor cliente en rango ', value: `${reportData.topCliente?.nombre || 'N/A'} (${reportData.topCliente?.total_compras || 0})` },
-        { label: 'Compras a proveedores en rango', value: `$${reportData.montoCompras || 0}` },
         { label: 'Ganancias en rango', value: `$${reportData.gananciasRango ? parseFloat(reportData.gananciasRango).toFixed(2) : 0}` },
         { label: 'Categoría más vendida en rango', value: `${reportData.categoriaMasVendidaRango?.categoria || 'N/A'} (${reportData.categoriaMasVendidaRango?.total_vendido || 0})` },
         { label: 'Devoluciones en rango', value: `${reportData.devoluciones?.total_devoluciones || 0} Total: / $${reportData.devoluciones?.total_devoluciones_monto || 0}` }
@@ -212,8 +211,8 @@ const Dashboard = () => {
                         onChange={handleChangeLocation}
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block p-2.5 mr-4"
                     >
-                        <option value="Bejuma">Bejuma</option>
-                        <option value="Montalban">Montalban</option>
+                        <option value="Principal">Principal</option>
+                        <option value="Sucursal">Sucursal</option>
                     </select>
                     <button
                         onClick={handleDownload}

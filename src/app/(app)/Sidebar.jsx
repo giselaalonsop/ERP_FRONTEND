@@ -70,7 +70,7 @@ const Sidebar = ({ logout }) => {
                 }}>
                 {sidebarOpen && configuracion && (
                     <img
-                        src={img}
+                        src={img || undefined }
                         alt="Logo"
                         className="h-10 w-auto px-2"
                         style={{ marginRight: 'auto' }}
@@ -330,24 +330,7 @@ const Sidebar = ({ logout }) => {
                             </span>
                         </Link>
                         <ul className={`${compras ? 'block' : 'hidden'} ml-4`}>
-                            <li>
-                                <Link
-                                    href="/proveedores"
-                                    className="relative flex flex-row items-center h-12 hover:bg-blue-800 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 pr-6">
-                                    <span className="inline-flex justify-center items-center ml-4">
-                                        <FontAwesomeIcon
-                                            className="w-6 h-6"
-                                            icon={faUserGroup}
-                                        />
-                                    </span>
-                                    <span
-                                        className={`${
-                                            sidebarOpen ? 'inline' : 'hidden'
-                                        } ml-2 text-base tracking-wide truncate`}>
-                                        Proveedores
-                                    </span>
-                                </Link>
-                            </li>
+                           
                             <li>
                                 <Link
                                     href="/compras"

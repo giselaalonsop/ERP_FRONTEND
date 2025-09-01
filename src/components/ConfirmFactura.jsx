@@ -41,9 +41,10 @@ const ConfirmFactura = ({
     }, [configuracion])
 
     useEffect(() => {
-        fetch('https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=bcv')
+        fetch('https://ve.dolarapi.com/v1/dolares/oficial')
             .then(res => res.json())
-            .then(data => setExchangeRate(data.monitors.usd.price))
+            .then(data => setExchangeRate(data.promedio))
+            .catch(err => console.error('Error fetching exchange rate:', err))
     }, [])
 
     useEffect(() => {
@@ -261,7 +262,7 @@ const ConfirmFactura = ({
                 ref={htmlContentRef}
                 className="bg-white border rounded-lg shadow-lg px-6 py-8 max-w-md mx-auto mt-8">
                 <img
-                    src={img}
+                    src={img ||  undefined}
                     alt="logo"
                     className="w-20 h-auto mx-auto mb-4"
                 />

@@ -37,6 +37,7 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
     }
 
     useEffect(() => {
+        console.log(products)
         if (products) {
             setIsLoading(false)
         }
@@ -297,7 +298,11 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
                                                         <td className="px-4 py-4 text-sm  whitespace-nowrap">
                                                             <img
                                                                 className="w-16 h-16 object-cover rounded"
-                                                                src={`http://localhost:8000/${product.imagen}`}
+                                                                src={
+                                                                    product.imagen
+                                                                        ? `http://localhost:8000/${product.imagen}`
+                                                                        : undefined
+                                                                }
                                                                 alt={
                                                                     product.nombre
                                                                 }

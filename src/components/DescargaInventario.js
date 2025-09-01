@@ -189,7 +189,7 @@ const DescargaInventario = ({ onClose }) => {
                             placeholder="Ingrese nombre o codigo del producto..."
                             dropdown
                             forceSelection={false}
-                            completeOnFocus
+                            completeonfocus
                             style={{ width: '100%' }}
                             showClear // Mostrar el botón de limpiar
                             autoHighlight // Resaltar automáticamente el primer elemento de la lista
@@ -272,7 +272,7 @@ const DescargaInventario = ({ onClose }) => {
                                 onBlur={() => handleBlur('almacenDestino')}
                                 onChange={e => setAlmacenDestino(e.target.value)}
                                 className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-primary-600 focus:border-primary-600">
-                                {['seleccionar ubicacion','montalban', 'bejuma']
+                                {['seleccionar ubicacion','Sucursal', 'Principal']
                                     .filter(almacen => almacen !== selectedProduct.ubicacion) // Excluir la ubicación actual del producto
                                     .map(almacen => (
                                         <option key={almacen} value={almacen}>

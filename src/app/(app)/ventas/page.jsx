@@ -205,8 +205,8 @@ const SalesTable = () => {
                         value={selectedLocation}
                         onChange={e => setSelectedLocation(e.target.value)}>
                         <option value="">Todas las Ubicaciones</option>
-                        <option value="Bejuma">Bejuma</option>
-                        <option value="Montalban">Montalbán</option>
+                        <option value="Principal">Principal</option>
+                        <option value="Sucursal">Sucursal</option>
                     </select>
                 </div>
             </div>

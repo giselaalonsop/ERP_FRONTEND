@@ -51,12 +51,12 @@ const ConfigurationForm = () => {
     const [pagoMovil, setPagoMovil] = useState([])
     const [transferencias, setTransferencias] = useState([])
     const [logoFile, setLogoFile] = useState(null)
-    const [logoPreview, setLogoPreview] = useState('')
+    const [logoPreview, setLogoPreview] = useState(null)
     const [errors, setErrors] = useState({})
     const [touchedFields, setTouchedFields] = useState({})
 
     const {
-        categories,
+        categories = [],
         addCategoria,
         updateCategoria,
         deleteCategoria,
@@ -97,42 +97,56 @@ const ConfigurationForm = () => {
 
     // Carga inicial desde localStorage
     useEffect(() => {
-        const storedConfig = JSON.parse(localStorage.getItem('configuracion'))
-        if (storedConfig) {
-            setId(storedConfig.id)
-            setIva(storedConfig.IVA || '')
-            setPorcentajeGanancia(storedConfig.porcentaje_ganancia || '')
-            setNombreEmpresa(storedConfig.nombre_empresa || '')
-            setTelefono(storedConfig.telefono || '')
-            setRif(storedConfig.rif || '')
-            setCorreo(storedConfig.correo || '')
-            setDirecciones(storedConfig.direcciones || [])
-            setPagoMovil(storedConfig.pago_movil || [])
-            setTransferencias(storedConfig.transferencias || [])
-            if (storedConfig.logo) {
-                const logoPath = `http://localhost:8000/${storedConfig.logo}`
-                setLogoPreview(logoPath)
+        try {
+            const raw = localStorage.getItem('configuracion')
+            const cfg = raw ? JSON.parse(raw) : null
+
+            if (cfg) {
+                setId(cfg.id ?? null)
+                setIva(cfg.IVA ?? '')
+                setPorcentajeGanancia(cfg.porcentaje_ganancia ?? '')
+                setNombreEmpresa(cfg.nombre_empresa ?? '')
+                setTelefono(cfg.telefono ?? '')
+                setRif(cfg.rif ?? '')
+                setCorreo(cfg.correo ?? '')
+                setDirecciones(cfg.direcciones ?? [])
+                setPagoMovil(cfg.pago_movil ?? [])
+                setTransferencias(cfg.transferencias ?? [])
+                setLogoPreview(
+                    cfg.logo ? `http://localhost:8000/${cfg.logo}` : null,
+                )
+            } else {
+                setLogoPreview(null)
             }
+        } catch (e) {
+            console.warn(
+                'configuracion en localStorage inválida. Se ignora.',
+                e,
+            )
+        } finally {
+            setIsLoaded(true)
         }
-        setIsLoaded(true)
     }, [])
 
     // Sincroniza configuracion desde el hook
     useEffect(() => {
         if (configData) {
-            setId(configData.id)
-            setIva(configData.IVA || '')
-            setPorcentajeGanancia(configData.porcentaje_ganancia || '')
-            setNombreEmpresa(configData.nombre_empresa || '')
-            setTelefono(configData.telefono || '')
-            setRif(configData.rif || '')
+            setId(configData?.id)
+            setIva(configData?.IVA || '')
+            setPorcentajeGanancia(configData?.porcentaje_ganancia || '')
+            setNombreEmpresa(configData?.nombre_empresa || '')
+            setTelefono(configData?.telefono || '')
+            setRif(configData?.rif || '')
             setCorreo(configData.correo || '')
             setDirecciones(configData.direcciones || [])
             setPagoMovil(configData.pago_movil || [])
             setTransferencias(configData.transferencias || [])
             if (configData.logo) {
-                const logoPath = `http://localhost:8000/${configData.logo}`
-                setLogoPreview(logoPath)
+                setLogoPreview(
+                    configData?.logo
+                        ? `http://localhost:8000/${configData.logo}`
+                        : null,
+                )
             }
             localStorage.setItem('configuracion', JSON.stringify(configData))
         }
@@ -524,15 +538,7 @@ const ConfigurationForm = () => {
         )
     }
 
-    if (
-        !isLoaded ||
-        loading ||
-        isLoadingCategories ||
-        isLoadingParametros ||
-        !categories ||
-        !unidadesMedida ||
-        !formasVenta
-    ) {
+    if (!isLoaded || loading || isLoadingCategories || isLoadingParametros) {
         return <div className="text-center">Cargando...</div>
     }
 
@@ -564,7 +570,7 @@ const ConfigurationForm = () => {
                             <input {...getInputProps()} />
                             {logoPreview ? (
                                 <img
-                                    src={logoPreview}
+                                    src={logoPreview || undefined}
                                     alt="Logo preview"
                                     className={`${
                                         isDark ? 'bg-gray-800' : 'bg-gray-50'

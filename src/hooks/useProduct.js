@@ -16,6 +16,7 @@ export const useProduct = () => {
                 }
                 throw error
             }),
+           
     );
     const fetcher = async () => {
         try {
@@ -47,33 +48,33 @@ export const useProduct = () => {
 
     const csrf = () => axios.get('/sanctum/csrf-cookie');
 
-    const addProduct = async (data) => {
-        setErrors([]);
+  const addProduct = async (data) => {
+  setErrors([]);
+  await csrf();
 
-        await csrf();
 
-        try {
-            const response = await axios.post('/api/productos', data, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-            if (response.status === 200 || response.status === 201) {
-                Swal.fire("Producto agregado", "", "success");
-                mutate();
-                return response;
-            } else {
-                Swal.fire("Error al agregar el producto", "", "error");
-            }
-        } catch (err) {
-            setErrors(err.response.data.errors);
-            if (err.response.status === 422) {
-                Swal.fire("Error al agregar el producto", "Código de barras ya existe", "error");
-            } else {
-                Swal.fire("Error al agregar el producto", "", "error");
-            }
-        }
-    };
+  try {
+    const res = await axios.post('/api/productos', data, {
+      headers: {  'method': 'PUT','Content-Type': 'multipart/form-data' },
+    });
+
+    Swal.fire('Producto agregado', '', 'success');
+    mutate();
+
+    return { ok: true, status: res.status, data: res.data };
+  } catch (err) {
+    const status = err?.response?.status;
+    setErrors(err?.response?.data?.errors ?? {});
+    if (status === 422) {
+      Swal.fire(err,'', 'error');
+      console.log(err)
+    } else {
+      Swal.fire('Error al agregar el producto', '', 'error');
+    }
+    return { ok: false, status, error: err?.response?.data ?? err };
+  }
+};
+
 
     const updateProduct = async (id, dataToSend) => {
         await csrf();
@@ -140,7 +141,6 @@ export const useProduct = () => {
                 porcentaje_ganancia_mayor: producto.porcentaje_ganancia_mayor,
                 forma_de_venta_mayor: producto.forma_de_venta_mayor,
                 forma_de_venta: producto.forma_de_venta,
-                proveedor: producto.proveedor,
                 cantidad_por_caja: producto.cantidad_por_caja,
                 fecha_entrada: producto.fecha_entrada,
                 fecha_caducidad: producto.fecha_caducidad,

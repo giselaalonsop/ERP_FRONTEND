@@ -30,7 +30,7 @@
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",
     "mdb-react-ui-kit": "^8.0.0",
-    "next": "^14.1.0",
+    "next": "^15.1.1-canary.0",
     "next-connect": "^1.0.0",
     "nprogress": "^0.2.0",
     "primeicons": "^7.0.0",
