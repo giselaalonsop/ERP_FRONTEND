@@ -3,6 +3,7 @@ import './global.css'
 import { ThemeProvider } from '@/context/ThemeProvider'
 import { Suspense } from 'react'
 import Loading from './loading'
+import "flowbite"
 
 export const metadata = {
   title: 'ERP System',
