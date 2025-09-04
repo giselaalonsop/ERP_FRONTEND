@@ -3,7 +3,7 @@ module.exports = {
   settings: { react: { version: 'detect' } },
   env: { node: true, browser: true, es6: true, commonjs: true },
   extends: ['next/core-web-vitals', 'plugin:react/recommended', 'plugin:prettier/recommended'],
-  plugins: ['react', 'prettier'],
+  plugins: ['react', '@next/eslint-plugin-next', 'prettier'],
   rules: {
     'import/prefer-default-export': 0,
     'no-console': 'warn',
