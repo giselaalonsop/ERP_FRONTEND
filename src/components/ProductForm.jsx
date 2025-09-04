@@ -4,7 +4,7 @@ import DropzoneComponent from './Dropzone'
 import { useProduct } from '@/hooks/useProduct'
 import { useCategories } from '@/hooks/useCategories'
 import Swal from 'sweetalert2'
-import 'tailwindcss/tailwind.css'
+
 import Input from '@/components/Input'
 import Label from '@/components/Label'
 import InputError from '@/components/InputError'
@@ -673,7 +673,9 @@ const AddProductPage = ({ product, onClose }) => {
                                             <input {...getInputProps()} />
                                             {logoPreview ? (
                                                 <img
-                                                    src={logoPreview ||  undefined}
+                                                    src={
+                                                        logoPreview || undefined
+                                                    }
                                                     alt="Logo preview"
                                                     className="rounded-lg mx-auto object-cover"
                                                     style={{

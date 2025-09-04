@@ -6,8 +6,6 @@ import Label from '@/components/Label'
 import { useState, useEffect } from 'react'
 import Swal from 'sweetalert2'
 
-import 'tailwindcss/tailwind.css'
-
 const Register = ({ user: editUser, onClose }) => {
     const { registerUser, editUser: updateUser, hasPermission, user } = useAuth(
         {

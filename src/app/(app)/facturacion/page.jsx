@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useProduct } from '@/hooks/useProduct'
 import Swal from 'sweetalert2'
-import 'tailwindcss/tailwind.css'
+
 import { AutoComplete } from 'primereact/autocomplete'
 import 'primereact/resources/themes/saga-blue/theme.css'
 import 'primereact/resources/primereact.min.css'

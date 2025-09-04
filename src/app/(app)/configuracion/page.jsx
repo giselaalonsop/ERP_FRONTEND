@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import Swal from 'sweetalert2'
 import { useDropzone } from 'react-dropzone'
 import useConfiguracion from '@/hooks/useConfiguracion'
-import 'tailwindcss/tailwind.css'
+
 import { useTheme } from '@/context/ThemeProvider'
 import { useCategories } from '@/hooks/useCategories'
 import { useParametros } from '@/hooks/useParametros'

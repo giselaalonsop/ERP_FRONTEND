@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { useProduct } from '@/hooks/useProduct'
 import { useTheme } from '@/context/ThemeProvider'
 import Modal from '@/components/Modal'
-import 'tailwindcss/tailwind.css'
+
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { EyeIcon, TrashIcon } from '@heroicons/react/outline'
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons'
