@@ -1,8 +1,9 @@
-/* styles/globals.css */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import 'flowbite';
+/* @import 'flowbite'; */
+@import 'flowbite/dist/flowbite.css';
 
 .sidebar-shadow {
   box-shadow: 0px 4px 50px #d9ddfc;

@@ -23,6 +23,7 @@
     "chartjs-plugin-datalabels": "^2.2.0",
     "date-fns": "^3.6.0",
     "decimal.js": "^10.4.3",
+    "flowbite": "^3.1.2",
     "flowbite-react": "^0.9.0",
     "formidable": "^3.5.1",
     "html-pdf": "^1.5.0",
@@ -48,18 +49,21 @@
   },
   "devDependencies": {
     "@babel/core": "^7.28.3",
-    "@babel/eslint-parser": "^7.12.1",
+    "@babel/eslint-parser": "^7.28.0",
     "@babel/preset-react": "^7.27.1",
     "@next/eslint-plugin-next": "^10.0.4",
     "@tailwindcss/forms": "^0.5.2",
-    "autoprefixer": "^10.4.19",
+    "@types/offscreencanvas": "^2019.7.3",
+    "autoprefixer": "^10.4.21",
     "babel-eslint": "^10.1.0",
-    "eslint": "^8.27.0",
-    "eslint-config-next": "^14.0.3",
+    "eslint": "^9.34.0",
+    "eslint-config-next": "^15.5.2",
     "eslint-config-prettier": "^7.1.0",
-    "eslint-plugin-prettier": "^3.3.0",
-    "postcss": "^8.4.38",
-    "prettier": "2.2.1",
-    "tailwindcss": "^3.4.3"
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react": "^7.37.5",
+    "postcss": "^8.5.6",
+    "postcss-import": "^16.1.1",
+    "prettier": "^3.6.2",
+    "tailwindcss": "^4.1.13"
   }
 }
