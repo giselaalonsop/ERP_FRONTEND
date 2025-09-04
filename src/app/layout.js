@@ -1,5 +1,5 @@
 // app/layout.js
-import './globals.css'
+import './global.css'
 import { ThemeProvider } from '@/context/ThemeProvider'
 import { Suspense } from 'react'
 import Loading from './loading'

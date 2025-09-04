@@ -7,7 +7,7 @@ import Input from '@/components/Input'
 import Label from '@/components/Label'
 import Swal from 'sweetalert2'
 import Modal from '@/components/Modal'
-import RegisterProveedor from '@/components/RegisterProveedorForm'
+
 
 const RegisterCompra = ({ compra, onClose, editMode }) => {
     const { hasPermission, user } = useAuth({ middleware: 'auth' })
@@ -88,10 +88,10 @@ const RegisterCompra = ({ compra, onClose, editMode }) => {
         const selected = e.value
 
         if (selected.id === 'new') {
-            openModal(
-                <RegisterProveedor onClose={closeModal} />,
-                'Agregar Nuevo Proveedor',
-            )
+            // openModal(
+            //     <RegisterProveedor onClose={closeModal} />,
+            //     'Agregar Nuevo Proveedor',
+            // )
             setSelectedProveedor(null) // Limpiar el AutoComplete
             setFormData({ ...formData, proveedor_id: '' }) // Limpiar el formData
         } else {
