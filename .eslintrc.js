@@ -1,21 +1,8 @@
-// .eslintrc.js
 module.exports = {
   root: true,
-  settings: {
-    react: { version: 'detect' },
-  },
-  env: {
-    node: true,
-    browser: true,
-    es6: true,
-    commonjs: true,
-  },
-  extends: [
-    'next/core-web-vitals',        // preset recomendado por Next
-    'plugin:react/recommended',
-    'plugin:prettier/recommended',
-  ],
-  // Sin `parser` ni `parserOptions.babelOptions`
+  settings: { react: { version: 'detect' } },
+  env: { node: true, browser: true, es6: true, commonjs: true },
+  extends: ['next/core-web-vitals', 'plugin:react/recommended', 'plugin:prettier/recommended'],
   plugins: ['react', '@next/eslint-plugin-next', 'prettier'],
   rules: {
     'import/prefer-default-export': 0,
@@ -36,10 +23,6 @@ module.exports = {
     'react/react-in-jsx-scope': 0,
     'linebreak-style': ['error', 'unix'],
     semi: ['error', 'never'],
-    'prettier/prettier': [
-      'error',
-      { endOfLine: 'auto' },
-      { usePrettierrc: true },
-    ],
+    'prettier/prettier': ['error', { endOfLine: 'auto' }, { usePrettierrc: true }],
   },
 }
