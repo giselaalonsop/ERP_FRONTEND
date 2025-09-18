@@ -1,3 +1,4 @@
+// lib/apiToken.js
 import Axios from 'axios'
 
 const api = Axios.create({
@@ -5,7 +6,7 @@ const api = Axios.create({
   headers: { Accept: 'application/json' },
 })
 
-// Añade automáticamente Authorization: Bearer <token> si existe
+// Inyecta Authorization: Bearer <token> si existe
 api.interceptors.request.use(cfg => {
   if (typeof window !== 'undefined') {
     const t = localStorage.getItem('token')
@@ -14,15 +15,14 @@ api.interceptors.request.use(cfg => {
   return cfg
 })
 
-// (Opcional) Si el token expira, limpia y redirige
+// Si expira el token, limpia y (opcional) redirige
 api.interceptors.response.use(
   r => r,
   err => {
     const status = err?.response?.status
     if (status === 401 && typeof window !== 'undefined') {
       localStorage.removeItem('token')
-      // Puedes redirigir aquí si quieres:
-      // window.location.href = '/login'
+      // Opcional: window.location.href = '/login'
     }
     return Promise.reject(err)
   }

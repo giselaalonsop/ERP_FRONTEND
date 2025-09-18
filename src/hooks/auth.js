@@ -1,6 +1,9 @@
+// hooks/useAuth.js
+'use client'
+
 import useSWR from 'swr'
-import api from '@/lib/apiToken'            // ⬅️ usamos la instancia con Bearer
-import { useEffect } from 'react'
+import api from '@/lib/apiToken'
+import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Swal from 'sweetalert2'
 
@@ -10,21 +13,37 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
   const router = useRouter()
   const params = useParams()
 
-  // --- LEE USUARIO AUTENTICADO (requiere Authorization Bearer) ---
-  const { data: user, error, mutate } = useSWR('/api/user', fetcher, {
-    shouldRetryOnError: false,
-    revalidateOnFocus: false,
-  })
+  // Estado para no disparar SWR antes de leer el token
+  const [ready, setReady] = useState(false)
+  const [token, setToken] = useState(null)
 
-  // --- LISTA DE USUARIOS (solo si hay user) ---
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const t = localStorage.getItem('token')
+      setToken(t)
+      setReady(true)
+    }
+  }, [])
+
+  // --- Usuario actual (solo si hay token)
+  const { data: user, error, mutate } = useSWR(
+    ready && token ? '/api/user' : null,
+    fetcher,
+    { shouldRetryOnError: false, revalidateOnFocus: false }
+  )
+
+  // --- Listado de usuarios (solo si hay user)
   const { data: users, error: usersError, mutate: mutateUsers } = useSWR(
     user ? '/api/users' : null,
     fetcher,
     { shouldRetryOnError: false, revalidateOnFocus: false }
   )
 
-  // --- INHABILITADOS (solo si hay user) ---
-  const { data: usuariosInhabilitados, error: errorInhabilitado } = useSWR(
+  // --- Usuarios inhabilitados (solo si hay user)
+  const {
+    data: usuariosInhabilitados,
+    error: errorInhabilitado,
+  } = useSWR(
     user ? '/api/usuarios/inhabilitados' : null,
     fetcher,
     { shouldRetryOnError: false, revalidateOnFocus: false }
@@ -39,7 +58,8 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
     try {
       const { data } = await api.post('/api/login-token', { email, password })
       localStorage.setItem('token', data.token)
-      await mutate()               // revalida /api/user
+      setToken(data.token)      // habilita SWR /api/user
+      await mutate()            // revalida usuario
       return data
     } catch (error) {
       const status = error?.response?.status
@@ -50,16 +70,15 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
   }
 
   const logoutToken = async () => {
-    try {
-      await api.post('/api/logout-token') // revoca token actual en BE
-    } catch (_) {}
+    try { await api.post('/api/logout-token') } catch (_) {}
     localStorage.removeItem('token')
-    await mutate(null, false)             // limpia cache /api/user
+    setToken(null)
+    await mutate(null, false) // limpia cache /api/user
     router.push('/login')
   }
 
   // ==========================
-  //  CRUD / ACCIONES API
+  //  ACCIONES API (todas via Bearer)
   // ==========================
   const registerUser = async ({ setErrors, ...props }) => {
     setErrors?.([])
@@ -128,11 +147,14 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
     return !!userPermissions?.[permission]
   }
 
+  // Redirecciones por middleware
   useEffect(() => {
     if (middleware === 'guest' && redirectIfAuthenticated && user) {
       router.push(redirectIfAuthenticated)
     }
-    if (window.location.pathname === '/verify-email' && user?.email_verified_at) {
+    if (typeof window !== 'undefined' &&
+        window.location.pathname === '/verify-email' &&
+        user?.email_verified_at) {
       router.push(redirectIfAuthenticated)
     }
     const status = error?.status || error?.response?.status
@@ -141,23 +163,26 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
     }
   }, [user, error, middleware, redirectIfAuthenticated, router])
 
-  // Devuelve SOLO funciones token-based (las de cookies/CSRF ya no se usan)
   return {
+    // datos
     user,
     users,
     usuariosInhabilitados,
     usersError,
     errorInhabilitado,
 
+    // auth (tokens)
     loginToken,
     logoutToken,
 
+    // acciones
     registerUser,
     editUser,
     deleteUser,
     habilitarUser,
-
     mutateUsers,
+
+    // helpers
     hasPermission,
   }
 }
