@@ -1,222 +1,163 @@
-import useSWR from 'swr';
-import axios from '@/lib/axios';
-import { useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Swal from 'sweetalert2';
+import useSWR from 'swr'
+import api from '@/lib/apiToken'            // ⬅️ usamos la instancia con Bearer
+import { useEffect } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import Swal from 'sweetalert2'
 
-const fetcher = url => axios.get(url).then(res => res.data);
+const fetcher = url => api.get(url).then(res => res.data)
 
 export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
-  const router = useRouter();
-  const params = useParams();
+  const router = useRouter()
+  const params = useParams()
 
-  const csrf = () => axios.get('/sanctum/csrf-cookie');
-
-  // Usuario actual
+  // --- LEE USUARIO AUTENTICADO (requiere Authorization Bearer) ---
   const { data: user, error, mutate } = useSWR('/api/user', fetcher, {
     shouldRetryOnError: false,
     revalidateOnFocus: false,
-  });
+  })
 
-  // Usuarios (solo si autenticado)
-  const {
-    data: users,
-    error: usersError,
-    mutate: mutateUsers,
-  } = useSWR(user ? '/api/users' : null, fetcher, {
-    shouldRetryOnError: false,
-    revalidateOnFocus: false,
-  });
+  // --- LISTA DE USUARIOS (solo si hay user) ---
+  const { data: users, error: usersError, mutate: mutateUsers } = useSWR(
+    user ? '/api/users' : null,
+    fetcher,
+    { shouldRetryOnError: false, revalidateOnFocus: false }
+  )
 
-  // Usuarios inhabilitados (solo si autenticado)
-  const {
-    data: usuariosInhabilitados,
-    error: errorInhabilitado,
-  } = useSWR(user ? '/api/usuarios/inhabilitados' : null, fetcher, {
-    shouldRetryOnError: false,
-    revalidateOnFocus: false,
-  });
+  // --- INHABILITADOS (solo si hay user) ---
+  const { data: usuariosInhabilitados, error: errorInhabilitado } = useSWR(
+    user ? '/api/usuarios/inhabilitados' : null,
+    fetcher,
+    { shouldRetryOnError: false, revalidateOnFocus: false }
+  )
 
-  const register = async ({ setErrors, ...props }) => {
-    await csrf();
-    setErrors([]);
+  // ==========================
+  //  AUTENTICACIÓN CON TOKEN
+  // ==========================
+  const loginToken = async ({ email, password, setErrors, setStatus }) => {
+    setErrors?.([])
+    setStatus?.(null)
     try {
-      const response = await axios.post('/register', props);
-      mutateUsers();
-      if (response.status === 200 || response.status === 201) {
-        Swal.fire('Usuario Registrado', '', 'success');
-      }
-      return response;
+      const { data } = await api.post('/api/login-token', { email, password })
+      localStorage.setItem('token', data.token)
+      await mutate()               // revalida /api/user
+      return data
     } catch (error) {
-      Swal.fire('Error al registrar usuario', '', 'error');
-      setErrors(error?.response?.data?.errors || {});
-      if (error?.response?.status !== 422) throw error;
+      const status = error?.response?.status
+      setStatus?.(error?.response?.data?.message || 'Error')
+      if (status === 422) setErrors?.(error?.response?.data?.errors || {})
+      throw error
     }
-  };
+  }
 
+  const logoutToken = async () => {
+    try {
+      await api.post('/api/logout-token') // revoca token actual en BE
+    } catch (_) {}
+    localStorage.removeItem('token')
+    await mutate(null, false)             // limpia cache /api/user
+    router.push('/login')
+  }
+
+  // ==========================
+  //  CRUD / ACCIONES API
+  // ==========================
   const registerUser = async ({ setErrors, ...props }) => {
-    await csrf();
-    setErrors([]);
+    setErrors?.([])
     try {
-      const response = await axios.post('/api/register', props);
-      mutateUsers();
+      const response = await api.post('/api/register', props)
+      mutateUsers()
       if (response.status === 200 || response.status === 201) {
-        Swal.fire('Usuario Registrado', '', 'success');
+        Swal.fire('Usuario Registrado', '', 'success')
       }
-      return response;
+      return response
     } catch (error) {
-      Swal.fire('Error al registrar usuario', '', 'error');
-      setErrors(error?.response?.data?.errors || {});
-      if (error?.response?.status !== 422) throw error;
+      Swal.fire('Error al registrar usuario', '', 'error')
+      setErrors?.(error?.response?.data?.errors || {})
+      if (error?.response?.status !== 422) throw error
     }
-  };
+  }
 
   const habilitarUser = async id => {
-    await csrf();
     try {
-      const response = await axios.put(`/api/usuarios/habilitar/${id}`);
+      const response = await api.put(`/api/usuarios/habilitar/${id}`)
       if (response.status === 200 || response.status === 201) {
-        mutateUsers();
-        return true;
+        mutateUsers()
+        return true
       }
-      return false;
+      return false
     } catch (error) {
-      console.error('Error al habilitar el usuario', error);
-      return false;
+      console.error('Error al habilitar usuario', error)
+      return false
     }
-  };
-
-  const login = async ({ email, password, remember, setErrors, setStatus }) => {
-    setErrors([]);
-    setStatus(null);
-    await csrf();
-    try {
-      const response = await axios.post('/login', { email, password, remember });
-      await mutate(); // revalidar /api/user
-      return response;
-    } catch (error) {
-      const status = error?.response?.status;
-      setStatus(error?.response?.data?.message || 'Error');
-      if (status === 422) setErrors(error?.response?.data?.errors || {});
-      throw error;
-    }
-  };
-
-  const forgotPassword = async ({ setErrors, setStatus, email }) => {
-    await csrf();
-    setErrors([]);
-    setStatus(null);
-    try {
-      const response = await axios.post('/forgot-password', { email });
-      setStatus(response.data.status);
-    } catch (error) {
-      if (error?.response?.status !== 422) throw error;
-      setErrors(error?.response?.data?.errors || {});
-    }
-  };
-
-  const resetPassword = async ({ setErrors, setStatus, ...props }) => {
-    await csrf();
-    setErrors([]);
-    setStatus(null);
-    try {
-      const response = await axios.post('/reset-password', {
-        token: params?.token,
-        ...props,
-      });
-      router.push('/login?reset=' + btoa(response.data.status));
-    } catch (error) {
-      if (error?.response?.status !== 422) throw error;
-      setErrors(error?.response?.data?.errors || {});
-    }
-  };
-
-  const resendEmailVerification = async ({ setStatus }) => {
-    await csrf();
-    const { data } = await axios.post('/email/verification-notification');
-    setStatus(data.status);
-  };
-
-  const logout = async () => {
-    try {
-      await axios.post('/logout');
-    } finally {
-      await mutate(null, false); // limpia cache /api/user
-      router.push('/login');
-    }
-  };
+  }
 
   const editUser = async (userId, data) => {
-    await csrf();
     try {
-      const response = await axios.put(`/api/users/${userId}`, data);
-      mutateUsers();
+      const response = await api.put(`/api/users/${userId}`, data)
+      mutateUsers()
       if (response.status === 200 || response.status === 201) {
-        Swal.fire('Usuario Actualizado', '', 'success');
+        Swal.fire('Usuario Actualizado', '', 'success')
       }
-      return response;
+      return response
     } catch (error) {
-      Swal.fire('Error al actualizar usuario', '', 'error');
-      throw error;
+      Swal.fire('Error al actualizar usuario', '', 'error')
+      throw error
     }
-  };
+  }
 
   const deleteUser = async userId => {
-    await csrf();
     try {
-      await axios.put(`/api/users/borrar/${userId}`);
-      mutateUsers();
-      Swal.fire('Usuario Eliminado', '', 'success');
+      await api.put(`/api/users/borrar/${userId}`)
+      mutateUsers()
+      Swal.fire('Usuario Eliminado', '', 'success')
     } catch (error) {
-      Swal.fire('Error al eliminar usuario', '', 'error');
-      throw error;
+      Swal.fire('Error al eliminar usuario', '', 'error')
+      throw error
     }
-  };
+  }
 
+  // ==========================
+  //  HELPERS
+  // ==========================
   const hasPermission = (userObj, permission) => {
-    if (!userObj || !userObj.permissions) return false;
-    let userPermissions = userObj.permissions;
+    if (!userObj || !userObj.permissions) return false
+    let userPermissions = userObj.permissions
     if (typeof userPermissions === 'string') {
-      try {
-        userPermissions = JSON.parse(userPermissions);
-      } catch {
-        return false;
-      }
+      try { userPermissions = JSON.parse(userPermissions) } catch { return false }
     }
-    return !!userPermissions?.[permission];
-  };
+    return !!userPermissions?.[permission]
+  }
 
   useEffect(() => {
     if (middleware === 'guest' && redirectIfAuthenticated && user) {
-      router.push(redirectIfAuthenticated);
+      router.push(redirectIfAuthenticated)
     }
     if (window.location.pathname === '/verify-email' && user?.email_verified_at) {
-      router.push(redirectIfAuthenticated);
+      router.push(redirectIfAuthenticated)
     }
-    // Evita bucles: solo actúa si realmente es 401
-    const status = error?.status || error?.response?.status;
+    const status = error?.status || error?.response?.status
     if (middleware === 'auth' && status === 401) {
-      router.push('/login');
+      router.push('/login')
     }
-  }, [user, error, middleware, redirectIfAuthenticated, router]);
+  }, [user, error, middleware, redirectIfAuthenticated, router])
 
+  // Devuelve SOLO funciones token-based (las de cookies/CSRF ya no se usan)
   return {
     user,
     users,
-    register,
-    registerUser,
-    login,
-    forgotPassword,
-    resetPassword,
-    resendEmailVerification,
-    logout,
+    usuariosInhabilitados,
     usersError,
-    mutateUsers,
+    errorInhabilitado,
+
+    loginToken,
+    logoutToken,
+
+    registerUser,
     editUser,
     deleteUser,
-    hasPermission,
     habilitarUser,
-    usuariosInhabilitados,
-    errorInhabilitado,
-  };
-};
+
+    mutateUsers,
+    hasPermission,
+  }
+}

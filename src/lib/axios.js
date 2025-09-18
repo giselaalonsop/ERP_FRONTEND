@@ -1,18 +1,16 @@
-// lib/axios.js
+// lib/apiToken.js
 import Axios from 'axios'
 
-const axios = Axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL, // ej. https://erp...railway.app
-  withCredentials: true,
-  withXSRFToken: true, // ok en axios >=1.6
-  headers: {
-    'Accept': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest',
-  },
+const api = Axios.create({
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+  headers: { Accept: 'application/json' },
 })
 
-// Nombres por defecto de Laravel Sanctum (los pongo explícitos)
-axios.defaults.xsrfCookieName = 'XSRF-TOKEN'
-axios.defaults.xsrfHeaderName = 'X-XSRF-TOKEN'
+// Interceptor: añade Authorization si hay token
+api.interceptors.request.use(cfg => {
+  const t = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+  if (t) cfg.headers.Authorization = `Bearer ${t}`
+  return cfg
+})
 
-export default axios
+export default api
