@@ -1,55 +1,203 @@
-// app/login/page.jsx
 'use client'
 
-import { useState } from 'react'
-import { useAuth } from '@/hooks/useAuth'
+import Button from '@/components/Button'
+import Input from '@/components/Input'
+import InputError from '@/components/InputError'
+import Label from '@/components/Label'
+import Link from 'next/link'
+import { useAuth } from '@/hooks/auth'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import AuthSessionStatus from '@/app/(auth)/AuthSessionStatus'
+import useConfiguracion from '@/hooks/useConfiguracion'
+import Swal from 'sweetalert2'
 
-export default function LoginPage() {
-  const { loginToken } = useAuth({ middleware: 'guest', redirectIfAuthenticated: '/' })
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [status, setStatus] = useState(null)
-  const [errors, setErrors] = useState({})
+const Login = () => {
+    const router = useRouter()
+    const { logo, loading } = useConfiguracion()
+    const { login } = useAuth({
+        middleware: 'guest',
+        redirectIfAuthenticated: '/dashboard',
+    })
 
-  const onSubmit = async e => {
-    e.preventDefault()
-    try {
-      await loginToken({ email, password, setErrors, setStatus })
-      // redirección se maneja desde layout o donde leas user
-    } catch (e) {
-      // ya se setean status/errors
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [shouldRemember, setShouldRemember] = useState(false)
+    const [errors, setErrors] = useState([])
+    const [status, setStatus] = useState(null)
+    const [img, setImg] = useState('')
+
+    useEffect(() => {
+        if (loading) {
+            return
+        }
+        if (logo) {
+            const logoPath = `http://localhost:8000/${logo}`
+            setImg(logoPath)
+        }
+    }, [logo, loading])
+
+    useEffect(() => {
+        if (router.reset?.length > 0 && errors.length === 0) {
+            setStatus(atob(router.reset))
+        } else {
+            setStatus(null)
+        }
+    }, [router.reset, errors])
+
+    const submitForm = async event => {
+        event.preventDefault()
+
+        // Mostrar alerta de carga
+        const loadingAlert = Swal.fire({
+            title: 'Procesando...',
+            text: 'Esto puede tardar unos segundos.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading()
+            },
+            
+        })
+
+        // Procesar el login
+        const responde =await login({
+            email,
+            password,
+            remember: shouldRemember,
+            setErrors,
+            setStatus,
+        })
+
+        if(responde){
+            //no cerrar modal de alerta
+            setTimeout(() => {
+                loadingAlert.close()
+            
+            }, 1000)
+        }
+        Swal.close()
     }
-  }
 
-  return (
-    <main className="p-6 max-w-sm mx-auto">
-      <h1 className="text-xl font-semibold mb-4">Iniciar sesión</h1>
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-100 text-gray-900 flex items-center justify-center p-10">
+                Loading...
+            </div>
+        )
+    }
 
-      {status && <p className="text-red-600 mb-2">{status}</p>}
+    return (
+        <div className="min-h-screen bg-gray-100 text-gray-900 flex items-center justify-center p-10">
+            <div className="max-w-screen-xl bg-white shadow sm:rounded-lg flex justify-center flex-1 h-full overflow-hidden">
+                <div className="lg:w-1/2 xl:w-5/12 p-6 sm:p-12 flex flex-col justify-center">
+                    <div className="text-center">
+                        <img
+                            src={img || `https://storage.googleapis.com/devitary-image-host.appspot.com/15846435184459982716-LogoMakr_7POjrN.png`}
+                            className="w-50 h-auto mx-auto"
+                        />
+                    </div>
 
-      <form onSubmit={onSubmit} className="space-y-3">
-        <input
-          type="email"
-          className="w-full border p-2 rounded"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-        />
-        {errors?.email && <p className="text-red-600 text-sm">{errors.email}</p>}
+                    <div className="mt-12 flex flex-col items-center">
+                        <h1 className="text-2xl xl:text-3xl font-extrabold">
+                            Iniciar Sesión
+                        </h1>
+                        <div className="w-full flex-1 mt-8">
+                            <div className="flex flex-col items-center"></div>
 
-        <input
-          type="password"
-          className="w-full border p-2 rounded"
-          placeholder="Contraseña"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-        />
-        {errors?.password && <p className="text-red-600 text-sm">{errors.password}</p>}
+                            <AuthSessionStatus status={status} />
+                            <form onSubmit={submitForm}>
+                                <div className="mx-auto max-w-xs">
+                                    <div>
+                                        <Label htmlFor="email">Correo Electronico</Label>
+                                        <Input
+                                            className="w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white"
+                                            id="email"
+                                            type="email"
+                                            value={email}
+                                            onChange={event =>
+                                                setEmail(event.target.value)
+                                            }
+                                            required
+                                            autoFocus
+                                            placeholder="Ingrese un correo electronico"
+                                        />
+                                        <InputError
+                                            messages={errors.email}
+                                            className="mt-2"
+                                        />
+                                    </div>
+                                    <div className="mt-4">
+                                        <Label htmlFor="password">Contraseña</Label>
+                                        <Input
+                                            className="w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white mt-5"
+                                            id="password"
+                                            type="password"
+                                            value={password}
+                                            onChange={event =>
+                                                setPassword(event.target.value)
+                                            }
+                                            required
+                                            autoComplete="current-password"
+                                        />
+                                        <InputError
+                                            messages={errors.password}
+                                            className="mt-2"
+                                        />
+                                    </div>
 
-        <button className="w-full bg-black text-white p-2 rounded" type="submit">
-          Entrar
-        </button>
-      </form>
-    </main>
-  )
+                                    <div className="block mt-4">
+                                        <label
+                                            htmlFor="remember_me"
+                                            className="inline-flex items-center"
+                                        >
+                                            <input
+                                                id="remember_me"
+                                                type="checkbox"
+                                                name="remember"
+                                                className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                                onChange={event =>
+                                                    setShouldRemember(event.target.checked)
+                                                }
+                                            />
+
+                                            <span className="ml-2 text-sm text-gray-600">
+                                                Recordarme
+                                            </span>
+                                        </label>
+                                    </div>
+
+                                    <Button className="mt-5 tracking-wide font-semibold bg-indigo-500 text-gray-100 w-full py-4 rounded-lg hover:bg-indigo-700 transition-all duration-300 ease-in-out flex items-center justify-center focus:shadow-outline focus:outline-none">
+                                        <svg
+                                            className="w-6 h-6 -ml-2"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth={2}
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                                            <circle cx="8.5" cy={7} r={4} />
+                                            <path d="M20 8v6M23 11h-6" />
+                                        </svg>
+                                        <span className="ml-3">Ingresar</span>
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div className="flex-1 bg-indigo-100 text-center hidden lg:flex">
+                    <div
+                        className="m-12 xl:m-16 w-full bg-contain bg-center bg-no-repeat"
+                        style={{
+                            backgroundImage:
+                                'url("https://storage.googleapis.com/devitary-image-host.appspot.com/15848031292911696601-undraw_designer_life_w96d.svg")',
+                        }}
+                    ></div>
+                </div>
+            </div>
+        </div>
+    )
 }
+
+export default Login
