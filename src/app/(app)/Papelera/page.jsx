@@ -59,7 +59,7 @@ const Page = () => {
                             <img
                                 src={
                                     item.imagen
-                                        ? `https://www.gcode-sytem.com/${item.imagen}`
+                                        ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${item.imagen}`
                                         : undefined
                                 }
                                 alt={item.nombre}

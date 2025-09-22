@@ -32,7 +32,7 @@ const Login = () => {
             return
         }
         if (logo) {
-            const logoPath = `https://www.gcode-sytem.com/${logo}`
+            const logoPath = `${process.env.NEXT_PUBLIC_BACKEND_URL}${logo}`
             setImg(logoPath)
         }
     }, [logo, loading])

@@ -105,7 +105,9 @@ const AddProductPage = ({ product, onClose }) => {
             setEdicion(true)
             setFormData(product)
             if (product.imagen) {
-                setLogoPreview(`https://www.gcode-sytem.com/${product.imagen}`)
+                setLogoPreview(
+                    `${process.env.NEXT_PUBLIC_BACKEND_URL}${product.imagen}`,
+                )
             }
         }
     }, [product])

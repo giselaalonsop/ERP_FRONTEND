@@ -434,7 +434,7 @@ const Facturacion = () => {
                                     className="w-14 h-14 rounded-full"
                                     src={
                                         product.imagen
-                                            ? `https://www.gcode-sytem.com/${product.imagen}`
+                                            ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${product.imagen}`
                                             : undefined
                                     }
                                     alt={`${product.nombre} image`}

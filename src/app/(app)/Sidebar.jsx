@@ -33,7 +33,7 @@ const Sidebar = ({ logout }) => {
 
     useEffect(() => {
         if (configuracion) {
-            const logoPath = `https://www.gcode-sytem.com/${configuracion.logo}`
+            const logoPath = `${process.env.NEXT_PUBLIC_BACKEND_URL}${configuracion.logo}`
             setImg(logoPath)
         }
     }, [configuracion])

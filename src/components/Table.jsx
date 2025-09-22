@@ -299,7 +299,7 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
                                                                 className="w-16 h-16 object-cover rounded"
                                                                 src={
                                                                     product.imagen
-                                                                        ? `https://www.gcode-sytem.com/${product.imagen}`
+                                                                        ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${product.imagen}`
                                                                         : undefined
                                                                 }
                                                                 alt={
