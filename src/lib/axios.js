@@ -19,12 +19,11 @@ function getCookie(name) {
   return m ? decodeURIComponent(m[2]) : null;
 }
 
-axios.interceptors.request.use((config) => {
+axios.interceptors.request.use(cfg => {
   const token = getCookie('XSRF-TOKEN');
-  if (token) {
-    config.headers['X-XSRF-TOKEN'] = token; // <- clave para evitar 419
-  }
-  return config;
+  if (token) cfg.headers['X-XSRF-TOKEN'] = token;
+  return cfg;
 });
+
 
 export default axios;
