@@ -91,11 +91,11 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
   setStatus(null);
   try {
     await axios.get('/sanctum/csrf-cookie');      // 1) setea cookies
-    const resp = await axios.post('/login', {     // 2) ahora sí, con X-XSRF-TOKEN
-      email, password, remember,
-    },{ validateStatus: s => s >= 200 && s < 400 });
-    await mutate();
-    return resp;
+    await axios.post('/login', { email, password, remember }, {
+  validateStatus: s => s >= 200 && s < 400
+})
+router.push('/dashboard')
+    return true;
   } catch (error) {
     const status = error?.response?.status;
     setStatus(error?.response?.data?.message || 'Error');
