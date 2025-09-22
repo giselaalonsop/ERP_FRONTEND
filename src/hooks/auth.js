@@ -89,10 +89,11 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
   const login = async ({ email, password, remember, setErrors, setStatus }) => {
     setErrors([]);
     setStatus(null);
-    await csrf();
+    const csrf = () => axios.get('/sanctum/csrf-cookie')
     try {
+      await csrf();
       const response = await axios.post('/login', { email, password, remember });
-      await mutate(); // revalidar /api/user
+      await mutate(); 
       return response;
     } catch (error) {
       const status = error?.response?.status;
