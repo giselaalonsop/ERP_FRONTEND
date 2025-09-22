@@ -1,7 +1,7 @@
 // lib/axios.js
 import Axios from 'axios'
 const axios = Axios.create({
-  baseURL: 'https://api.gcode-system.com',
+  baseURL: 'https://api.gcode-sytem.com',
   withCredentials: true,
   headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
 })
