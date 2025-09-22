@@ -57,7 +57,11 @@ const Page = () => {
                         header: 'Imagen',
                         format: item => (
                             <img
-                                src={item.imagen ? `http://localhost:8000/${item.imagen}` : undefined}
+                                src={
+                                    item.imagen
+                                        ? `https://www.gcode-sytem.com/${item.imagen}`
+                                        : undefined
+                                }
                                 alt={item.nombre}
                                 className="w-10 h-10 rounded-full"
                             />
@@ -107,7 +111,7 @@ const Page = () => {
                             ),
                     },
                 ]
-           
+
             case 'usuarios':
                 return [
                     { key: 'name', header: 'Nombre' },

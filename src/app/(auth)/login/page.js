@@ -32,7 +32,7 @@ const Login = () => {
             return
         }
         if (logo) {
-            const logoPath = `http://localhost:8000/${logo}`
+            const logoPath = `https://www.gcode-sytem.com/${logo}`
             setImg(logoPath)
         }
     }, [logo, loading])

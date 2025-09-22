@@ -40,12 +40,8 @@ const AddProductPage = ({ product, onClose }) => {
     } = useCategories()
     console.log(categories)
     const { addProduct, updateProduct } = useProduct()
-    const {
-        unidadesMedida,
-        formasVenta,
-        addUnidadMedida,
-        addFormaVenta,
-    } = useParametros()
+    const { unidadesMedida, formasVenta, addUnidadMedida, addFormaVenta } =
+        useParametros()
     const [step, setStep] = useState(1)
     const [newCategory, setNewCategory] = useState('')
     const [newUnidadMedida, setNewUnidadMedida] = useState('')
@@ -54,9 +50,8 @@ const AddProductPage = ({ product, onClose }) => {
     const [isAddingCategory, setIsAddingCategory] = useState(false)
     const [isAddingUnidad, setIsAddingUnidad] = useState(false)
     const [isAddingFormaVenta, setIsAddingFormaVenta] = useState(false)
-    const [isAddingFormaVentaMayor, setIsAddingFormaVentaMayor] = useState(
-        false,
-    )
+    const [isAddingFormaVentaMayor, setIsAddingFormaVentaMayor] =
+        useState(false)
     const [errors, setErrors] = useState({})
     const [responseMessage, setResponseMessage] = useState(null)
     const [touchedFields, setTouchedFields] = useState({})
@@ -81,7 +76,7 @@ const AddProductPage = ({ product, onClose }) => {
         forma_de_venta: '',
         forma_de_venta_mayor: '',
         cantidad_por_caja: '',
-        ubicacion: localStorage.getItem('almacen') || 'General',
+        ubicacion: localStorage.getItem('almacen') || 'Principal',
     })
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalContent, setModalContent] = useState(null)
@@ -110,7 +105,7 @@ const AddProductPage = ({ product, onClose }) => {
             setEdicion(true)
             setFormData(product)
             if (product.imagen) {
-                setLogoPreview(`http://localhost:8000/${product.imagen}`)
+                setLogoPreview(`https://www.gcode-sytem.com/${product.imagen}`)
             }
         }
     }, [product])
@@ -618,9 +613,6 @@ const AddProductPage = ({ product, onClose }) => {
                                             value={formData.ubicacion}
                                             onChange={handleAlmacenChange}
                                             className="block w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600">
-                                            <option value="General">
-                                                General
-                                            </option>
                                             <option value="Sucursal">
                                                 Sucursal
                                             </option>

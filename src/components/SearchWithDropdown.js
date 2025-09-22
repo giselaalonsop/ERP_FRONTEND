@@ -15,7 +15,7 @@ const SearchWithDropdown = ({
         'Todas las categorias',
     )
     const [selectedLocation, setSelectedLocation] = useState(
-        initialSelectedLocation || 'General',
+        initialSelectedLocation || 'Principal',
     ) // Usar el valor inicial
     const { isDark } = useTheme()
     const { categories, isLoading, isError } = useCategories()
@@ -48,7 +48,7 @@ const SearchWithDropdown = ({
 
     useEffect(() => {
         // Asegúrate de que la ubicación inicial se establece correctamente
-        setSelectedLocation(initialSelectedLocation || 'General')
+        setSelectedLocation(initialSelectedLocation || 'Principal')
     }, [initialSelectedLocation])
 
     if (isLoading) return <div>Loading...</div>
@@ -105,15 +105,6 @@ const SearchWithDropdown = ({
                 {isLocationOpen && (
                     <div className="absolute mt-2 w-full rounded-md z-10">
                         <ul className="py-1">
-                            <li
-                                className={`${
-                                    isDark
-                                        ? 'bg-gray-800 text-white'
-                                        : 'bg-white text-gray-800'
-                                } block px-4 py-2 cursor-pointer`}
-                                onClick={() => selectLocation('General')}>
-                                General
-                            </li>
                             <li
                                 className={`${
                                     isDark

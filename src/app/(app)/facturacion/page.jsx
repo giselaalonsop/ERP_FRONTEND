@@ -40,10 +40,8 @@ const Facturacion = () => {
     const clientACRef = useRef(null)
 
     const [filteredClientes, setFilteredClientes] = useState([])
-    const [
-        isRegisterClienteModalOpen,
-        setIsRegisterClienteModalOpen,
-    ] = useState(false)
+    const [isRegisterClienteModalOpen, setIsRegisterClienteModalOpen] =
+        useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalContent, setModalContent] = useState(null)
     const [modalTitle, setModalTitle] = useState('')
@@ -226,8 +224,8 @@ const Facturacion = () => {
             results.length
                 ? results
                 : hasPermission(user, 'clientes') || user?.rol === 'admin'
-                ? [{ cedula: 'Agregar nuevo cliente', nombre: '' }]
-                : [],
+                  ? [{ cedula: 'Agregar nuevo cliente', nombre: '' }]
+                  : [],
         )
     }
 
@@ -436,7 +434,7 @@ const Facturacion = () => {
                                     className="w-14 h-14 rounded-full"
                                     src={
                                         product.imagen
-                                            ? `http://localhost:8000/${product.imagen}`
+                                            ? `https://www.gcode-sytem.com/${product.imagen}`
                                             : undefined
                                     }
                                     alt={`${product.nombre} image`}

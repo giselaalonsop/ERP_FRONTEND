@@ -58,8 +58,7 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
     const handleRemoveProduct = id => {
         Swal.fire({
             title: '¿Está seguro de eliminar?',
-            text:
-                'Podras recuperar este producto mas adelante en la seccion Papelera!',
+            text: 'Podras recuperar este producto mas adelante en la seccion Papelera!',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -246,8 +245,8 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
                                                                             ? 'text-emerald-500 bg-emerald-500/20'
                                                                             : 'text-emerald-500 bg-emerald-100/60'
                                                                         : isDark
-                                                                        ? 'text-red-500 bg-red-500/20'
-                                                                        : 'text-red-500 bg-red-100/60'
+                                                                          ? 'text-red-500 bg-red-500/20'
+                                                                          : 'text-red-500 bg-red-100/60'
                                                                 }`}>
                                                                 <svg
                                                                     width="12"
@@ -300,7 +299,7 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
                                                                 className="w-16 h-16 object-cover rounded"
                                                                 src={
                                                                     product.imagen
-                                                                        ? `http://localhost:8000/${product.imagen}`
+                                                                        ? `https://www.gcode-sytem.com/${product.imagen}`
                                                                         : undefined
                                                                 }
                                                                 alt={
@@ -449,8 +448,8 @@ const ProductTable = ({ selectedCategory, searchText, selectedLocation }) => {
                                         currentPage === 1
                                             ? 'bg-indigo-600 text-white'
                                             : isDark
-                                            ? 'text-gray-300 ring-gray-700 hover:bg-gray-800'
-                                            : 'text-gray-900 ring-gray-300 hover:bg-gray-50'
+                                              ? 'text-gray-300 ring-gray-700 hover:bg-gray-800'
+                                              : 'text-gray-900 ring-gray-300 hover:bg-gray-50'
                                     } ring-1 ring-inset focus:z-20 focus:outline-offset-0`}>
                                     {currentPage}
                                 </button>

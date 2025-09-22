@@ -33,7 +33,7 @@ const Sidebar = ({ logout }) => {
 
     useEffect(() => {
         if (configuracion) {
-            const logoPath = `http://localhost:8000/${configuracion.logo}`
+            const logoPath = `https://www.gcode-sytem.com/${configuracion.logo}`
             setImg(logoPath)
         }
     }, [configuracion])
@@ -70,7 +70,7 @@ const Sidebar = ({ logout }) => {
                 }}>
                 {sidebarOpen && configuracion && (
                     <img
-                        src={img || undefined }
+                        src={img || undefined}
                         alt="Logo"
                         className="h-10 w-auto px-2"
                         style={{ marginRight: 'auto' }}
@@ -330,7 +330,6 @@ const Sidebar = ({ logout }) => {
                             </span>
                         </Link>
                         <ul className={`${compras ? 'block' : 'hidden'} ml-4`}>
-                           
                             <li>
                                 <Link
                                     href="/compras"

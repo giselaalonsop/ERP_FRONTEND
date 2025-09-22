@@ -35,7 +35,7 @@ const ConfirmFactura = ({
 
     useEffect(() => {
         if (configuracion) {
-            const logoPath = `http://localhost:8000/${configuracion.logo}`
+            const logoPath = `https://www.gcode-sytem.com/${configuracion.logo}`
             setImg(logoPath)
         }
     }, [configuracion])
@@ -262,7 +262,7 @@ const ConfirmFactura = ({
                 ref={htmlContentRef}
                 className="bg-white border rounded-lg shadow-lg px-6 py-8 max-w-md mx-auto mt-8">
                 <img
-                    src={img ||  undefined}
+                    src={img || undefined}
                     alt="logo"
                     className="w-20 h-auto mx-auto mb-4"
                 />

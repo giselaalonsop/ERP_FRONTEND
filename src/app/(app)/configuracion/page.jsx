@@ -113,7 +113,7 @@ const ConfigurationForm = () => {
                 setPagoMovil(cfg.pago_movil ?? [])
                 setTransferencias(cfg.transferencias ?? [])
                 setLogoPreview(
-                    cfg.logo ? `http://localhost:8000/${cfg.logo}` : null,
+                    cfg.logo ? `https://www.gcode-sytem.com/${cfg.logo}` : null,
                 )
             } else {
                 setLogoPreview(null)
@@ -144,7 +144,7 @@ const ConfigurationForm = () => {
             if (configData.logo) {
                 setLogoPreview(
                     configData?.logo
-                        ? `http://localhost:8000/${configData.logo}`
+                        ? `https://www.gcode-sytem.com/${configData.logo}`
                         : null,
                 )
             }

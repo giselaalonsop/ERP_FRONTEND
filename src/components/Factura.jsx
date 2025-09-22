@@ -19,7 +19,7 @@ const Factura = forwardRef(({ venta }, ref) => {
 
     useEffect(() => {
         if (configuracion) {
-            const logoPath = `http://localhost:8000/${configuracion.logo}`
+            const logoPath = `https://www.gcode-sytem.com/${configuracion.logo}`
             setImg(logoPath)
         }
     }, [configuracion])
@@ -30,7 +30,7 @@ const Factura = forwardRef(({ venta }, ref) => {
             ref={ref}
             className="bg-white border rounded-lg shadow-lg px-6 py-8 max-w-md mx-auto mt-8">
             <img
-                src={img ||  undefined}
+                src={img || undefined}
                 alt="logo"
                 className=" mx-auto mb-4"
                 style={{ width: '200px', height: 'auto' }}

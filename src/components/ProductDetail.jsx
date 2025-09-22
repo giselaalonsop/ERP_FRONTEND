@@ -14,7 +14,11 @@ const ProductDetail = ({ product }) => {
                     <div className="shrink-0 max-w-md lg:max-w-lg mx-auto">
                         <img
                             className="w-full"
-                            src={product.imagen ? `http://localhost:8000/${product.imagen}` : undefined}
+                            src={
+                                product.imagen
+                                    ? `https://www.gcode-sytem.com/${product.imagen}`
+                                    : undefined
+                            }
                             alt={product.nombre}
                         />
                     </div>
