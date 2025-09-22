@@ -87,22 +87,22 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
   };
 
   const login = async ({ email, password, remember, setErrors, setStatus }) => {
-    setErrors([]);
-    setStatus(null);
-    const csrf = () => axios.get('/sanctum/csrf-cookie')
-    try {
-      await csrf();
-      const response = await axios.post('/login', { email, password, remember });
-      await mutate(); 
-      return response;
-    } catch (error) {
-      const status = error?.response?.status;
-      setStatus(error?.response?.data?.message || 'Error');
-      if (status === 422) setErrors(error?.response?.data?.errors || {});
-      throw error;
-    }
-  };
-
+  setErrors([]);
+  setStatus(null);
+  try {
+    await axios.get('/sanctum/csrf-cookie');      // 1) setea cookies
+    const resp = await axios.post('/login', {     // 2) ahora sí, con X-XSRF-TOKEN
+      email, password, remember,
+    });
+    await mutate();
+    return resp;
+  } catch (error) {
+    const status = error?.response?.status;
+    setStatus(error?.response?.data?.message || 'Error');
+    if (status === 422) setErrors(error?.response?.data?.errors || {});
+    throw error;
+  }
+};
   const forgotPassword = async ({ setErrors, setStatus, email }) => {
     await csrf();
     setErrors([]);
